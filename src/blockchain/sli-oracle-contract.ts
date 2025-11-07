@@ -6,7 +6,7 @@ import { SLI_ORACLE_ABI } from "./abis/sli-oracle-abi.js";
 import { getRpcClient, getWalletClient } from "./blockchain-client.js";
 
 export async function setSliOnOracleContract(
-  sliDataForProviders: CdpSliResponse[]
+  sliDataForProviders: CdpSliResponse[],
 ) {
   const rpcClient = getRpcClient();
   const walletClient = getWalletClient();
@@ -19,7 +19,7 @@ export async function setSliOnOracleContract(
       abi: SLI_ORACLE_ABI,
       functionName: "setSLI",
       args: [req.provider as Address, req.sli],
-    })
+    }),
   );
 
   logger.info("Simulating request to oracle contract...");

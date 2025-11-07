@@ -17,7 +17,7 @@ let rpcClient: PublicClient;
 let walletClient: WalletClient;
 
 export const account = privateKeyToAccount(
-  SERVICE_CONFIG.WALLET_PRIVATE_KEY as Address
+  SERVICE_CONFIG.WALLET_PRIVATE_KEY as Address,
 );
 
 export function getRpcClient() {

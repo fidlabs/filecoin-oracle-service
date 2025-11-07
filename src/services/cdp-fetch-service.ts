@@ -9,7 +9,7 @@ async function fetchDataFromCdp(endpoint: string): Promise<CdpSliResponse[]> {
 
   if (!cdpResponse.ok) {
     throw new Error(
-      `Failed to fetch data from CDP service: ${cdpResponse.status} ${cdpResponse.statusText}`
+      `Failed to fetch data from CDP service: ${cdpResponse.status} ${cdpResponse.statusText}`,
     );
   }
 
@@ -20,7 +20,7 @@ async function fetchDataFromCdp(endpoint: string): Promise<CdpSliResponse[]> {
 export async function getSliForStorageProviders(storageProviders: string[]) {
   const providersParam = storageProviders.join(",");
   const endpoint = `sli-storage-providers/?providers=${encodeURIComponent(
-    providersParam
+    providersParam,
   )}`; //TODO: adjust enpoint if needed
 
   logger.info("Fetching SLI data from CDP service...");
@@ -28,7 +28,7 @@ export async function getSliForStorageProviders(storageProviders: string[]) {
   const response = await fetchDataFromCdp(endpoint);
 
   logger.info(
-    `Fetched SLI data for ${response.length} providers from CDP service`
+    `Fetched SLI data for ${response.length} providers from CDP service`,
   );
 
   return response;

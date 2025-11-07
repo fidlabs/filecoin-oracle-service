@@ -18,7 +18,7 @@ export async function getProvidersFromSlaAllocatorContract(): Promise<
   });
 
   logger.info(
-    `Fetched ${providers.length} providers from SLA Allocator contract`
+    `Fetched ${providers.length} providers from SLA Allocator contract`,
   );
 
   return providers.map((p) => Number(p));
