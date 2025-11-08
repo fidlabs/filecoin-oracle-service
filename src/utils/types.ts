@@ -9,6 +9,6 @@ export interface SLIAttestation {
 }
 
 export interface CdpSliResponse {
-  provider: string;
+  provider: bigint;
   sli: SLIAttestation;
 }

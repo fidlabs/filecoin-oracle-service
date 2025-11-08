@@ -18,7 +18,7 @@ export async function setSliOnOracleContract(
     encodeFunctionData({
       abi: SLI_ORACLE_ABI,
       functionName: "setSLI",
-      args: [req.provider as Address, req.sli],
+      args: [req.provider, req.sli],
     }),
   );
 

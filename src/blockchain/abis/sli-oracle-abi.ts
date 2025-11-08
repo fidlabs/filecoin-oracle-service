@@ -7,8 +7,8 @@ export const SLI_ORACLE_ABI = [
     inputs: [
       {
         name: "provider",
-        type: "address",
-        internalType: "address",
+        type: "uint64",
+        internalType: "CommonTypes.FilActorId",
       },
       {
         name: "slis",
@@ -21,19 +21,9 @@ export const SLI_ORACLE_ABI = [
             internalType: "uint256",
           },
           {
-            name: "availability",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
             name: "latency",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
-            name: "indexing",
-            type: "uint16",
-            internalType: "uint16",
+            type: "uint32",
+            internalType: "uint32",
           },
           {
             name: "retention",
@@ -49,6 +39,16 @@ export const SLI_ORACLE_ABI = [
             name: "stability",
             type: "uint16",
             internalType: "uint16",
+          },
+          {
+            name: "availability",
+            type: "uint8",
+            internalType: "uint8",
+          },
+          {
+            name: "indexing",
+            type: "uint8",
+            internalType: "uint8",
           },
         ],
       },
