@@ -16,23 +16,15 @@ export const EnvKeys = {
 type EnvKey = (typeof EnvKeys)[keyof typeof EnvKeys];
 
 export const SERVICE_CONFIG: Record<EnvKey, string> = {
-  LOG_LEVEL: "info",
-  ORACLE_CONTRACT_ADDRESS: "",
-  SLA_ALLOCATOR_CONTRACT_ADDRESS: "",
-  WALLET_PRIVATE_KEY: "",
-  RPC_URL: "",
-  CHAIN_ID: "",
-  TRIGGER_INTERVAL_HOURS: "",
-  CDP_SERVICE_URL: "",
-  JOB_TRIGGER_AUTH_TOKEN: "",
-  APP_PORT: "",
+  LOG_LEVEL: process.env.LOG_LEVEL || "info",
+  ORACLE_CONTRACT_ADDRESS: process.env.ORACLE_CONTRACT_ADDRESS || "",
+  SLA_ALLOCATOR_CONTRACT_ADDRESS:
+    process.env.SLA_ALLOCATOR_CONTRACT_ADDRESS || "",
+  WALLET_PRIVATE_KEY: process.env.WALLET_PRIVATE_KEY || "",
+  RPC_URL: process.env.RPC_URL || "",
+  CHAIN_ID: process.env.CHAIN_ID || "",
+  TRIGGER_INTERVAL_HOURS: process.env.TRIGGER_INTERVAL_HOURS || "",
+  CDP_SERVICE_URL: process.env.CDP_SERVICE_URL || "",
+  JOB_TRIGGER_AUTH_TOKEN: process.env.JOB_TRIGGER_AUTH_TOKEN || "",
+  APP_PORT: process.env.APP_PORT || "3000",
 };
-
-for (const key of Object.values(EnvKeys)) {
-  if (!process.env[key]) {
-    console.error(`Missing required ENV: ${key}`);
-    process.exit(1);
-  }
-
-  SERVICE_CONFIG[key] = process.env[key] as string;
-}

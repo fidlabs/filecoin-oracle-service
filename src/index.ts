@@ -1,9 +1,8 @@
 import cron from "node-cron";
 import { SERVICE_CONFIG } from "./config/env.js";
 import "./http-server/server.js";
-import { logger } from "./utils/logger.js";
-import "./http-server/server.js";
 import { setSliOracleJob } from "./jobs/set-sli-job.js";
+import { logger } from "./utils/logger.js";
 
 try {
   const intervalHours = parseInt(SERVICE_CONFIG.TRIGGER_INTERVAL_HOURS);
@@ -14,7 +13,11 @@ try {
     );
   }
 
-  const cronExpr = `0 * /${intervalHours} * * *`;
+  let cronExpr = `0 */${intervalHours} * * *`;
+
+  if (intervalHours === 1) {
+    cronExpr = `0 * * * *`;
+  }
 
   logger.info(
     `Scheduling job every ${SERVICE_CONFIG.TRIGGER_INTERVAL_HOURS}h: "${cronExpr}"`,
