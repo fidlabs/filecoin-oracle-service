@@ -46,7 +46,6 @@ app.post(
 
     try {
       await setSliOracleJob();
-
       res.json({ status: "ok", message: "Job triggered successfully" });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
