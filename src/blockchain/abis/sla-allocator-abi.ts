@@ -20,4 +20,17 @@ export const SLA_ALLOCATOR_ABI = [
     ],
     stateMutability: "view",
   },
+  {
+    type: "function",
+    name: "getProviders",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint64[]",
+        internalType: "CommonTypes.FilActorId[]",
+      },
+    ],
+    stateMutability: "view",
+  },
 ] as const satisfies Abi;
