@@ -3,6 +3,7 @@ import express, { Request, Response, NextFunction } from "express";
 // import { setSliOracleJob } from "../jobs/set-sli-job.js";
 import { logger } from "../utils/logger.js";
 import { SERVICE_CONFIG } from "../config/env.js";
+import { setSliOracleJob } from "../jobs/set-sli-job.js";
 
 const app = express();
 
@@ -40,7 +41,7 @@ app.post(
     logger.info("Manual trigger received via /trigger-now");
 
     try {
-      // await setSliOracleJob();
+      await setSliOracleJob();
       res.json({ status: "ok", message: "Job triggered successfully" });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);

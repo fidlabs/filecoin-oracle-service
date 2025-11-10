@@ -1,7 +1,11 @@
 import { Address, encodeFunctionData } from "viem";
 import { SERVICE_CONFIG } from "../config/env.js";
 import { logger } from "../utils/logger.js";
-import { CdpSliResponse } from "../utils/types.js";
+import {
+  CdpSliResponse,
+  SLIAttestation,
+  StorageProvidersSLIMetric,
+} from "../utils/types.js";
 import { SLI_ORACLE_ABI } from "./abis/sli-oracle-abi.js";
 import { getRpcClient, getWalletClient } from "./blockchain-client.js";
 
@@ -14,7 +18,40 @@ export async function setSliOnOracleContract(
   const oracleContractAddress =
     SERVICE_CONFIG.ORACLE_CONTRACT_ADDRESS as Address;
 
-  const encodedCalls = sliDataForProviders.map((req) =>
+  const buildedSliData: {
+    provider: bigint;
+    sli: SLIAttestation;
+  }[] = sliDataForProviders.map((provider) => {
+    logger.info(
+      `Preparing SLI data for provider ${provider.storageProviderId}`,
+    );
+    const data = {
+      provider: provider.storageProviderId.startsWith("f0")
+        ? BigInt(provider.storageProviderId.slice(2))
+        : BigInt(provider.storageProviderId),
+      sli: {
+        availability:
+          Number(
+            provider.data
+              .find(
+                (d) =>
+                  d.sliMetric === StorageProvidersSLIMetric.RPA_RETRIEVABILITY,
+              )
+              ?.sliMetricValue?.split(".")[0],
+          ) || 0,
+        latency: 0,
+        indexing: 0,
+        retention: 0,
+        bandwidth: 0,
+        stability: 0,
+        lastUpdate: BigInt(provider.updatedAt.getTime()),
+      },
+    };
+
+    return data;
+  });
+
+  const encodedCalls = buildedSliData.map((req) =>
     encodeFunctionData({
       abi: SLI_ORACLE_ABI,
       functionName: "setSLI",
@@ -24,7 +61,8 @@ export async function setSliOnOracleContract(
 
   logger.info("Simulating request to oracle contract...");
 
-  const { request } = await rpcClient.simulateContract({
+  // const { request } =
+  await rpcClient.simulateContract({
     address: oracleContractAddress,
     abi: SLI_ORACLE_ABI,
     functionName: "multicall",
@@ -32,15 +70,17 @@ export async function setSliOnOracleContract(
     account: walletClient.account,
   });
 
-  logger.info("Sending transaction to oracle contract...");
+  logger.info("Simulation successful.");
 
-  const txHash = await walletClient.writeContract(request);
+  // logger.info("Sending transaction to oracle contract...");
 
-  logger.info(`Transaction sent: ${txHash}, waiting for confirmation...`);
+  // const txHash = await walletClient.writeContract(request);
 
-  const receipt = await rpcClient.waitForTransactionReceipt({
-    hash: txHash,
-  });
+  // logger.info(`Transaction sent: ${txHash}, waiting for confirmation...`);
 
-  logger.info(`Transaction executed in block ${receipt.blockNumber}`);
+  // const receipt = await rpcClient.waitForTransactionReceipt({
+  //   hash: txHash,
+  // });
+
+  // logger.info(`Transaction executed in block ${receipt.blockNumber}`);
 }

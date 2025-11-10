@@ -8,7 +8,22 @@ export interface SLIAttestation {
   stability: number;
 }
 
+export enum StorageProvidersSLIMetric {
+  RPA_RETRIEVABILITY = "RPA_RETRIEVABILITY",
+}
+
+export interface StorageProvidersSLIData {
+  sliMetric: StorageProvidersSLIMetric;
+  sliMetricName: string;
+  sliMetricValue: string;
+  sliMetricDescription: string;
+  sliMetricUnit: string;
+  updatedAt: Date;
+}
+
 export interface CdpSliResponse {
-  provider: bigint;
-  sli: SLIAttestation;
+  storageProviderId: string;
+  storageProviderName: string | null;
+  updatedAt: Date;
+  data: StorageProvidersSLIData[];
 }

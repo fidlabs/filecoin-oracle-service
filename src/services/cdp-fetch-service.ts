@@ -17,11 +17,18 @@ async function fetchDataFromCdp(endpoint: string): Promise<CdpSliResponse[]> {
   return data;
 }
 
-export async function getSliForStorageProviders(storageProviders: string[]) {
+export async function getSliForStorageProviders(
+  storageProviders: string[],
+): Promise<CdpSliResponse[]> {
+  if (storageProviders.length === 0) {
+    logger.info("No storage providers provided for SLI fetch");
+    return [];
+  }
+
   const providersParam = storageProviders.join(",");
-  const endpoint = `sli-storage-providers/?providers=${encodeURIComponent(
+  const endpoint = `storage-providers/sli-data?storageProvidersIds=${encodeURIComponent(
     providersParam,
-  )}`; //TODO: adjust enpoint if needed
+  )}`;
 
   logger.info("Fetching SLI data from CDP service...");
 
