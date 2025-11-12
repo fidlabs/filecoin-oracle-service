@@ -68,8 +68,7 @@ export async function setSliOnOracleContract(
 
   logger.info("Simulating request to oracle contract...");
 
-  // const { request } =
-  await rpcClient.simulateContract({
+  const { request } = await rpcClient.simulateContract({
     address: oracleContractAddress,
     abi: SLI_ORACLE_ABI,
     functionName: "multicall",
@@ -79,15 +78,15 @@ export async function setSliOnOracleContract(
 
   logger.info("Simulation successful.");
 
-  // logger.info("Sending transaction to oracle contract...");
+  logger.info("Sending transaction to oracle contract...");
 
-  // const txHash = await walletClient.writeContract(request);
+  const txHash = await walletClient.writeContract(request);
 
-  // logger.info(`Transaction sent: ${txHash}, waiting for confirmation...`);
+  logger.info(`Transaction sent: ${txHash}, waiting for confirmation...`);
 
-  // const receipt = await rpcClient.waitForTransactionReceipt({
-  //   hash: txHash,
-  // });
+  const receipt = await rpcClient.waitForTransactionReceipt({
+    hash: txHash,
+  });
 
-  // logger.info(`Transaction executed in block ${receipt.blockNumber}`);
+  logger.info(`Transaction executed in block ${receipt.blockNumber}`);
 }
