@@ -23,7 +23,7 @@ permissions:
 jobs:
   trigger-production-deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.ref_name == 'main' && inputs.version != '' && inputs.environment == 'production' }}
+    if: ${{ inputs.environment == 'production' }}
     steps:
       - name: Trigger production deploy
         uses: neti-filplus-infra/filplus-deploy-action@main

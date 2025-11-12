@@ -7,10 +7,45 @@ export async function setSliOracleJob() {
   logger.info("Oracle job started");
 
   try {
-    const slaContractProviders = await getProvidersFromSlaAllocatorContract(); // TODO: enable when SLA Allocator is ready
-    const sliDataForProviders = await getSliForStorageProviders(
-      slaContractProviders.map(String),
-    ); // TODO: enable when CDP service is ready
+    const slaContractProviders = await getProvidersFromSlaAllocatorContract();
+
+    if (slaContractProviders.length === 0) {
+      logger.info(
+        "No storage providers found in SLA Allocator contract, skipping SLI update on oracle contract",
+      );
+      return;
+    }
+
+    const sps = slaContractProviders.map((sp) => `f0${sp.toString()}`);
+
+    logger.info(`SPS inputs ${sps.join(", ")}`);
+
+    const sliDataForProviders = await getSliForStorageProviders(sps);
+
+    if (sliDataForProviders.length === 0) {
+      logger.info(
+        "No SLI data fetched for any provider from CDP, skipping SLI update on oracle contract",
+      );
+      return;
+    }
+
+    // const sliDataForProviders: CdpSliResponse[] = [
+    //   {
+    //     storageProviderId: "f03315260",
+    //     storageProviderName: "ProviderOne",
+    //     updatedAt: new Date(),
+    //     data: [
+    //       {
+    //         sliMetric: StorageProvidersSLIMetric.RPA_RETRIEVABILITY,
+    //         sliMetricName: "RPA Retrievability",
+    //         sliMetricValue: "99.12",
+    //         sliMetricDescription: "Retrievability percentage",
+    //         sliMetricUnit: "percent",
+    //         updatedAt: new Date(),
+    //       },
+    //     ],
+    //   },
+    // ];
 
     await setSliOnOracleContract(sliDataForProviders);
   } catch (err) {

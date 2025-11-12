@@ -1,5 +1,6 @@
 import cron from "node-cron";
 import { SERVICE_CONFIG } from "./config/env.js";
+import "./http-server/server.js";
 import { setSliOracleJob } from "./jobs/set-sli-job.js";
 import { logger } from "./utils/logger.js";
 
@@ -12,15 +13,17 @@ try {
     );
   }
 
-  const cronExpr = `0 * /${intervalHours} * * *`;
+  let cronExpr = `0 */${intervalHours} * * *`;
+
+  if (intervalHours === 1) {
+    cronExpr = `0 * * * *`;
+  }
 
   logger.info(
     `Scheduling job every ${SERVICE_CONFIG.TRIGGER_INTERVAL_HOURS}h: "${cronExpr}"`,
   );
 
   cron.schedule(cronExpr, setSliOracleJob);
-
-  // setSliOracleJob(); // TODO: remove this line if not needed on startup
 } catch (err: unknown) {
   if (err instanceof Error) {
     const message = err instanceof Error ? err.message : String(err);

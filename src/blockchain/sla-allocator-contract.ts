@@ -14,7 +14,7 @@ export async function getProvidersFromSlaAllocatorContract(): Promise<
   const providers = await rpcClient.readContract({
     address: SERVICE_CONFIG.SLA_ALLOCATOR_CONTRACT_ADDRESS as Address,
     abi: SLA_ALLOCATOR_ABI,
-    functionName: "providers",
+    functionName: "getProviders",
   });
 
   logger.info(
