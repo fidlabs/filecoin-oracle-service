@@ -10,6 +10,7 @@ export interface SLIAttestation {
 
 export enum StorageProvidersSLIMetric {
   RPA_RETRIEVABILITY = "RPA_RETRIEVABILITY",
+  IPNI_REPORTING = "IPNI_REPORTING",
 }
 
 export interface StorageProvidersSLIData {

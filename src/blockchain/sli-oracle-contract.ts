@@ -25,22 +25,29 @@ export async function setSliOnOracleContract(
     logger.info(
       `Preparing SLI data for provider ${provider.storageProviderId}`,
     );
+    const availabilityMetric =
+      Number(
+        provider.data
+          .find(
+            (d) => d.sliMetric === StorageProvidersSLIMetric.RPA_RETRIEVABILITY,
+          )
+          ?.sliMetricValue?.split(".")[0],
+      ) || 0;
+    const indexingMetric =
+      Number(
+        provider.data
+          .find((d) => d.sliMetric === StorageProvidersSLIMetric.IPNI_REPORTING)
+          ?.sliMetricValue?.split(".")[0],
+      ) || 0;
+
     const data = {
       provider: provider.storageProviderId.startsWith("f0")
         ? BigInt(provider.storageProviderId.slice(2))
         : BigInt(provider.storageProviderId),
       sli: {
-        availability:
-          Number(
-            provider.data
-              .find(
-                (d) =>
-                  d.sliMetric === StorageProvidersSLIMetric.RPA_RETRIEVABILITY,
-              )
-              ?.sliMetricValue?.split(".")[0],
-          ) || 0,
+        availability: availabilityMetric,
+        indexing: indexingMetric,
         latency: 0,
-        indexing: 0,
         retention: 0,
         bandwidth: 0,
         stability: 0,

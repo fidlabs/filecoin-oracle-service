@@ -25,10 +25,9 @@ export async function getSliForStorageProviders(
     return [];
   }
 
-  const providersParam = storageProviders.join(",");
-  const endpoint = `storage-providers/sli-data?storageProvidersIds=${encodeURIComponent(
-    providersParam,
-  )}`;
+  const endpoint = `storage-providers/sli-data?${storageProviders
+    .map((id) => `storageProvidersIds=${id}`)
+    .join("&")}`;
 
   logger.info("Fetching SLI data from CDP service...");
 
