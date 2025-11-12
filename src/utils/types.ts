@@ -19,7 +19,7 @@ export interface StorageProvidersSLIData {
   sliMetricValue: string;
   sliMetricDescription: string;
   sliMetricUnit: string;
-  updatedAt: Date;
+  updatedAt: string;
 }
 
 export interface CdpSliResponse {

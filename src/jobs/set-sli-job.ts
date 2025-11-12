@@ -16,9 +16,11 @@ export async function setSliOracleJob() {
       return;
     }
 
-    const sliDataForProviders = await getSliForStorageProviders(
-      slaContractProviders.map((sp) => `f0${sp.toString()}`),
-    );
+    const sps = slaContractProviders.map((sp) => `f0${sp.toString()}`);
+
+    logger.info(`SPS inputs ${sps.join(", ")}`);
+
+    const sliDataForProviders = await getSliForStorageProviders(sps);
 
     if (sliDataForProviders.length === 0) {
       logger.info(

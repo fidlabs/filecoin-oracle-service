@@ -51,7 +51,7 @@ export async function setSliOnOracleContract(
         retention: 0,
         bandwidth: 0,
         stability: 0,
-        lastUpdate: BigInt(provider.updatedAt.getTime()),
+        lastUpdate: BigInt(new Date(provider.updatedAt).getTime()),
       },
     };
 

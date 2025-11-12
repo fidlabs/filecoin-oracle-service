@@ -29,7 +29,7 @@ export async function getSliForStorageProviders(
     .map((id) => `storageProvidersIds=${id}`)
     .join("&")}`;
 
-  logger.info("Fetching SLI data from CDP service...");
+  logger.info(`Fetching SLI data from CDP service... ${endpoint}`);
 
   const response = await fetchDataFromCdp(endpoint);
 
