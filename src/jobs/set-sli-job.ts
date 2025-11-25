@@ -29,24 +29,6 @@ export async function setSliOracleJob() {
       return;
     }
 
-    // const sliDataForProviders: CdpSliResponse[] = [
-    //   {
-    //     storageProviderId: "f03315260",
-    //     storageProviderName: "ProviderOne",
-    //     updatedAt: new Date(),
-    //     data: [
-    //       {
-    //         sliMetric: StorageProvidersSLIMetric.RPA_RETRIEVABILITY,
-    //         sliMetricName: "RPA Retrievability",
-    //         sliMetricValue: "99.12",
-    //         sliMetricDescription: "Retrievability percentage",
-    //         sliMetricUnit: "percent",
-    //         updatedAt: new Date(),
-    //       },
-    //     ],
-    //   },
-    // ];
-
     await setSliOnOracleContract(sliDataForProviders);
   } catch (err) {
     logger.error({ err }, "Oracle job failed");

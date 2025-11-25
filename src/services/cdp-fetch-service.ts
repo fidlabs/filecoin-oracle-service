@@ -34,7 +34,7 @@ export async function getSliForStorageProviders(
   const response = await fetchDataFromCdp(endpoint);
 
   logger.info(
-    `Fetched SLI data for ${response.length} providers from CDP service`,
+    `Fetched SLI data for ${response?.length} providers from CDP service`,
   );
 
   return response;

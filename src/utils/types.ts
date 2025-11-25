@@ -11,6 +11,9 @@ export interface SLIAttestation {
 export enum StorageProvidersSLIMetric {
   RPA_RETRIEVABILITY = "RPA_RETRIEVABILITY",
   IPNI_REPORTING = "IPNI_REPORTING",
+  RETENTION = "RETENTION",
+  TTFB = "TTFB",
+  BANDWIDTH = "BANDWIDTH",
 }
 
 export interface StorageProvidersSLIData {
@@ -25,6 +28,5 @@ export interface StorageProvidersSLIData {
 export interface CdpSliResponse {
   storageProviderId: string;
   storageProviderName: string | null;
-  updatedAt: Date;
   data: StorageProvidersSLIData[];
 }

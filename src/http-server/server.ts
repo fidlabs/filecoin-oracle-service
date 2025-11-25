@@ -1,9 +1,9 @@
-import express, { Request, Response, NextFunction } from "express";
+import express, { NextFunction, Request, Response } from "express";
 
 // import { setSliOracleJob } from "../jobs/set-sli-job.js";
-import { logger } from "../utils/logger.js";
 import { SERVICE_CONFIG } from "../config/env.js";
 import { setSliOracleJob } from "../jobs/set-sli-job.js";
+import { logger } from "../utils/logger.js";
 
 const app = express();
 
@@ -41,7 +41,11 @@ app.post(
     logger.info("Manual trigger received via /trigger-now");
 
     try {
+      // await getSPEmptyAttestations();
+
       await setSliOracleJob();
+
+      // await getSPFillAttestations();
       res.json({ status: "ok", message: "Job triggered successfully" });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -52,6 +56,7 @@ app.post(
 );
 
 app.listen(port, () => {
+  logger.info("Oracle service started on port " + port);
   logger.info(`Health/trigger server running on port ${port}`);
   logger.info(`Health endpoint: GET /health`);
   logger.info(`Manual trigger:  POST /trigger-now`);
