@@ -45,7 +45,11 @@ app.post(
     httpLogger.info("Manual trigger received via /trigger-now");
 
     try {
+      // await getSPEmptyAttestations();
+
       await setSliOracleJob();
+
+      // await getSPFillAttestations();
       res.json({ status: "ok", message: "Job triggered successfully" });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
