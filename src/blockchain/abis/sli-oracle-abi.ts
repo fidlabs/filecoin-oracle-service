@@ -1,5 +1,3 @@
-import { Abi } from "viem";
-
 export const SLI_ORACLE_ABI = [
   {
     type: "function",
@@ -75,4 +73,53 @@ export const SLI_ORACLE_ABI = [
     ],
     stateMutability: "nonpayable",
   },
-] as const satisfies Abi;
+  {
+    type: "function",
+    name: "attestations",
+    inputs: [
+      {
+        name: "provider",
+        type: "uint64",
+        internalType: "uint64",
+      },
+    ],
+    outputs: [
+      {
+        name: "lastUpdate",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "latency",
+        type: "uint32",
+        internalType: "uint32",
+      },
+      {
+        name: "retention",
+        type: "uint16",
+        internalType: "uint16",
+      },
+      {
+        name: "bandwidth",
+        type: "uint16",
+        internalType: "uint16",
+      },
+      {
+        name: "stability",
+        type: "uint16",
+        internalType: "uint16",
+      },
+      {
+        name: "availability",
+        type: "uint8",
+        internalType: "uint8",
+      },
+      {
+        name: "indexing",
+        type: "uint8",
+        internalType: "uint8",
+      },
+    ],
+    stateMutability: "view",
+  },
+];

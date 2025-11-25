@@ -82,11 +82,46 @@ export async function setSliOnOracleContract(
 
   const txHash = await walletClient.writeContract(request);
 
-  logger.info(`Transaction sent: ${txHash}, waiting for confirmation...`);
+  logger.info(`Transaction sent: ${txHash}`);
+  logger.info(`Waiting for confirmation...`);
 
   const receipt = await rpcClient.waitForTransactionReceipt({
     hash: txHash,
   });
 
   logger.info(`Transaction executed in block ${receipt.blockNumber}`);
+}
+
+export async function getSPEmptyAttestations(): Promise<void> {
+  const rpcClient = getRpcClient();
+
+  logger.info(
+    "Fetching Attestations from SLI Oracle contract for SP: f03315260",
+  );
+
+  const providers = await rpcClient.readContract({
+    address: SERVICE_CONFIG.ORACLE_CONTRACT_ADDRESS as Address,
+    abi: SLI_ORACLE_ABI,
+    functionName: "attestations",
+    args: [90999],
+  });
+
+  logger.info(`Fetched Attestation from SLI Oracle contract: ` + providers);
+}
+
+export async function getSPFillAttestations(): Promise<void> {
+  const rpcClient = getRpcClient();
+
+  logger.info(
+    "Fetching Attestations from SLI Oracle contract for SP: f03315260",
+  );
+
+  const providers = await rpcClient.readContract({
+    address: SERVICE_CONFIG.ORACLE_CONTRACT_ADDRESS as Address,
+    abi: SLI_ORACLE_ABI,
+    functionName: "attestations",
+    args: [3315260],
+  });
+
+  logger.info(`Fetched Attestations from SLI Oracle contract: ` + providers);
 }
