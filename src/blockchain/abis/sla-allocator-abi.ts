@@ -1,6 +1,6 @@
 import { Abi } from "viem";
 
-export const SLA_ALLOCATOR_ABI = [
+export const SLA_ALLOCATOR_CONTRACT_ABI = [
   {
     type: "function",
     name: "providers",

@@ -30,3 +30,35 @@ export interface CdpSliResponse {
   storageProviderName: string | null;
   data: StorageProvidersSLIData[];
 }
+
+export interface FilecoinAPIStateSectorGetInfo {
+  SectorNumber: number;
+  SealProof: number;
+  SealedCID: {
+    "/": string;
+  };
+  Activation: number;
+  Expiration: number;
+  DealWeight: string;
+  VerifiedDealWeight: string;
+  InitialPledge: string;
+  ExpectedDayReward: string;
+  ExpectedStoragePledge: string;
+  PowerBaseEpoch: number;
+  ReplacedDayReward: string;
+  Flags: number;
+  DailyFee: string;
+}
+
+export interface FilecoinAPIStateGetClaim {
+  Provider: number;
+  Client: number;
+  Data: {
+    "/": string;
+  };
+  Size: number;
+  TermMin: number;
+  TermMax: number;
+  TermStart: number;
+  Sector: number;
+}

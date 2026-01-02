@@ -10,6 +10,7 @@ import {
 import { privateKeyToAccount } from "viem/accounts";
 import { filecoin, filecoinCalibration } from "viem/chains";
 import { SERVICE_CONFIG } from "../config/env.js";
+import { baseLogger } from "../utils/logger.js";
 
 export const getChain = (chainId: number) => {
   switch (chainId) {
@@ -30,6 +31,12 @@ export const getChain = (chainId: number) => {
           default: { http: ["http://fidlabs.servehttp.com:1234/rpc/v1"] },
         },
         testnet: true,
+        contracts: {
+          multicall3: {
+            address: "0xe1C001010343EAEfa2E80bf0F1072f93b867616A",
+            blockCreated: 1657068,
+          },
+        },
       });
     default:
       throw new Error(`Unsupported chain ID: ${chainId}`);
@@ -50,6 +57,7 @@ export function getRpcClient() {
       chain,
       transport: http(SERVICE_CONFIG.RPC_URL),
     });
+    baseLogger.info("RPC client created on chain ID " + chain.id);
   }
 
   return rpcClient;
@@ -62,6 +70,8 @@ export function getWalletClient() {
       chain,
       transport: http(SERVICE_CONFIG.RPC_URL),
     });
+
+    baseLogger.info("Wallet client created on chain ID " + chain.id);
   }
 
   return walletClient;

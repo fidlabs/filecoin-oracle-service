@@ -1,36 +1,43 @@
 import cron from "node-cron";
 import { SERVICE_CONFIG } from "./config/env.js";
 import "./http-server/server.js";
+import { trackClaimsJob } from "./jobs/claims-tracking-job.js";
 import { setSliOracleJob } from "./jobs/set-sli-job.js";
-import { logger } from "./utils/logger.js";
+import { baseLogger } from "./utils/logger.js";
+
+const childLogger = baseLogger.child(
+  { avengers: "assemble" },
+  { msgPrefix: "[Main] " },
+);
 
 try {
-  const intervalHours = parseInt(SERVICE_CONFIG.TRIGGER_INTERVAL_HOURS);
-
-  if (isNaN(intervalHours) || intervalHours <= 0) {
+  if (
+    !SERVICE_CONFIG.TRIGGER_SLI_JOB_INTERVAL_CRON ||
+    !SERVICE_CONFIG.TRIGGER_CLAIMS_TRACKING_JOB_INTERVAL_CRON
+  ) {
     throw new Error(
-      `Invalid TRIGGER_INTERVAL_HOURS: ${SERVICE_CONFIG.TRIGGER_INTERVAL_HOURS}`,
+      "Missing TRIGGER_SLI_JOB_INTERVAL_CRON or TRIGGER_CLAIMS_TRACKING_JOB_INTERVAL_CRON in environment variables",
     );
   }
 
-  let cronExpr = `0 */${intervalHours} * * *`;
+  const sliInterval = SERVICE_CONFIG.TRIGGER_SLI_JOB_INTERVAL_CRON;
+  const claimsInterval =
+    SERVICE_CONFIG.TRIGGER_CLAIMS_TRACKING_JOB_INTERVAL_CRON;
 
-  if (intervalHours === 1) {
-    cronExpr = `0 * * * *`;
-  }
-
-  logger.info(
-    `Scheduling job every ${SERVICE_CONFIG.TRIGGER_INTERVAL_HOURS}h: "${cronExpr}"`,
+  childLogger.info(`Scheduling SLI cron job "${sliInterval}"`);
+  childLogger.info(
+    `Scheduling Terminations claims cron job "${claimsInterval}"`,
   );
 
-  cron.schedule(cronExpr, setSliOracleJob);
+  cron.schedule(sliInterval, setSliOracleJob);
+  cron.schedule(claimsInterval, trackClaimsJob);
 } catch (err: unknown) {
   if (err instanceof Error) {
     const message = err instanceof Error ? err.message : String(err);
 
-    logger.error(`Fatal startup error: ${message}`);
+    childLogger.error(`Fatal startup error: ${message}`);
   } else {
-    logger.error(`Fatal startup error: ${err}`);
+    childLogger.error(`Fatal startup error: ${err}`);
   }
   process.exit(1);
 }

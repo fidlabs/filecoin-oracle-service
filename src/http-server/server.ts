@@ -1,14 +1,18 @@
 import express, { NextFunction, Request, Response } from "express";
-
-// import { setSliOracleJob } from "../jobs/set-sli-job.js";
 import { SERVICE_CONFIG } from "../config/env.js";
+import { trackClaimsJob } from "../jobs/claims-tracking-job.js";
 import { setSliOracleJob } from "../jobs/set-sli-job.js";
-import { logger } from "../utils/logger.js";
+import { baseLogger } from "../utils/logger.js";
 
 const app = express();
 
 const port = SERVICE_CONFIG.APP_PORT || 3000;
 const AUTH_TOKEN = SERVICE_CONFIG.JOB_TRIGGER_AUTH_TOKEN;
+
+const httpLogger = baseLogger.child(
+  { avengers: "assemble" },
+  { msgPrefix: "[HTTP] " },
+);
 
 app.get("/health", (req: Request, res: Response) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
@@ -18,7 +22,7 @@ function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers["authorization"];
 
   if (!AUTH_TOKEN) {
-    logger.warn("Missing JOB_TRIGGER_TOKEN env variable — skipping auth");
+    httpLogger.warn("Missing JOB_TRIGGER_TOKEN env variable — skipping auth");
     return next();
   }
 
@@ -35,29 +39,44 @@ function authMiddleware(req: Request, res: Response, next: NextFunction) {
 }
 
 app.post(
-  "/trigger-now",
+  "/trigger-sli-job",
   authMiddleware,
   async (req: Request, res: Response) => {
-    logger.info("Manual trigger received via /trigger-now");
+    httpLogger.info("Manual trigger received via /trigger-now");
 
     try {
-      // await getSPEmptyAttestations();
-
       await setSliOracleJob();
 
-      // await getSPFillAttestations();
       res.json({ status: "ok", message: "Job triggered successfully" });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      logger.error(`Manual job trigger failed: ${message}`);
+      httpLogger.error(`Manual job trigger failed: ${message}`);
+      res.status(500).json({ error: message });
+    }
+  },
+);
+
+app.post(
+  "/trigger-claims-job",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    httpLogger.info("Manual trigger received via /trigger-claims-job");
+
+    try {
+      await trackClaimsJob();
+
+      res.json({ status: "ok", message: "Job triggered successfully" });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      httpLogger.error(`Manual job trigger failed: ${message}`);
       res.status(500).json({ error: message });
     }
   },
 );
 
 app.listen(port, () => {
-  logger.info("Oracle service started on port " + port);
-  logger.info(`Health/trigger server running on port ${port}`);
-  logger.info(`Health endpoint: GET /health`);
-  logger.info(`Manual trigger:  POST /trigger-now`);
+  httpLogger.info("Oracle service started on port " + port);
+  httpLogger.info(`Health endpoint: GET /health`);
+  httpLogger.info(`Manual SLI JOB trigger:  POST /trigger-sli-job`);
+  httpLogger.info(`Manual CLAIMS JOB trigger:  POST /trigger-claims-job`);
 });
