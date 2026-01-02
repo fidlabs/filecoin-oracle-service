@@ -11,6 +11,7 @@ export const EnvKeys = {
   CDP_SERVICE_URL: "CDP_SERVICE_URL",
   JOB_TRIGGER_AUTH_TOKEN: "JOB_TRIGGER_AUTH_TOKEN",
   APP_PORT: "APP_PORT",
+  CLIENT_CONTRACT_ADDRESS: "CLIENT_CONTRACT_ADDRESS",
 } as const;
 
 type EnvKey = (typeof EnvKeys)[keyof typeof EnvKeys];
@@ -27,4 +28,5 @@ export const SERVICE_CONFIG: Record<EnvKey, string> = {
   CDP_SERVICE_URL: process.env.CDP_SERVICE_URL || "",
   JOB_TRIGGER_AUTH_TOKEN: process.env.JOB_TRIGGER_AUTH_TOKEN || "",
   APP_PORT: process.env.APP_PORT || "3000",
+  CLIENT_CONTRACT_ADDRESS: process.env.CLIENT_CONTRACT_ADDRESS || "",
 };
