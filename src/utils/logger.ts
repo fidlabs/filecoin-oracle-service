@@ -1,11 +1,11 @@
 import pino from "pino";
 
-export const logger = pino({
+export const baseLogger = pino({
   transport: {
     target: "pino-pretty",
     options: {
       messageFormat: "{msg}",
-      ignore: "hostname,pid,level,time",
+      ignore: "hostname,pid,avengers",
     },
   },
 });

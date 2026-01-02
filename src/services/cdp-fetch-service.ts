@@ -1,5 +1,5 @@
 import { SERVICE_CONFIG } from "../config/env.js";
-import { logger } from "../utils/logger.js";
+import { baseLogger } from "../utils/logger.js";
 import { CdpSliResponse } from "../utils/types.js";
 
 async function fetchDataFromCdp(endpoint: string): Promise<CdpSliResponse[]> {
@@ -21,7 +21,7 @@ export async function getSliForStorageProviders(
   storageProviders: string[],
 ): Promise<CdpSliResponse[]> {
   if (storageProviders.length === 0) {
-    logger.info("No storage providers provided for SLI fetch");
+    baseLogger.info("No storage providers provided for SLI fetch");
     return [];
   }
 
@@ -29,11 +29,11 @@ export async function getSliForStorageProviders(
     .map((id) => `storageProvidersIds=${id}`)
     .join("&")}`;
 
-  logger.info(`Fetching SLI data from CDP service... ${endpoint}`);
+  baseLogger.info(`Fetching SLI data from CDP service... ${endpoint}`);
 
   const response = await fetchDataFromCdp(endpoint);
 
-  logger.info(
+  baseLogger.info(
     `Fetched SLI data for ${response?.length} providers from CDP service`,
   );
 
