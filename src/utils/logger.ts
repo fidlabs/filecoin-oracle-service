@@ -1,6 +1,11 @@
 import pino from "pino";
-import { SERVICE_CONFIG } from "../config/env.js";
 
-export const logger = pino({
-  level: SERVICE_CONFIG.LOG_LEVEL,
+export const baseLogger = pino({
+  transport: {
+    target: "pino-pretty",
+    options: {
+      messageFormat: "{msg}",
+      ignore: "hostname,pid,avengers",
+    },
+  },
 });

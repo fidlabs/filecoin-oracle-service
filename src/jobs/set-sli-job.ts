@@ -1,21 +1,46 @@
 import { getProvidersFromSlaAllocatorContract } from "../blockchain/sla-allocator-contract.js";
 import { setSliOnOracleContract } from "../blockchain/sli-oracle-contract.js";
 import { getSliForStorageProviders } from "../services/cdp-fetch-service.js";
-import { logger } from "../utils/logger.js";
+import { baseLogger } from "../utils/logger.js";
+
+const sliChildLogger = baseLogger.child(
+  { avengers: "assemble" },
+  { msgPrefix: "[SLI Job] " },
+);
 
 export async function setSliOracleJob() {
-  logger.info("Oracle job started");
+  sliChildLogger.info("Started");
 
   try {
-    const slaContractProviders = await getProvidersFromSlaAllocatorContract(); // TODO: enable when SLA Allocator is ready
-    const sliDataForProviders = await getSliForStorageProviders(
-      slaContractProviders.map(String),
-    ); // TODO: enable when CDP service is ready
+    const slaContractProviders = await getProvidersFromSlaAllocatorContract();
+
+    if (slaContractProviders.length === 0) {
+      sliChildLogger.info(
+        "No storage providers found in SLA Allocator contract, skipping SLI update on oracle contract",
+      );
+      return;
+    }
+
+    const sps = slaContractProviders.map((sp) => `f0${sp.toString()}`);
+
+    sliChildLogger.info(`SPS inputs ${sps.join(", ")}`);
+
+    const sliDataForProviders = await getSliForStorageProviders(sps);
+
+    if (sliDataForProviders.length === 0) {
+      sliChildLogger.info(
+        "No SLI data fetched for any provider from CDP, skipping SLI update on oracle contract",
+      );
+      return;
+    }
+    sliChildLogger.info(
+      `Fetched SLI data for ${sliDataForProviders.length} providers from CDP`,
+    );
 
     await setSliOnOracleContract(sliDataForProviders);
   } catch (err) {
-    logger.error({ err }, "Oracle job failed");
+    sliChildLogger.error({ err }, "Failed");
   }
 
-  logger.info("Oracle job finished");
+  sliChildLogger.info("Finished");
 }
