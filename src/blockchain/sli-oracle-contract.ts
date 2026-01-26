@@ -1,13 +1,18 @@
 import { Address, encodeFunctionData } from "viem";
 import { SERVICE_CONFIG } from "../config/env.js";
-import { logger } from "../utils/logger.js";
+import { baseLogger } from "../utils/logger.js";
 import {
   CdpSliResponse,
   SLIAttestation,
   StorageProvidersSLIMetric,
 } from "../utils/types.js";
-import { SLI_ORACLE_ABI } from "./abis/sli-oracle-abi.js";
+import { SLI_ORACLE_CONTRACT_ABI } from "./abis/sli-oracle-abi.js";
 import { getRpcClient, getWalletClient } from "./blockchain-client.js";
+
+const childLogger = baseLogger.child(
+  { avengers: "assemble" },
+  { msgPrefix: "[SLI Oracle Contract] " },
+);
 
 export async function setSliOnOracleContract(
   sliDataForProviders: CdpSliResponse[],
@@ -22,7 +27,7 @@ export async function setSliOnOracleContract(
     provider: bigint;
     sli: SLIAttestation;
   }[] = sliDataForProviders.map((provider) => {
-    logger.info(
+    childLogger.info(
       `Preparing SLI data for provider ${provider.storageProviderId}`,
     );
     const availabilityMetric =
@@ -82,68 +87,73 @@ export async function setSliOnOracleContract(
 
   const encodedCalls = buildedSliData.map((req) =>
     encodeFunctionData({
-      abi: SLI_ORACLE_ABI,
+      abi: SLI_ORACLE_CONTRACT_ABI,
       functionName: "setSLI",
       args: [req.provider, req.sli],
     }),
   );
 
-  logger.info("Simulating request to oracle contract...");
+  childLogger.info("setSLI: Simulating request...");
 
   const { request } = await rpcClient.simulateContract({
     address: oracleContractAddress,
-    abi: SLI_ORACLE_ABI,
+    abi: SLI_ORACLE_CONTRACT_ABI,
     functionName: "multicall",
     args: [encodedCalls],
     account: walletClient.account,
   });
 
-  logger.info("Simulation successful.");
-
-  logger.info("Sending transaction to oracle contract...");
+  childLogger.info("setSLI: Sending transaction...");
 
   const txHash = await walletClient.writeContract(request);
 
-  logger.info(`Transaction sent: ${txHash}`);
-  logger.info(`Waiting for confirmation...`);
+  childLogger.info(
+    `setSLI: Transaction sent: ${txHash}, waiting for confirmation...`,
+  );
 
   const receipt = await rpcClient.waitForTransactionReceipt({
     hash: txHash,
   });
 
-  logger.info(`Transaction executed in block ${receipt.blockNumber}`);
+  childLogger.info(
+    `setSLI: Transaction executed in block ${receipt.blockNumber}`,
+  );
 }
 
 export async function getSPEmptyAttestations(): Promise<void> {
   const rpcClient = getRpcClient();
 
-  logger.info(
+  childLogger.info(
     "Fetching Attestations from SLI Oracle contract for SP: f03315260",
   );
 
   const providers = await rpcClient.readContract({
     address: SERVICE_CONFIG.ORACLE_CONTRACT_ADDRESS as Address,
-    abi: SLI_ORACLE_ABI,
+    abi: SLI_ORACLE_CONTRACT_ABI,
     functionName: "attestations",
     args: [90999],
   });
 
-  logger.info(`Fetched Attestation from SLI Oracle contract: ` + providers);
+  childLogger.info(
+    `Fetched Attestation from SLI Oracle contract: ` + providers,
+  );
 }
 
 export async function getSPFillAttestations(): Promise<void> {
   const rpcClient = getRpcClient();
 
-  logger.info(
+  childLogger.info(
     "Fetching Attestations from SLI Oracle contract for SP: f03315260",
   );
 
   const providers = await rpcClient.readContract({
     address: SERVICE_CONFIG.ORACLE_CONTRACT_ADDRESS as Address,
-    abi: SLI_ORACLE_ABI,
+    abi: SLI_ORACLE_CONTRACT_ABI,
     functionName: "attestations",
     args: [3315260],
   });
 
-  logger.info(`Fetched Attestations from SLI Oracle contract: ` + providers);
+  childLogger.info(
+    `Fetched Attestations from SLI Oracle contract: ` + providers,
+  );
 }

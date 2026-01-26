@@ -1,4 +1,4 @@
-export const SLI_ORACLE_ABI = [
+export const SLI_ORACLE_CONTRACT_ABI = [
   {
     type: "function",
     name: "setSLI",
