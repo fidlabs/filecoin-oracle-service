@@ -1,5 +1,5 @@
-import { getProvidersFromSlaAllocatorContract } from "../blockchain/sla-allocator-contract.js";
 import { setSliOnOracleContract } from "../blockchain/sli-oracle-contract.js";
+import { getProvidersFromSPRegistryContract } from "../blockchain/sp-registry-contract.js";
 import { getSliForStorageProviders } from "../services/cdp-fetch-service.js";
 import { baseLogger } from "../utils/logger.js";
 
@@ -12,18 +12,23 @@ export async function setSliOracleJob() {
   sliChildLogger.info("Started");
 
   try {
-    const slaContractProviders = await getProvidersFromSlaAllocatorContract();
+    const storageProviders = await getProvidersFromSPRegistryContract();
 
-    if (slaContractProviders.length === 0) {
+    const uniqueStorageProviders = [...new Set(storageProviders)];
+
+    if (uniqueStorageProviders.length === 0) {
       sliChildLogger.info(
-        "No storage providers found in SLA Allocator contract, skipping SLI update on oracle contract",
+        "No storage providers found in SP Registry contract, skipping SLI update on oracle contract",
       );
+
       return;
     }
 
-    const sps = slaContractProviders.map((sp) => `f0${sp.toString()}`);
+    sliChildLogger.info(
+      `Extracted ${uniqueStorageProviders.length} unique of ${storageProviders.length} all storage providers`,
+    );
 
-    sliChildLogger.info(`SPS inputs ${sps.join(", ")}`);
+    const sps = uniqueStorageProviders.map((sp) => `f0${sp.toString()}`);
 
     const sliDataForProviders = await getSliForStorageProviders(sps);
 
@@ -33,6 +38,7 @@ export async function setSliOracleJob() {
       );
       return;
     }
+
     sliChildLogger.info(
       `Fetched SLI data for ${sliDataForProviders.length} providers from CDP`,
     );
