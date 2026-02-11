@@ -3,6 +3,7 @@ import { SERVICE_CONFIG } from "../config/env.js";
 import { trackClaimsJob } from "../jobs/claims-tracking-job.js";
 import { setSliOracleJob } from "../jobs/set-sli-job.js";
 import { baseLogger } from "../utils/logger.js";
+import { runSettlementBotJob } from "../jobs/settlement-bot-job.js";
 
 const app = express();
 
@@ -74,9 +75,30 @@ app.post(
   },
 );
 
+app.post(
+  "/trigger-settlement-bot-job",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    httpLogger.info("Manual trigger received via /trigger-settlement-bot-job");
+
+    try {
+      await runSettlementBotJob();
+
+      res.json({ status: "ok", message: "Job triggered successfully" });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      httpLogger.error(`Manual job trigger failed: ${message}`);
+      res.status(500).json({ error: message });
+    }
+  },
+);
+
 app.listen(port, () => {
   httpLogger.info("Oracle service started on port " + port);
   httpLogger.info(`Health endpoint: GET /health`);
   httpLogger.info(`Manual SLI JOB trigger:  POST /trigger-sli-job`);
   httpLogger.info(`Manual CLAIMS JOB trigger:  POST /trigger-claims-job`);
+  httpLogger.info(
+    `Manual SETTLEMENT BOT JOB trigger:  POST /trigger-settlement-bot-job`,
+  );
 });

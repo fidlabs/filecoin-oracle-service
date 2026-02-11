@@ -1,3 +1,5 @@
+import { Address } from "viem";
+
 export interface SLIAttestation {
   lastUpdate: bigint;
   availability: number;
@@ -61,4 +63,21 @@ export interface FilecoinAPIStateGetClaim {
   TermMax: number;
   TermStart: number;
   Sector: number;
+}
+
+enum DealState {
+  Proposed,
+  Accepted,
+  Completed,
+  Rejected,
+}
+
+export interface DealProposal {
+  dealId: bigint;
+  client: Address;
+  provider: bigint;
+  SLC: Address;
+  validator: Address;
+  state: DealState;
+  railId: bigint;
 }
