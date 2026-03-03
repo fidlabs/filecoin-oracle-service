@@ -11,40 +11,25 @@ export const SLI_ORACLE_CONTRACT_ABI = [
       {
         name: "slis",
         type: "tuple",
-        internalType: "struct SLIOracle.SLIAttestation",
+        internalType: "struct SLITypes.SLIThresholds",
         components: [
           {
-            name: "lastUpdate",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "latency",
-            type: "uint32",
-            internalType: "uint32",
-          },
-          {
-            name: "retention",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
-            name: "bandwidth",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
-            name: "stability",
-            type: "uint16",
-            internalType: "uint16",
-          },
-          {
-            name: "availability",
+            name: "retrievabilityPct",
             type: "uint8",
             internalType: "uint8",
           },
           {
-            name: "indexing",
+            name: "bandwidthMbps",
+            type: "uint16",
+            internalType: "uint16",
+          },
+          {
+            name: "latencyMs",
+            type: "uint16",
+            internalType: "uint16",
+          },
+          {
+            name: "indexingPct",
             type: "uint8",
             internalType: "uint8",
           },

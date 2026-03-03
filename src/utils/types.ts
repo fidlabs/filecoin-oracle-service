@@ -1,36 +1,41 @@
 import { Address } from "viem";
 
-export interface SLIAttestation {
-  lastUpdate: bigint;
-  availability: number;
-  latency: number;
-  indexing: number;
-  retention: number;
-  bandwidth: number;
-  stability: number;
+export interface SLIThresholds {
+  retrievabilityPct: number;
+  bandwidthMbps: number;
+  latencyMs: number;
+  indexingPct: number;
 }
 
-export enum StorageProvidersSLIMetric {
+export interface SliAttestation {
+  provider: bigint;
+  slis: SLIThresholds;
+}
+
+export enum StorageProvidersSliMetricType {
   RPA_RETRIEVABILITY = "RPA_RETRIEVABILITY",
   IPNI_REPORTING = "IPNI_REPORTING",
-  RETENTION = "RETENTION",
   TTFB = "TTFB",
   BANDWIDTH = "BANDWIDTH",
 }
 
-export interface StorageProvidersSLIData {
-  sliMetric: StorageProvidersSLIMetric;
+export interface StorageProviderSliMetadata {
+  sliMetricType: StorageProvidersSliMetricType;
   sliMetricName: string;
-  sliMetricValue: string;
   sliMetricDescription: string;
   sliMetricUnit: string;
-  updatedAt: string;
+}
+
+export interface StorageProvidersSliData {
+  sliMetricType: StorageProvidersSliMetricType;
+  sliMetricValue: string;
 }
 
 export interface CdpSliResponse {
-  storageProviderId: string;
-  storageProviderName: string | null;
-  data: StorageProvidersSLIData[];
+  sliMetadata: {
+    [code: string]: StorageProviderSliMetadata;
+  };
+  data: { [storageProviderId: string]: StorageProvidersSliData[] };
 }
 
 export interface FilecoinAPIStateSectorGetInfo {
