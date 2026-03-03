@@ -2,9 +2,9 @@ import { Address, encodeFunctionData } from "viem";
 import { SERVICE_CONFIG } from "../config/env.js";
 import { baseLogger } from "../utils/logger.js";
 import {
-  CdpSliResponse,
-  SLIAttestation,
-  StorageProvidersSLIMetric,
+  SliAttestation,
+  StorageProvidersSliData,
+  StorageProvidersSliMetricType,
 } from "../utils/types.js";
 import { SLI_ORACLE_CONTRACT_ABI } from "./abis/sli-oracle-abi.js";
 import { getRpcClient, getWalletClient } from "./blockchain-client.js";
@@ -14,82 +14,75 @@ const childLogger = baseLogger.child(
   { msgPrefix: "[SLI Oracle Contract] " },
 );
 
-export async function setSliOnOracleContract(
-  sliDataForProviders: CdpSliResponse[],
-) {
+export async function setSliOnOracleContract(sliDataForProviders: {
+  [storageProviderId: string]: StorageProvidersSliData[];
+}) {
   const rpcClient = getRpcClient();
   const walletClient = getWalletClient();
 
   const oracleContractAddress =
     SERVICE_CONFIG.ORACLE_CONTRACT_ADDRESS as Address;
 
-  const buildedSliData: {
-    provider: bigint;
-    sli: SLIAttestation;
-  }[] = sliDataForProviders.map((provider) => {
-    childLogger.info(
-      `Preparing SLI data for provider ${provider.storageProviderId}`,
-    );
-    const availabilityMetric =
+  childLogger.info(`Preparing SLI data for providers...`);
+
+  const buildedSliData: SliAttestation[] = Object.entries(
+    sliDataForProviders,
+  ).map(([storageProviderId, data]) => {
+    const retrievability =
       Number(
-        provider.data
+        data
           .find(
-            (d) => d.sliMetric === StorageProvidersSLIMetric.RPA_RETRIEVABILITY,
+            (d) =>
+              d.sliMetricType ===
+              StorageProvidersSliMetricType.RPA_RETRIEVABILITY,
           )
           ?.sliMetricValue?.split(".")[0],
       ) || 0;
     const indexingMetric =
       Number(
-        provider.data.find(
-          (d) => d.sliMetric === StorageProvidersSLIMetric.IPNI_REPORTING,
-        )?.sliMetricValue,
-      ) || 0;
-
-    const retentionMetric =
-      Number(
-        provider.data.find(
-          (d) => d.sliMetric === StorageProvidersSLIMetric.RETENTION,
+        data.find(
+          (d) =>
+            d.sliMetricType === StorageProvidersSliMetricType.IPNI_REPORTING,
         )?.sliMetricValue,
       ) || 0;
 
     const latencyMetric =
       Number(
-        provider.data.find(
-          (d) => d.sliMetric === StorageProvidersSLIMetric.TTFB,
-        )?.sliMetricValue,
+        data.find((d) => d.sliMetricType === StorageProvidersSliMetricType.TTFB)
+          ?.sliMetricValue,
       ) || 0;
 
     const bandwidthMetric =
       Number(
-        provider.data
-          .find((d) => d.sliMetric === StorageProvidersSLIMetric.BANDWIDTH)
+        data
+          .find(
+            (d) => d.sliMetricType === StorageProvidersSliMetricType.BANDWIDTH,
+          )
           ?.sliMetricValue?.split(".")[0],
       ) || 0;
 
-    const data = {
-      provider: provider.storageProviderId.startsWith("f0")
-        ? BigInt(provider.storageProviderId.slice(2))
-        : BigInt(provider.storageProviderId),
-      sli: {
-        availability: availabilityMetric,
-        indexing: indexingMetric,
-        latency: latencyMetric,
-        retention: retentionMetric,
-        bandwidth: bandwidthMetric,
-        stability: 0,
-        // lastUpdate: BigInt(new Date(provider.updatedAt).getTime()),
-        lastUpdate: BigInt(Math.floor(Date.now() / 1000)), // TODO: which timestamp to use? each metric has its own updatedAt
+    const sliAttestation: SliAttestation = {
+      provider: storageProviderId.startsWith("f0")
+        ? BigInt(storageProviderId.slice(2))
+        : BigInt(storageProviderId),
+      slis: {
+        retrievabilityPct: retrievability,
+        indexingPct: indexingMetric,
+        latencyMs: latencyMetric,
+        bandwidthMbps: bandwidthMetric,
       },
     };
 
-    return data;
+    childLogger.info(`Prepared SLI attestation for providers`);
+
+    return sliAttestation;
   });
 
   const encodedCalls = buildedSliData.map((req) =>
     encodeFunctionData({
       abi: SLI_ORACLE_CONTRACT_ABI,
       functionName: "setSLI",
-      args: [req.provider, req.sli],
+      args: [req.provider, req.slis],
     }),
   );
 

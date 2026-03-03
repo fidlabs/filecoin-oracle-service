@@ -31,8 +31,9 @@ export async function setSliOracleJob() {
     const sps = uniqueStorageProviders.map((sp) => `f0${sp.toString()}`);
 
     const sliDataForProviders = await getSliForStorageProviders(sps);
+    const providersSlis = Object.values(sliDataForProviders?.data || {});
 
-    if (sliDataForProviders.length === 0) {
+    if (providersSlis.length === 0 || !sliDataForProviders) {
       sliChildLogger.info(
         "No SLI data fetched for any provider from CDP, skipping SLI update on oracle contract",
       );
@@ -40,10 +41,10 @@ export async function setSliOracleJob() {
     }
 
     sliChildLogger.info(
-      `Fetched SLI data for ${sliDataForProviders.length} providers from CDP`,
+      `Fetched SLI data for ${providersSlis.length} providers from CDP`,
     );
 
-    await setSliOnOracleContract(sliDataForProviders);
+    await setSliOnOracleContract(sliDataForProviders.data);
   } catch (err) {
     sliChildLogger.error({ err }, "Failed");
   }
