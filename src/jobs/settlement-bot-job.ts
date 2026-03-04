@@ -1,3 +1,4 @@
+import { settleRailOnFilecoinPayContract } from "../blockchain/filecoinpay-contract.js";
 import { getCompletedDealsFromPoRepMarketContract } from "../blockchain/porep-market.contract.js";
 import { baseLogger } from "../utils/logger.js";
 
@@ -22,7 +23,17 @@ export async function runSettlementBotJob() {
       return;
     }
 
-    // TODO: Implement settlement bot logic here, e.g. call settlement function on porep market contract for each completed deal, or batch them if the contract supports it
+    for (const deal of completedDeals) {
+      settlementChildLogger.info(
+        `Processing completed deal with ID ${deal.dealId} for provider ${deal.provider} and client ${deal.client}`,
+      );
+
+      await settleRailOnFilecoinPayContract(deal.railId);
+
+      settlementChildLogger.info(
+        `Successfully settled rail with ID ${deal.railId} for completed deal with ID ${deal.dealId}`,
+      );
+    }
   } catch (err) {
     settlementChildLogger.error({ err }, "Failed");
   }
