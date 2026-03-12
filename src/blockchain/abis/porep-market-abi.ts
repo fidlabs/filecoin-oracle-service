@@ -27,9 +27,53 @@ export const POREP_MARKET_CONTRACT_ABI = [
             internalType: "CommonTypes.FilActorId",
           },
           {
-            name: "SLC",
-            type: "address",
-            internalType: "address",
+            name: "requirements",
+            type: "tuple",
+            internalType: "struct SLITypes.SLIThresholds",
+            components: [
+              {
+                name: "retrievabilityPct",
+                type: "uint8",
+                internalType: "uint8",
+              },
+              {
+                name: "bandwidthMbps",
+                type: "uint16",
+                internalType: "uint16",
+              },
+              {
+                name: "latencyMs",
+                type: "uint16",
+                internalType: "uint16",
+              },
+              {
+                name: "indexingPct",
+                type: "uint8",
+                internalType: "uint8",
+              },
+            ],
+          },
+          {
+            name: "terms",
+            type: "tuple",
+            internalType: "struct SLITypes.DealTerms",
+            components: [
+              {
+                name: "dealSizeBytes",
+                type: "uint256",
+                internalType: "uint256",
+              },
+              {
+                name: "pricePerSector",
+                type: "uint256",
+                internalType: "uint256",
+              },
+              {
+                name: "durationDays",
+                type: "uint32",
+                internalType: "uint32",
+              },
+            ],
           },
           {
             name: "validator",
@@ -45,6 +89,11 @@ export const POREP_MARKET_CONTRACT_ABI = [
             name: "railId",
             type: "uint256",
             internalType: "uint256",
+          },
+          {
+            name: "manifestLocation",
+            type: "string",
+            internalType: "string",
           },
         ],
       },

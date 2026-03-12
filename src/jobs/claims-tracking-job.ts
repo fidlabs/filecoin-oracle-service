@@ -1,9 +1,8 @@
-import { getProvidersFromSlaAllocatorContract } from "../blockchain/sla-allocator-contract.js";
 import {
-  getClientAllocationIdsPerProvider,
-  getClientsForSPFromClientContract,
+  getClientAllocationIdsPerDeal,
   setClaimTerminatedEarly,
-} from "../blockchain/sla-client-contract.js";
+} from "../blockchain/client-contract.js";
+import { getCompletedDealsFromPoRepMarketContract } from "../blockchain/porep-market.contract.js";
 import {
   fetchClaims,
   fetchSectorInfo,
@@ -19,46 +18,34 @@ export async function trackClaimsJob() {
   claimTrackingLogger.info("Job started");
 
   try {
-    const slaContractProviders = await getProvidersFromSlaAllocatorContract();
+    const completedDeals = await getCompletedDealsFromPoRepMarketContract();
 
-    if (slaContractProviders.length === 0) {
+    if (completedDeals.length === 0) {
       claimTrackingLogger.info(
-        "No storage providers found in SLA Allocator contract, skipping SLI update on oracle contract",
+        "No completed deals found in PoRep Market contract, skipping claims tracking",
       );
       return;
     }
 
+    claimTrackingLogger.info(
+      `Fetched ${completedDeals.length} completed deals from PoRep Market contract`,
+    );
+
     const terminatedAllocations: number[] = [];
 
-    for (const spId of slaContractProviders) {
-      claimTrackingLogger.info(
-        `Tracking claims for storage provider f0${spId}...`,
-      );
+    claimTrackingLogger.info(
+      "Start processing completed deals for claims tracking...",
+    );
 
-      const spClients = await getClientsForSPFromClientContract(spId);
+    for (const deal of completedDeals) {
+      claimTrackingLogger.info(`Processing deal id: ${deal.dealId}...`);
 
-      if (spClients.length === 0) {
-        claimTrackingLogger.info(
-          `No clients found for storage provider ${spId}, skipping...`,
-        );
-        continue;
-      }
+      const allocationIds = await getClientAllocationIdsPerDeal(deal.dealId);
 
-      claimTrackingLogger.info(
-        `Found ${spClients.length} clients for storage provider ${spId}`,
-      );
+      for (const allocationId of allocationIds) {
+        claimTrackingLogger.info(`Processing allocation ID ${allocationId}...`);
 
-      const spAllocations = await getClientAllocationIdsPerProvider(
-        spId,
-        spClients,
-      );
-
-      claimTrackingLogger.info(
-        `Found ${spAllocations.length} allocations for storage provider ${spId} and its clients`,
-      );
-
-      for (const allocationId of spAllocations) {
-        const storageProviderId = `f0${spId}`;
+        const storageProviderId = `f0${deal.provider.toString()}`;
 
         const allocationInfo = await fetchClaims(
           storageProviderId,
@@ -76,7 +63,7 @@ export async function trackClaimsJob() {
         ) {
           terminatedAllocations.push(allocationId);
           claimTrackingLogger.info(
-            `Marking allocation ${allocationId} for early termination (SP: ${spId})`,
+            `Marking allocation ${allocationId} for early termination (SP: ${storageProviderId}, DealId: ${deal.dealId} Sector: ${allocationInfo.Sector}, )`,
           );
         }
       }
