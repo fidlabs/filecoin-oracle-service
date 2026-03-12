@@ -22,17 +22,12 @@ export const CLIENT_CONTRACT_ABI = [
   },
   {
     type: "function",
-    name: "getClientAllocationIdsPerProvider",
+    name: "getClientAllocationIdsPerDeal",
     inputs: [
       {
-        name: "provider",
-        type: "uint64",
-        internalType: "CommonTypes.FilActorId",
-      },
-      {
-        name: "client",
-        type: "address",
-        internalType: "address",
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
       },
     ],
     outputs: [

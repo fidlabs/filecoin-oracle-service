@@ -77,12 +77,20 @@ enum DealState {
   Rejected,
 }
 
+export interface DealTerms {
+  dealSizeBytes: bigint;
+  pricePerSector: bigint;
+  durationDays: number;
+}
+
 export interface DealProposal {
   dealId: bigint;
   client: Address;
   provider: bigint;
-  SLC: Address;
   validator: Address;
-  state: DealState;
   railId: bigint;
+  manifestLocation: string;
+  state: DealState;
+  terms: DealTerms;
+  requirements: SLIThresholds;
 }

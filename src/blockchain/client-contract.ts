@@ -2,12 +2,12 @@ import { Address } from "viem";
 import { SERVICE_CONFIG } from "../config/env.js";
 
 import { baseLogger } from "../utils/logger.js";
-import { CLIENT_CONTRACT_ABI } from "./abis/client-abi.js";
 import { getRpcClient, getWalletClient } from "./blockchain-client.js";
+import { CLIENT_CONTRACT_ABI } from "./abis/client-abi.js";
 
 const childLogger = baseLogger.child(
   { avengers: "assemble" },
-  { msgPrefix: "[SLA Client Contract] " },
+  { msgPrefix: "[Client Contract] " },
 );
 
 export async function getClientsForSPFromClientContract(
@@ -31,36 +31,25 @@ export async function getClientsForSPFromClientContract(
   return spClients as Address[];
 }
 
-export async function getClientAllocationIdsPerProvider(
-  storageProviderId: number,
-  clientAddresses: Address[],
+export async function getClientAllocationIdsPerDeal(
+  dealId: bigint,
 ): Promise<number[]> {
   const rpcClient = getRpcClient();
 
-  childLogger.info(
-    `Fetching allocation ID for clients and storage providers ${storageProviderId}...`,
-  );
+  childLogger.info(`Fetching allocation IDs for deal ${dealId}...`);
 
-  const multicallData = clientAddresses.map((clientId) => ({
+  const allocationIds = await rpcClient.readContract({
     address: SERVICE_CONFIG.CLIENT_CONTRACT_ADDRESS as Address,
     abi: CLIENT_CONTRACT_ABI,
-    functionName: "getClientAllocationIdsPerProvider",
-    args: [BigInt(storageProviderId), clientId],
-  }));
-
-  const multicall = await rpcClient.multicall({
-    contracts: multicallData,
+    functionName: "getClientAllocationIdsPerDeal",
+    args: [dealId],
   });
 
   childLogger.info(
-    `Fetched ${multicall.length} allocations for storage provider ${storageProviderId}...`,
+    `Fetched ${allocationIds.length} allocation IDs for deal ${dealId}`,
   );
 
-  const ids = multicall
-    .filter((response) => !response.error)
-    .flatMap((response) => Number(response.result));
-
-  return ids;
+  return allocationIds.map(Number);
 }
 
 export async function setClaimTerminatedEarly(allocationIds: bigint[]) {
