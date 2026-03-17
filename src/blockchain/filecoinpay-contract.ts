@@ -3,6 +3,7 @@ import { SERVICE_CONFIG } from "../config/env.js";
 import { baseLogger } from "../utils/logger.js";
 import { FILECOIN_PAY_CONTRACT_ABI } from "./abis/filecoinpay-abi.js";
 import { getRpcClient, getWalletClient } from "./blockchain-client.js";
+import { WalletAccountRole } from "./client-contract.js";
 
 const childLogger = baseLogger.child(
   { avengers: "assemble" },
@@ -13,7 +14,7 @@ export async function settleRailOnFilecoinPayContract(
   railId: bigint,
 ): Promise<void> {
   const rpcClient = getRpcClient();
-  const walletClient = getWalletClient();
+  const walletClient = getWalletClient(WalletAccountRole.FILECOIN_PAY_ROLE);
   const functionName = "settleRail";
 
   childLogger.info(`${functionName}: Simulating request...`);

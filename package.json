@@ -9,15 +9,23 @@
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
     "build": "tsc",
-    "lint": "eslint 'src/**/*.ts' --fix"
+    "lint": "eslint 'src/**/*.ts' --fix",
+    "prisma:reset": "npx prisma migrate reset --schema prisma/schema.prisma --config prisma/prisma.config.ts",
+    "prisma:create_migration": "npx prisma migrate dev --schema prisma/schema.prisma --config prisma/prisma.config.ts --name",
+    "prisma:deploy": "npx prisma migrate deploy --schema prisma/schema.prisma --config prisma/prisma.config.ts",
+    "prisma:generate": "npx prisma generate --schema prisma/schema.prisma --config prisma/prisma.config.ts",
+    "prisma:generate_dmob": "npx prisma generate --schema prismaDmob/schema.prisma --config prismaDmob/prisma.config.ts"
   },
   "dependencies": {
+    "@prisma/client": "^7.5.0",
     "@types/body-parser": "^1.19.6",
     "abitype": "^1.1.1",
     "dotenv": "^16.0.0",
     "express": "^5.1.0",
+    "i": "^0.3.7",
     "node-cron": "^4.2.1",
     "node-fetch": "^3.3.2",
+    "npm": "^11.11.1",
     "pino": "^10.1.0",
     "pino-pretty": "^13.1.2",
     "viem": "^2.38.6"
@@ -34,6 +42,7 @@
     "globals": "^16.5.0",
     "jiti": "^2.6.1",
     "prettier": "^3.6.2",
+    "prisma": "^7.5.0",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.4.0",

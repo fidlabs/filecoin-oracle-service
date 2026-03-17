@@ -11,6 +11,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { filecoin, filecoinCalibration } from "viem/chains";
 import { SERVICE_CONFIG } from "../config/env.js";
 import { baseLogger } from "../utils/logger.js";
+import { WalletAccountRole } from "./client-contract.js";
 
 export const getChain = (chainId: number) => {
   switch (chainId) {
@@ -45,11 +46,30 @@ export const getChain = (chainId: number) => {
 
 const chain = getChain(Number(SERVICE_CONFIG.CHAIN_ID));
 let rpcClient: PublicClient;
-let walletClient: WalletClient;
+const walletClient: { [key in WalletAccountRole]?: WalletClient } = {};
 
-export const account = privateKeyToAccount(
-  SERVICE_CONFIG.WALLET_PRIVATE_KEY as Address,
-);
+export const getWalletClientAccount = (role: WalletAccountRole) => {
+  switch (role) {
+    case WalletAccountRole.POREP_SERVICE_ROLE:
+      return privateKeyToAccount(
+        SERVICE_CONFIG.POREP_SERVICE_ROLE_WALLET_PK as Address,
+      );
+    case WalletAccountRole.ORACLE_ROLE:
+      return privateKeyToAccount(
+        SERVICE_CONFIG.ORACLE_ROLE_WALLET_PK as Address,
+      );
+    case WalletAccountRole.TERMINATION_ORACLE_ROLE:
+      return privateKeyToAccount(
+        SERVICE_CONFIG.TERMINATION_ORACLE_ROLE_WALLET_PK as Address,
+      );
+    case WalletAccountRole.FILECOIN_PAY_ROLE:
+      return privateKeyToAccount(
+        SERVICE_CONFIG.FILECOIN_PAY_ROLE_WALLET_PK as Address,
+      );
+    default:
+      throw new Error(`Unsupported wallet account role: ${role}`);
+  }
+};
 
 export function getRpcClient() {
   if (!rpcClient) {
@@ -63,16 +83,24 @@ export function getRpcClient() {
   return rpcClient;
 }
 
-export function getWalletClient() {
-  if (!walletClient) {
-    walletClient = createWalletClient({
+export function getWalletClient(role: WalletAccountRole) {
+  if (!walletClient[role]) {
+    const account = getWalletClientAccount(role);
+
+    if (!account) {
+      throw new Error(`No account found for role ${role}`);
+    }
+
+    walletClient[role] = createWalletClient({
       account,
       chain,
       transport: http(SERVICE_CONFIG.RPC_URL),
     });
 
-    baseLogger.info("Wallet client created on chain ID " + chain.id);
+    baseLogger.info(
+      `Wallet client with role ${role} created on chain ID ${chain.id}`,
+    );
   }
 
-  return walletClient;
+  return walletClient[role];
 }
