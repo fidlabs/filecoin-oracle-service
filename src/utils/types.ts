@@ -94,3 +94,12 @@ export interface DealProposal {
   terms: DealTerms;
   requirements: SLIThresholds;
 }
+
+export interface PorepMarketDeal {
+  dealId: bigint;
+  provider: bigint;
+  client: string;
+  railId: bigint;
+  deal_start_epoch: bigint;
+  deal_end_epoch: bigint;
+}

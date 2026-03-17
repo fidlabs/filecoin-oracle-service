@@ -1,9 +1,9 @@
 import express, { NextFunction, Request, Response } from "express";
 import { SERVICE_CONFIG } from "../config/env.js";
-import { trackClaimsJob } from "../jobs/claims-tracking-job.js";
 import { setSliOracleJob } from "../jobs/set-sli-job.js";
 import { baseLogger } from "../utils/logger.js";
 import { runSettlementBotJob } from "../jobs/settlement-bot-job.js";
+import { trackClaimsTerminatedEarlyJob } from "../jobs/claims-terminated-early-job.js";
 
 const app = express();
 
@@ -64,7 +64,7 @@ app.post(
     httpLogger.info("Manual trigger received via /trigger-claims-job");
 
     try {
-      await trackClaimsJob();
+      await trackClaimsTerminatedEarlyJob();
 
       res.json({ status: "ok", message: "Job triggered successfully" });
     } catch (err) {

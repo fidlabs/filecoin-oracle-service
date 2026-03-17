@@ -1,0 +1,29 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model porep_market_deal{
+  id         String               @id @default(uuid()) @db.Uuid
+  dealId     BigInt @unique
+  client     String
+  provider   BigInt
+  railId     BigInt
+  validatorContractAddress String
+  allocationsCount BigInt
+  railTerminated Boolean
+  deal_start_epoch BigInt
+  deal_end_epoch   BigInt
+
+  @@index([dealId])
+  @@index([provider])
+}

@@ -1,6 +1,6 @@
 import {
   getClientAllocationIdsPerDeal,
-  setClaimTerminatedEarly,
+  setClaimTerminatedEarlyOnClientContract,
 } from "../blockchain/client-contract.js";
 import { getCompletedDealsFromPoRepMarketContract } from "../blockchain/porep-market.contract.js";
 import {
@@ -11,10 +11,10 @@ import { baseLogger } from "../utils/logger.js";
 
 const claimTrackingLogger = baseLogger.child(
   { avengers: "assemble" },
-  { msgPrefix: "[Claims Tracking Job] " },
+  { msgPrefix: "[Claims Terminated Early Job] " },
 );
 
-export async function trackClaimsJob() {
+export async function trackClaimsTerminatedEarlyJob() {
   claimTrackingLogger.info("Job started");
 
   try {
@@ -33,9 +33,7 @@ export async function trackClaimsJob() {
 
     const terminatedAllocations: number[] = [];
 
-    claimTrackingLogger.info(
-      "Start processing completed deals for claims tracking...",
-    );
+    claimTrackingLogger.info("Start processing completed deals...");
 
     for (const deal of completedDeals) {
       claimTrackingLogger.info(`Processing deal id: ${deal.dealId}...`);
@@ -69,7 +67,9 @@ export async function trackClaimsJob() {
       }
     }
 
-    await setClaimTerminatedEarly(terminatedAllocations.map(BigInt));
+    await setClaimTerminatedEarlyOnClientContract(
+      terminatedAllocations.map(BigInt),
+    );
   } catch (err) {
     claimTrackingLogger.error({ err }, "Job failed");
   }

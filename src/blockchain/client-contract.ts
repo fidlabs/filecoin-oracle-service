@@ -2,19 +2,27 @@ import { Address } from "viem";
 import { SERVICE_CONFIG } from "../config/env.js";
 
 import { baseLogger } from "../utils/logger.js";
-import { getRpcClient, getWalletClient } from "./blockchain-client.js";
 import { CLIENT_CONTRACT_ABI } from "./abis/client-abi.js";
+import { getRpcClient, getWalletClient } from "./blockchain-client.js";
 
 const childLogger = baseLogger.child(
   { avengers: "assemble" },
   { msgPrefix: "[Client Contract] " },
 );
 
+export enum WalletAccountRole {
+  POREP_SERVICE_ROLE = "POREP_SERVICE_ROLE",
+  ORACLE_ROLE = "ORACLE_ROLE",
+  TERMINATION_ORACLE_ROLE = "TERMINATION_ORACLE_ROLE",
+  FILECOIN_PAY_ROLE = "FILECOIN_PAY_ROLE",
+}
+
+const rpcClient = getRpcClient();
+const walletClient = getWalletClient(WalletAccountRole.TERMINATION_ORACLE_ROLE);
+
 export async function getClientsForSPFromClientContract(
   storageProviderId: number,
 ): Promise<Address[]> {
-  const rpcClient = getRpcClient();
-
   childLogger.info("Fetching clients for storage provider...");
 
   const spClients = await rpcClient.readContract({
@@ -34,8 +42,6 @@ export async function getClientsForSPFromClientContract(
 export async function getClientAllocationIdsPerDeal(
   dealId: bigint,
 ): Promise<number[]> {
-  const rpcClient = getRpcClient();
-
   childLogger.info(`Fetching allocation IDs for deal ${dealId}...`);
 
   const allocationIds = await rpcClient.readContract({
@@ -52,10 +58,9 @@ export async function getClientAllocationIdsPerDeal(
   return allocationIds.map(Number);
 }
 
-export async function setClaimTerminatedEarly(allocationIds: bigint[]) {
-  const rpcClient = getRpcClient();
-  const walletClient = getWalletClient();
-
+export async function setClaimTerminatedEarlyOnClientContract(
+  allocationIds: bigint[],
+) {
   childLogger.info("claimsTerminatedEarly: Simulating request...");
 
   const { request } = await rpcClient.simulateContract({

@@ -1,0 +1,23 @@
+version: "3.9"
+services:
+  oracle-service-db:
+    image: postgres:17
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - PGUSER=postgres
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "8038:5432"
+    healthcheck:
+      test: "pg_isready"
+      interval: 30s
+      timeout: 5s
+      retries: 2
+
+volumes:
+  postgres_data:
+    driver: local
