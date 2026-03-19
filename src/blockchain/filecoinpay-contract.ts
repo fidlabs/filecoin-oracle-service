@@ -1,9 +1,9 @@
 import { Address } from "viem";
-import { SERVICE_CONFIG } from "../config/env.js";
-import { baseLogger } from "../utils/logger.js";
-import { FILECOIN_PAY_CONTRACT_ABI } from "./abis/filecoinpay-abi.js";
-import { getRpcClient, getWalletClient } from "./blockchain-client.js";
-import { WalletAccountRole } from "./client-contract.js";
+import { SERVICE_CONFIG } from "../config/env";
+import { baseLogger } from "../utils/logger";
+import { FILECOIN_PAY_CONTRACT_ABI } from "./abis/filecoinpay-abi";
+import { getRpcClient, getWalletClient } from "./blockchain-client";
+import { WalletAccountRole } from "./client-contract";
 
 const childLogger = baseLogger.child(
   { avengers: "assemble" },

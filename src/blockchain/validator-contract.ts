@@ -1,8 +1,8 @@
 import { Address } from "viem";
-import { baseLogger } from "../utils/logger.js";
-import { VALIDATOR_CONTRACT_ABI } from "./abis/validator-abi.js";
-import { getRpcClient, getWalletClient } from "./blockchain-client.js";
-import { WalletAccountRole } from "./client-contract.js";
+import { baseLogger } from "../utils/logger";
+import { VALIDATOR_CONTRACT_ABI } from "./abis/validator-abi";
+import { getRpcClient, getWalletClient } from "./blockchain-client";
+import { WalletAccountRole } from "./client-contract";
 
 const childLogger = baseLogger.child(
   { avengers: "assemble" },

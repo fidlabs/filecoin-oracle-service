@@ -1,8 +1,8 @@
 import { Address } from "viem";
-import { SERVICE_CONFIG } from "../config/env.js";
-import { baseLogger } from "../utils/logger.js";
-import { SP_REGISTRY_CONTRACT_ABI } from "./abis/sp-registry-abi.js";
-import { getRpcClient } from "./blockchain-client.js";
+import { SERVICE_CONFIG } from "../config/env";
+import { baseLogger } from "../utils/logger";
+import { SP_REGISTRY_CONTRACT_ABI } from "./abis/sp-registry-abi";
+import { getRpcClient } from "./blockchain-client";
 
 const childLogger = baseLogger.child(
   { avengers: "assemble" },

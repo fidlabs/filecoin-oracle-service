@@ -1,5 +1,3 @@
-import "dotenv/config";
-
 export const EnvKeys = {
   LOG_LEVEL: "LOG_LEVEL",
   RPC_URL: "RPC_URL",

@@ -1,8 +1,8 @@
-import { SERVICE_CONFIG } from "../config/env.js";
+import { SERVICE_CONFIG } from "../config/env";
 import {
   FilecoinAPIStateGetClaim,
   FilecoinAPIStateSectorGetInfo,
-} from "../utils/types.js";
+} from "../utils/types";
 
 export async function fetchSectorInfo(
   spId: string,
