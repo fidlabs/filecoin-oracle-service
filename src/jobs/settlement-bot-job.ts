@@ -1,6 +1,6 @@
-import { settleRailOnFilecoinPayContract } from "../blockchain/filecoinpay-contract.js";
-import { getCompletedDealsFromPoRepMarketContract } from "../blockchain/porep-market.contract.js";
-import { baseLogger } from "../utils/logger.js";
+import { settleRailOnFilecoinPayContract } from "../blockchain/filecoinpay-contract";
+import { getCompletedDealsFromPoRepMarketContract } from "../blockchain/porep-market.contract";
+import { baseLogger } from "../utils/logger";
 
 const settlementChildLogger = baseLogger.child(
   { avengers: "assemble" },

@@ -70,7 +70,7 @@ export interface FilecoinAPIStateGetClaim {
   Sector: number;
 }
 
-enum DealState {
+export enum DealState {
   Proposed,
   Accepted,
   Completed,

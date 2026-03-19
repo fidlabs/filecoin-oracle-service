@@ -9,9 +9,9 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { filecoin, filecoinCalibration } from "viem/chains";
-import { SERVICE_CONFIG } from "../config/env.js";
-import { baseLogger } from "../utils/logger.js";
-import { WalletAccountRole } from "./client-contract.js";
+import { SERVICE_CONFIG } from "../config/env";
+import { baseLogger } from "../utils/logger";
+import { WalletAccountRole } from "./client-contract";
 
 export const getChain = (chainId: number) => {
   switch (chainId) {

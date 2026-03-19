@@ -1,6 +1,6 @@
-import { SERVICE_CONFIG } from "../config/env.js";
-import { baseLogger } from "../utils/logger.js";
-import { CdpSliResponse } from "../utils/types.js";
+import { SERVICE_CONFIG } from "../config/env";
+import { baseLogger } from "../utils/logger";
+import { CdpSliResponse } from "../utils/types";
 
 async function fetchDataFromCdp(endpoint: string): Promise<CdpSliResponse> {
   const url = `${SERVICE_CONFIG.CDP_SERVICE_URL}/${endpoint}`;

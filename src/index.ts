@@ -1,6 +1,7 @@
-import { SERVICE_CONFIG } from "./config/env.js";
-import "./http-server/server.js";
-import { baseLogger } from "./utils/logger.js";
+import "dotenv/config";
+import { SERVICE_CONFIG } from "./config/env";
+import "./http-server/server";
+import { baseLogger } from "./utils/logger";
 
 const childLogger = baseLogger.child(
   { avengers: "assemble" },
@@ -40,7 +41,7 @@ try {
   // cron.schedule(sliInterval, setSliOracleJob);
   // cron.schedule(claimsInterval, trackClaimsTerminatedEarlyJob);
   // cron.schedule(settlementBotInterval, runSettlementBotJob);
-  // cron.schedule(terminateDealsInterval, trackTerminateDealJob);
+  // cron.schedule("* * * * *", trackTerminateDealJob);
 } catch (err: unknown) {
   if (err instanceof Error) {
     const message = err instanceof Error ? err.message : String(err);

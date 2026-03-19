@@ -1,9 +1,9 @@
 import { Address } from "viem";
-import { SERVICE_CONFIG } from "../config/env.js";
-import { baseLogger } from "../utils/logger.js";
-import { DealProposal } from "../utils/types.js";
-import { POREP_MARKET_CONTRACT_ABI } from "./abis/porep-market-abi.js";
-import { getRpcClient } from "./blockchain-client.js";
+import { SERVICE_CONFIG } from "../config/env";
+import { baseLogger } from "../utils/logger";
+import { DealProposal } from "../utils/types";
+import { POREP_MARKET_CONTRACT_ABI } from "./abis/porep-market-abi";
+import { getRpcClient } from "./blockchain-client";
 
 const childLogger = baseLogger.child(
   { avengers: "assemble" },

@@ -1,9 +1,10 @@
 import express, { NextFunction, Request, Response } from "express";
-import { SERVICE_CONFIG } from "../config/env.js";
-import { setSliOracleJob } from "../jobs/set-sli-job.js";
-import { baseLogger } from "../utils/logger.js";
-import { runSettlementBotJob } from "../jobs/settlement-bot-job.js";
-import { trackClaimsTerminatedEarlyJob } from "../jobs/claims-terminated-early-job.js";
+import { SERVICE_CONFIG } from "../config/env";
+import { trackClaimsTerminatedEarlyJob } from "../jobs/claims-terminated-early-job";
+import { setSliOracleJob } from "../jobs/set-sli-job";
+import { runSettlementBotJob } from "../jobs/settlement-bot-job";
+import { baseLogger } from "../utils/logger";
+import { trackTerminateDealJob } from "../jobs/terminate-deal-job";
 
 const app = express();
 
@@ -83,6 +84,26 @@ app.post(
 
     try {
       await runSettlementBotJob();
+
+      res.json({ status: "ok", message: "Job triggered successfully" });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      httpLogger.error(`Manual job trigger failed: ${message}`);
+      res.status(500).json({ error: message });
+    }
+  },
+);
+
+app.post(
+  "/trigger-terminated-deals-job",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    httpLogger.info(
+      "Manual trigger received via /trigger-terminated-deals-job",
+    );
+
+    try {
+      await trackTerminateDealJob();
 
       res.json({ status: "ok", message: "Job triggered successfully" });
     } catch (err) {

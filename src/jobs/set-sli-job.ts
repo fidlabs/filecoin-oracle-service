@@ -1,7 +1,7 @@
-import { setSliOnOracleContract } from "../blockchain/sli-oracle-contract.js";
-import { getProvidersFromSPRegistryContract } from "../blockchain/sp-registry-contract.js";
-import { getSliForStorageProviders } from "../services/cdp-fetch-service.js";
-import { baseLogger } from "../utils/logger.js";
+import { setSliOnOracleContract } from "../blockchain/sli-oracle-contract";
+import { getProvidersFromSPRegistryContract } from "../blockchain/sp-registry-contract";
+import { getSliForStorageProviders } from "../services/cdp-fetch-service";
+import { baseLogger } from "../utils/logger";
 
 const sliChildLogger = baseLogger.child(
   { avengers: "assemble" },

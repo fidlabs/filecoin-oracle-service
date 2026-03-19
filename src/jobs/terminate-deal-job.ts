@@ -1,17 +1,17 @@
+import { Address } from "viem";
+import { getRpcClient } from "../blockchain/blockchain-client";
+import { getClientAllocationIdsPerDeal } from "../blockchain/client-contract";
+import { getCompletedDealsFromPoRepMarketContract } from "../blockchain/porep-market.contract";
 import {
   modifyRailPaymentOnValidatorContract,
   setDealEndEpochOnValidatorContract,
   terminateRailOnValidatorContract,
-} from "src/blockchain/validator-contract.js";
-import { Address } from "viem";
-import { getRpcClient } from "../blockchain/blockchain-client.js";
-import { getClientAllocationIdsPerDeal } from "../blockchain/client-contract.js";
-import { getCompletedDealsFromPoRepMarketContract } from "../blockchain/porep-market.contract.js";
+} from "../blockchain/validator-contract";
 import {
   getDmobPrismaClient,
   getPrismaClient,
-} from "../services/prisma-service.js";
-import { baseLogger } from "../utils/logger.js";
+} from "../services/prisma-service";
+import { baseLogger } from "../utils/logger";
 
 const claimTrackingLogger = baseLogger.child(
   { avengers: "assemble" },
@@ -44,6 +44,9 @@ export async function trackTerminateDealJob() {
         const allocationInfo =
           await dmobPrismaClient.unified_verified_deal.aggregate({
             where: {
+              type: {
+                in: ["claim", "claimUpdated"],
+              },
               claimId: {
                 in: clientAllocationIds,
               },
@@ -157,7 +160,7 @@ export async function trackTerminateDealJob() {
             });
           },
           {
-            timeout: 60000,
+            timeout: 2 * 60 * 1000, // 2 minutes
           },
         );
       }

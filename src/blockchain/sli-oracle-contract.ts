@@ -1,14 +1,14 @@
 import { Address, encodeFunctionData } from "viem";
-import { SERVICE_CONFIG } from "../config/env.js";
-import { baseLogger } from "../utils/logger.js";
+import { SERVICE_CONFIG } from "../config/env";
+import { baseLogger } from "../utils/logger";
 import {
   SliAttestation,
   StorageProvidersSliData,
   StorageProvidersSliMetricType,
-} from "../utils/types.js";
-import { SLI_ORACLE_CONTRACT_ABI } from "./abis/sli-oracle-abi.js";
-import { getRpcClient, getWalletClient } from "./blockchain-client.js";
-import { WalletAccountRole } from "./client-contract.js";
+} from "../utils/types";
+import { SLI_ORACLE_CONTRACT_ABI } from "./abis/sli-oracle-abi";
+import { getRpcClient, getWalletClient } from "./blockchain-client";
+import { WalletAccountRole } from "./client-contract";
 
 const childLogger = baseLogger.child(
   { avengers: "assemble" },

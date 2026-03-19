@@ -1,13 +1,10 @@
 import {
   getClientAllocationIdsPerDeal,
   setClaimTerminatedEarlyOnClientContract,
-} from "../blockchain/client-contract.js";
-import { getCompletedDealsFromPoRepMarketContract } from "../blockchain/porep-market.contract.js";
-import {
-  fetchClaims,
-  fetchSectorInfo,
-} from "../services/filecoin-api-service.js";
-import { baseLogger } from "../utils/logger.js";
+} from "../blockchain/client-contract";
+import { getCompletedDealsFromPoRepMarketContract } from "../blockchain/porep-market.contract";
+import { fetchClaims, fetchSectorInfo } from "../services/filecoin-api-service";
+import { baseLogger } from "../utils/logger";
 
 const claimTrackingLogger = baseLogger.child(
   { avengers: "assemble" },
