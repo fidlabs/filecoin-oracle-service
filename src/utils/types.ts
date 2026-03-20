@@ -1,7 +1,7 @@
 import { Address } from "viem";
 
 export interface SLIThresholds {
-  retrievabilityPct: number;
+  retrievabilityBps: number;
   bandwidthMbps: number;
   latencyMs: number;
   indexingPct: number;

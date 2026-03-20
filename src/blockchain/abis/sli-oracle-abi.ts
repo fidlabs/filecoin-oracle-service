@@ -14,9 +14,9 @@ export const SLI_ORACLE_CONTRACT_ABI = [
         internalType: "struct SLITypes.SLIThresholds",
         components: [
           {
-            name: "retrievabilityPct",
-            type: "uint8",
-            internalType: "uint8",
+            name: "retrievabilityBps",
+            type: "uint16",
+            internalType: "uint16",
           },
           {
             name: "bandwidthMbps",
@@ -38,6 +38,25 @@ export const SLI_ORACLE_CONTRACT_ABI = [
     ],
     outputs: [],
     stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "supportsInterface",
+    inputs: [
+      {
+        name: "interfaceId",
+        type: "bytes4",
+        internalType: "bytes4",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "view",
   },
   {
     type: "function",
