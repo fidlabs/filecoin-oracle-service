@@ -59,7 +59,7 @@ app.post(
 );
 
 app.post(
-  "/trigger-claims-job",
+  "/trigger-claims-terminated-early-job",
   authMiddleware,
   async (req: Request, res: Response) => {
     httpLogger.info("Manual trigger received via /trigger-claims-job");

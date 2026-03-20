@@ -40,6 +40,23 @@ export async function trackTerminateDealJob() {
           deal.dealId,
         );
 
+        const checkDealInDb = await prismaClient.porep_market_deal.findUnique({
+          where: {
+            dealId: deal.dealId,
+            allocationsCount: clientAllocationIds.length,
+            provider: deal.provider,
+            client: deal.client,
+            railTerminated: false,
+          },
+        });
+
+        if (checkDealInDb) {
+          claimTrackingLogger.info(
+            `Deal ${deal.dealId} already exists in database with matching allocation count, skipping...`,
+          );
+          continue;
+        }
+
         // get the deal time frame based on all allocations and count of allocations for the deal
         const allocationInfo =
           await dmobPrismaClient.unified_verified_deal.aggregate({

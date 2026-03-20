@@ -12,7 +12,8 @@ try {
   if (
     !SERVICE_CONFIG.TRIGGER_SLI_JOB_INTERVAL_CRON ||
     !SERVICE_CONFIG.TRIGGER_CLAIMS_TRACKING_JOB_INTERVAL_CRON ||
-    !SERVICE_CONFIG.TRIGGER_SETTLEMENT_BOT_JOB_INTERVAL_CRON
+    !SERVICE_CONFIG.TRIGGER_SETTLEMENT_BOT_JOB_INTERVAL_CRON ||
+    !SERVICE_CONFIG.TRIGGER_TERMINATE_DEAL_JOB_INTERVAL_CRON
   ) {
     throw new Error(
       `Missing TRIGGER_SLI_JOB_INTERVAL_CRON, TRIGGER_CLAIMS_TRACKING_JOB_INTERVAL_CRON, TRIGGER_SETTLEMENT_BOT_JOB_INTERVAL_CRON in environment variables`,
@@ -41,7 +42,7 @@ try {
   // cron.schedule(sliInterval, setSliOracleJob);
   // cron.schedule(claimsInterval, trackClaimsTerminatedEarlyJob);
   // cron.schedule(settlementBotInterval, runSettlementBotJob);
-  // cron.schedule("* * * * *", trackTerminateDealJob);
+  // cron.schedule("terminateDealsInterval", trackTerminateDealJob);
 } catch (err: unknown) {
   if (err instanceof Error) {
     const message = err instanceof Error ? err.message : String(err);
