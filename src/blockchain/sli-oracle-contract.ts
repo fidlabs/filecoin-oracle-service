@@ -65,7 +65,8 @@ export async function setSliOnOracleContract(sliDataForProviders: {
         ? BigInt(storageProviderId.slice(2))
         : BigInt(storageProviderId),
       slis: {
-        retrievabilityBps: retrievability !== null ? retrievability * 10000 : 0,
+        retrievabilityBps:
+          retrievability !== null ? Math.floor(retrievability * 10000) : 0,
         indexingPct: Math.floor(indexingMetric * 100),
         latencyMs: latencyMetric,
         bandwidthMbps: bandwidthMetric,
