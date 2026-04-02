@@ -25,7 +25,7 @@ export async function getSliForStorageProviders(
     return null;
   }
 
-  const endpoint = `storage-providers/average-monthly-sli?${storageProviders
+  const endpoint = `storage-providers/average-sli-data?${storageProviders
     .map((id) => `storageProvidersIds=${id}`)
     .join("&")}`;
 

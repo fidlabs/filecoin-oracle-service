@@ -17,7 +17,7 @@ export async function getProvidersFromSPRegistryContract(): Promise<number[]> {
   const storageProviders = await rpcClient.readContract({
     address: SERVICE_CONFIG.SP_REGISTRY_CONTRACT_ADDRESS as Address,
     abi: SP_REGISTRY_CONTRACT_ABI,
-    functionName: "getCommittedProviders",
+    functionName: "getProviders",
   });
 
   childLogger.info(

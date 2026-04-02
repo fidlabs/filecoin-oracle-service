@@ -48,13 +48,7 @@ export const VALIDATOR_CONTRACT_ABI = [
   {
     type: "function",
     name: "disableFutureRailPayments",
-    inputs: [
-      {
-        name: "railId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    inputs: [],
     outputs: [],
     stateMutability: "nonpayable",
   },
@@ -170,13 +164,7 @@ export const VALIDATOR_CONTRACT_ABI = [
   {
     type: "function",
     name: "modifyRailPayment",
-    inputs: [
-      {
-        name: "railId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    inputs: [],
     outputs: [],
     stateMutability: "nonpayable",
   },
@@ -244,11 +232,6 @@ export const VALIDATOR_CONTRACT_ABI = [
     name: "setDealEndEpoch",
     inputs: [
       {
-        name: "dealId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
         name: "endEpoch",
         type: "int64",
         internalType: "CommonTypes.ChainEpoch",
@@ -279,13 +262,7 @@ export const VALIDATOR_CONTRACT_ABI = [
   {
     type: "function",
     name: "terminateRail",
-    inputs: [
-      {
-        name: "railId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    inputs: [],
     outputs: [],
     stateMutability: "nonpayable",
   },
@@ -293,11 +270,6 @@ export const VALIDATOR_CONTRACT_ABI = [
     type: "function",
     name: "updateLockupPeriod",
     inputs: [
-      {
-        name: "railId",
-        type: "uint256",
-        internalType: "uint256",
-      },
       {
         name: "newLockupPeriod",
         type: "uint256",

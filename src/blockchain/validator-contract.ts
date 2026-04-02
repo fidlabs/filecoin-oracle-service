@@ -24,7 +24,7 @@ export async function terminateRailOnValidatorContract(
     address: validatorContractAddress,
     abi: VALIDATOR_CONTRACT_ABI,
     functionName: "terminateRail",
-    args: [railId],
+    args: [],
     account: walletClient.account,
   });
 
@@ -58,7 +58,7 @@ export async function setDealEndEpochOnValidatorContract(
     address: validatorContractAddress,
     abi: VALIDATOR_CONTRACT_ABI,
     functionName: "setDealEndEpoch",
-    args: [dealId, dealEndEpoch],
+    args: [dealEndEpoch],
     account: walletClient.account,
   });
 
@@ -91,7 +91,7 @@ export async function modifyRailPaymentOnValidatorContract(
     address: validatorContractAddress,
     abi: VALIDATOR_CONTRACT_ABI,
     functionName: "modifyRailPayment",
-    args: [railId],
+    args: [],
     account: walletClient.account,
   });
 
