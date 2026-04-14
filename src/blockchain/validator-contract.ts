@@ -13,7 +13,6 @@ const walletClient = getWalletClient(WalletAccountRole.POREP_SERVICE_ROLE);
 const rpcClient = getRpcClient();
 
 export async function terminateRailOnValidatorContract(
-  railId: bigint,
   validatorContractAddress: Address,
 ): Promise<boolean> {
   const rpcClient = getRpcClient();
@@ -82,7 +81,6 @@ export async function setDealEndEpochOnValidatorContract(
 }
 
 export async function modifyRailPaymentOnValidatorContract(
-  railId: bigint,
   validatorContractAddress: Address,
 ): Promise<boolean> {
   childLogger.info("modifyRailPayment: Simulating request...");

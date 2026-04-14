@@ -40,22 +40,22 @@ export async function getClientsForSPFromClientContract(
 }
 
 export async function getClientAllocationIdsPerDeal(
-  dealId: bigint,
-): Promise<number[]> {
-  childLogger.info(`Fetching allocation IDs for deal ${dealId}...`);
+  onChainDealId: bigint,
+): Promise<bigint[]> {
+  childLogger.info(`Fetching allocation IDs for deal ${onChainDealId}...`);
 
   const allocationIds = await rpcClient.readContract({
     address: SERVICE_CONFIG.CLIENT_CONTRACT_ADDRESS as Address,
     abi: CLIENT_CONTRACT_ABI,
     functionName: "getClientAllocationIdsPerDeal",
-    args: [dealId],
+    args: [onChainDealId],
   });
 
   childLogger.info(
-    `Fetched ${allocationIds.length} allocation IDs for deal ${dealId}`,
+    `Fetched ${allocationIds.length} allocation IDs for deal ${onChainDealId}`,
   );
 
-  return allocationIds.map(Number);
+  return allocationIds as bigint[];
 }
 
 export async function setClaimTerminatedEarlyOnClientContract(

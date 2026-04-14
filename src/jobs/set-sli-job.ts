@@ -9,9 +9,9 @@ const sliChildLogger = baseLogger.child(
 );
 
 export async function setSliOracleJob() {
-  sliChildLogger.info("Started");
-
   try {
+    sliChildLogger.info("Job started");
+
     const storageProviders = await getProvidersFromSPRegistryContract();
 
     const uniqueStorageProviders = [...new Set(storageProviders)];
@@ -47,7 +47,7 @@ export async function setSliOracleJob() {
     await setSliOnOracleContract(sliDataForProviders.data);
   } catch (err) {
     sliChildLogger.error({ err }, "Failed");
+  } finally {
+    sliChildLogger.info("Job finished");
   }
-
-  sliChildLogger.info("Finished");
 }

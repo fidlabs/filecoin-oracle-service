@@ -24,7 +24,7 @@ export async function settleRailOnFilecoinPayContract(
   const { request } = await rpcClient.simulateContract({
     address: SERVICE_CONFIG.FILECOIN_PAY_CONTRACT_ADDRESS as Address,
     abi: FILECOIN_PAY_CONTRACT_ABI,
-    functionName: "settleRail",
+    functionName: functionName,
     args: [railId, currentBlock],
     account: walletClient.account,
   });

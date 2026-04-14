@@ -21,6 +21,19 @@ export const POREP_MARKET_CONTRACT_ABI = [
   },
   {
     type: "function",
+    name: "MAX_DEAL_DURATION_DAYS",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint32",
+        internalType: "uint32",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "UPGRADER_ROLE",
     inputs: [],
     outputs: [
@@ -64,6 +77,11 @@ export const POREP_MARKET_CONTRACT_ABI = [
     inputs: [
       {
         name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "actualSizeBytes",
         type: "uint256",
         internalType: "uint256",
       },
@@ -134,7 +152,7 @@ export const POREP_MARKET_CONTRACT_ABI = [
                 internalType: "uint256",
               },
               {
-                name: "pricePerSector",
+                name: "pricePerSectorPerMonth",
                 type: "uint256",
                 internalType: "uint256",
               },
@@ -239,7 +257,216 @@ export const POREP_MARKET_CONTRACT_ABI = [
                 internalType: "uint256",
               },
               {
-                name: "pricePerSector",
+                name: "pricePerSectorPerMonth",
+                type: "uint256",
+                internalType: "uint256",
+              },
+              {
+                name: "durationDays",
+                type: "uint32",
+                internalType: "uint32",
+              },
+            ],
+          },
+          {
+            name: "validator",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "state",
+            type: "uint8",
+            internalType: "enum PoRepTypes.DealState",
+          },
+          {
+            name: "railId",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "manifestLocation",
+            type: "string",
+            internalType: "string",
+          },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getDeals",
+    inputs: [],
+    outputs: [
+      {
+        name: "deals",
+        type: "tuple[]",
+        internalType: "struct PoRepTypes.DealProposal[]",
+        components: [
+          {
+            name: "dealId",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "client",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "provider",
+            type: "uint64",
+            internalType: "CommonTypes.FilActorId",
+          },
+          {
+            name: "requirements",
+            type: "tuple",
+            internalType: "struct SLITypes.SLIThresholds",
+            components: [
+              {
+                name: "retrievabilityBps",
+                type: "uint16",
+                internalType: "uint16",
+              },
+              {
+                name: "bandwidthMbps",
+                type: "uint16",
+                internalType: "uint16",
+              },
+              {
+                name: "latencyMs",
+                type: "uint16",
+                internalType: "uint16",
+              },
+              {
+                name: "indexingPct",
+                type: "uint8",
+                internalType: "uint8",
+              },
+            ],
+          },
+          {
+            name: "terms",
+            type: "tuple",
+            internalType: "struct SLITypes.DealTerms",
+            components: [
+              {
+                name: "dealSizeBytes",
+                type: "uint256",
+                internalType: "uint256",
+              },
+              {
+                name: "pricePerSectorPerMonth",
+                type: "uint256",
+                internalType: "uint256",
+              },
+              {
+                name: "durationDays",
+                type: "uint32",
+                internalType: "uint32",
+              },
+            ],
+          },
+          {
+            name: "validator",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "state",
+            type: "uint8",
+            internalType: "enum PoRepTypes.DealState",
+          },
+          {
+            name: "railId",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "manifestLocation",
+            type: "string",
+            internalType: "string",
+          },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getDealsForOrganizationByState",
+    inputs: [
+      {
+        name: "organization",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "state",
+        type: "uint8",
+        internalType: "enum PoRepTypes.DealState",
+      },
+    ],
+    outputs: [
+      {
+        name: "deals",
+        type: "tuple[]",
+        internalType: "struct PoRepTypes.DealProposal[]",
+        components: [
+          {
+            name: "dealId",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "client",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "provider",
+            type: "uint64",
+            internalType: "CommonTypes.FilActorId",
+          },
+          {
+            name: "requirements",
+            type: "tuple",
+            internalType: "struct SLITypes.SLIThresholds",
+            components: [
+              {
+                name: "retrievabilityBps",
+                type: "uint16",
+                internalType: "uint16",
+              },
+              {
+                name: "bandwidthMbps",
+                type: "uint16",
+                internalType: "uint16",
+              },
+              {
+                name: "latencyMs",
+                type: "uint16",
+                internalType: "uint16",
+              },
+              {
+                name: "indexingPct",
+                type: "uint8",
+                internalType: "uint8",
+              },
+            ],
+          },
+          {
+            name: "terms",
+            type: "tuple",
+            internalType: "struct SLITypes.DealTerms",
+            components: [
+              {
+                name: "dealSizeBytes",
+                type: "uint256",
+                internalType: "uint256",
+              },
+              {
+                name: "pricePerSectorPerMonth",
                 type: "uint256",
                 internalType: "uint256",
               },
@@ -420,7 +647,7 @@ export const POREP_MARKET_CONTRACT_ABI = [
             internalType: "uint256",
           },
           {
-            name: "pricePerSector",
+            name: "pricePerSectorPerMonth",
             type: "uint256",
             internalType: "uint256",
           },
@@ -677,6 +904,12 @@ export const POREP_MARKET_CONTRACT_ABI = [
         type: "address",
         indexed: true,
         internalType: "address",
+      },
+      {
+        name: "actualSizeBytes",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
       },
       {
         name: "provider",
@@ -1067,6 +1300,11 @@ export const POREP_MARKET_CONTRACT_ABI = [
   },
   {
     type: "error",
+    name: "InvalidDealDuration",
+    inputs: [],
+  },
+  {
+    type: "error",
     name: "InvalidIndexingPct",
     inputs: [
       {
@@ -1079,6 +1317,11 @@ export const POREP_MARKET_CONTRACT_ABI = [
   {
     type: "error",
     name: "InvalidInitialization",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidOrganizationAddress",
     inputs: [],
   },
   {

@@ -1,5 +1,5 @@
 import { settleRailOnFilecoinPayContract } from "../blockchain/filecoinpay-contract";
-import { getCompletedDealsFromPoRepMarketContract } from "../blockchain/porep-market.contract";
+import { getCompletedDealsToSettleFromDb } from "../services/db-service";
 import { baseLogger } from "../utils/logger";
 
 const settlementChildLogger = baseLogger.child(
@@ -8,10 +8,11 @@ const settlementChildLogger = baseLogger.child(
 );
 
 export async function runSettlementBotJob() {
-  settlementChildLogger.info("Started");
-
   try {
-    const completedDeals = await getCompletedDealsFromPoRepMarketContract();
+    settlementChildLogger.info("Job started");
+
+    const completedDeals = await getCompletedDealsToSettleFromDb();
+
     settlementChildLogger.info(
       `Fetched ${completedDeals.length} completed deals from PoRep Market contract`,
     );
@@ -25,18 +26,18 @@ export async function runSettlementBotJob() {
 
     for (const deal of completedDeals) {
       settlementChildLogger.info(
-        `Processing completed deal with ID ${deal.dealId} for provider ${deal.provider} and client ${deal.client}`,
+        `Processing completed deal with ID ${deal.onChainDealId} for provider ${deal.provider} and client ${deal.client}`,
       );
 
       await settleRailOnFilecoinPayContract(deal.railId);
 
       settlementChildLogger.info(
-        `Successfully settled rail with ID ${deal.railId} for completed deal with ID ${deal.dealId}`,
+        `Successfully settled rail with ID ${deal.railId} for completed deal with ID ${deal.onChainDealId}`,
       );
     }
   } catch (err) {
     settlementChildLogger.error({ err }, "Failed");
+  } finally {
+    settlementChildLogger.info("Job finished");
   }
-
-  settlementChildLogger.info("Finished");
 }

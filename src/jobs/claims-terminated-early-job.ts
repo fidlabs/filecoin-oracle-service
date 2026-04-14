@@ -1,8 +1,5 @@
-import {
-  getClientAllocationIdsPerDeal,
-  setClaimTerminatedEarlyOnClientContract,
-} from "../blockchain/client-contract";
-import { getCompletedDealsFromPoRepMarketContract } from "../blockchain/porep-market.contract";
+import { setClaimTerminatedEarlyOnClientContract } from "../blockchain/client-contract";
+import { getCompletedDealsToCheckClaimTerminationFromDb } from "../services/db-service";
 import { fetchClaims, fetchSectorInfo } from "../services/filecoin-api-service";
 import { baseLogger } from "../utils/logger";
 
@@ -12,10 +9,11 @@ const claimTrackingLogger = baseLogger.child(
 );
 
 export async function trackClaimsTerminatedEarlyJob() {
-  claimTrackingLogger.info("Job started");
-
   try {
-    const completedDeals = await getCompletedDealsFromPoRepMarketContract();
+    claimTrackingLogger.info("Job started");
+
+    const completedDeals =
+      await getCompletedDealsToCheckClaimTerminationFromDb();
 
     if (completedDeals.length === 0) {
       claimTrackingLogger.info(
@@ -28,23 +26,21 @@ export async function trackClaimsTerminatedEarlyJob() {
       `Fetched ${completedDeals.length} completed deals from PoRep Market contract`,
     );
 
-    const terminatedAllocations: number[] = [];
+    const terminatedAllocations: bigint[] = [];
 
     claimTrackingLogger.info("Start processing completed deals...");
 
     for (const deal of completedDeals) {
-      claimTrackingLogger.info(`Processing deal id: ${deal.dealId}...`);
+      claimTrackingLogger.info(`Processing deal id: ${deal.onChainDealId}...`);
 
-      const allocationIds = await getClientAllocationIdsPerDeal(deal.dealId);
-
-      for (const allocationId of allocationIds) {
+      for (const allocationId of deal.allocationIds) {
         claimTrackingLogger.info(`Processing allocation ID ${allocationId}...`);
 
         const storageProviderId = `f0${deal.provider.toString()}`;
 
         const allocationInfo = await fetchClaims(
           storageProviderId,
-          allocationId,
+          Number(allocationId),
         );
 
         const sectorInfo = await fetchSectorInfo(
@@ -58,7 +54,7 @@ export async function trackClaimsTerminatedEarlyJob() {
         ) {
           terminatedAllocations.push(allocationId);
           claimTrackingLogger.info(
-            `Marking allocation ${allocationId} for early termination (SP: ${storageProviderId}, DealId: ${deal.dealId} Sector: ${allocationInfo.Sector}, )`,
+            `Marking allocation ${allocationId} for early termination (SP: ${storageProviderId}, DealId: ${deal.onChainDealId} Sector: ${allocationInfo.Sector}, )`,
           );
         }
       }
@@ -69,7 +65,7 @@ export async function trackClaimsTerminatedEarlyJob() {
     );
   } catch (err) {
     claimTrackingLogger.error({ err }, "Job failed");
+  } finally {
+    claimTrackingLogger.info("Job finished");
   }
-
-  claimTrackingLogger.info("Job finished");
 }
