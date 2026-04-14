@@ -71,35 +71,55 @@ export interface FilecoinAPIStateGetClaim {
 }
 
 export enum DealState {
-  Proposed,
-  Accepted,
-  Completed,
-  Rejected,
+  Proposed = "Proposed",
+  Accepted = "Accepted",
+  Completed = "Completed",
+  Rejected = "Rejected",
+  Terminated = "Terminated",
 }
 
 export interface DealTerms {
   dealSizeBytes: bigint;
-  pricePerSector: bigint;
+  pricePerSectorPerMonth: bigint;
   durationDays: number;
 }
 
-export interface DealProposal {
+export enum PorepMarketContractDealState {
+  Proposed,
+  Accepted,
+  Completed,
+  Rejected,
+  Terminated,
+}
+
+export interface PorepMarketContractDealProposal {
   dealId: bigint;
   client: Address;
   provider: bigint;
   validator: Address;
   railId: bigint;
   manifestLocation: string;
-  state: DealState;
+  state: PorepMarketContractDealState;
   terms: DealTerms;
   requirements: SLIThresholds;
 }
 
 export interface PorepMarketDeal {
   dealId: bigint;
+  client: Address;
   provider: bigint;
-  client: string;
+  validator: Address;
   railId: bigint;
-  deal_start_epoch: bigint;
-  deal_end_epoch: bigint;
+  dealStartEpoch?: number;
+  dealEndEpoch?: number;
+  manifestLocation: string;
+  state: DealState;
+  allocationsRequiredCount?: number;
+  allocationsMatchedCount?: number;
+  isAllocationsMatched: boolean;
+  isDealEndEpochSetOnChain: boolean;
+  allocationIds: bigint[];
+  isRailTerminated: boolean;
+  terms: DealTerms;
+  requirements: SLIThresholds;
 }

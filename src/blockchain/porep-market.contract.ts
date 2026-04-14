@@ -1,7 +1,7 @@
 import { Address } from "viem";
 import { SERVICE_CONFIG } from "../config/env";
 import { baseLogger } from "../utils/logger";
-import { DealProposal } from "../utils/types";
+import { PorepMarketContractDealProposal } from "../utils/types";
 import { POREP_MARKET_CONTRACT_ABI } from "./abis/porep-market-abi";
 import { getRpcClient } from "./blockchain-client";
 
@@ -11,7 +11,7 @@ const childLogger = baseLogger.child(
 );
 
 export async function getCompletedDealsFromPoRepMarketContract(): Promise<
-  DealProposal[]
+  PorepMarketContractDealProposal[]
 > {
   childLogger.info("Fetching completed deals...");
 
@@ -27,5 +27,25 @@ export async function getCompletedDealsFromPoRepMarketContract(): Promise<
     `Fetched ${completedDeals.length} completed deals from contract`,
   );
 
-  return completedDeals as DealProposal[];
+  return completedDeals as PorepMarketContractDealProposal[];
+}
+
+export async function getDealsFromPoRepMarketContract(): Promise<
+  PorepMarketContractDealProposal[]
+> {
+  childLogger.info("Fetching completed deals...");
+
+  const rpcClient = getRpcClient();
+
+  const completedDeals = await rpcClient.readContract({
+    address: SERVICE_CONFIG.POREP_MARKET_CONTRACT_ADDRESS as Address,
+    abi: POREP_MARKET_CONTRACT_ABI,
+    functionName: "getDeals",
+  });
+
+  childLogger.info(
+    `Fetched ${completedDeals.length} completed deals from contract`,
+  );
+
+  return completedDeals as PorepMarketContractDealProposal[];
 }

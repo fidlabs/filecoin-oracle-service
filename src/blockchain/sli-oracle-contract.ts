@@ -22,7 +22,7 @@ export async function setSliOnOracleContract(sliDataForProviders: {
   [storageProviderId: string]: StorageProvidersSliData[];
 }) {
   const oracleContractAddress =
-    SERVICE_CONFIG.ORACLE_CONTRACT_ADDRESS as Address;
+    SERVICE_CONFIG.SLI_ORACLE_CONTRACT_ADDRESS as Address;
 
   childLogger.info(`Preparing SLI data for providers...`);
 
