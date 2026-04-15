@@ -1,6 +1,6 @@
 import { getClientAllocationIdsPerDeal } from "../blockchain/client-contract";
 import { getDealsFromPoRepMarketContract } from "../blockchain/porep-market.contract";
-import { getClientAllocationInfoByClientIdFromDmobDb } from "../services/db-dmob-service";
+import { getClientAllocationInfoByProviderIdFromDmobDb } from "../services/db-dmob-service";
 import {
   getChainStateToDomain,
   syncPoRepMarketContractDealsWithDb,
@@ -64,7 +64,7 @@ export async function syncDealsJob() {
           `Fetching allocation info for client ${deal.client} from DMOB DB...`,
         );
 
-        allocationsInfo = await getClientAllocationInfoByClientIdFromDmobDb(
+        allocationsInfo = await getClientAllocationInfoByProviderIdFromDmobDb(
           deal.provider.toString(),
           requiredDealAllocations.map(Number),
         );

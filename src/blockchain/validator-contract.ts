@@ -47,7 +47,6 @@ export async function terminateRailOnValidatorContract(
 }
 
 export async function setDealEndEpochOnValidatorContract(
-  dealId: bigint,
   dealEndEpoch: bigint,
   validatorContractAddress: Address,
 ): Promise<boolean> {
