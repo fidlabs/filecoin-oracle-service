@@ -12,7 +12,7 @@ const childLogger = baseLogger.child(
 
 export async function settleRailOnFilecoinPayContract(
   railId: bigint,
-): Promise<void> {
+): Promise<bigint> {
   const rpcClient = getRpcClient();
   const walletClient = getWalletClient(WalletAccountRole.FILECOIN_PAY_ROLE);
   const functionName = "settleRail";
@@ -44,4 +44,6 @@ export async function settleRailOnFilecoinPayContract(
   childLogger.info(
     `${functionName}: Transaction executed in block ${receipt.blockNumber}`,
   );
+
+  return receipt.blockNumber;
 }
