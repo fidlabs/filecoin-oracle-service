@@ -100,7 +100,8 @@ export async function syncDealsJob() {
           state: getChainStateToDomain(deal.state),
           dealStartEpoch: allocationInfo.dealStartEpoch,
           dealEndEpoch: allocationInfo.dealEndEpoch,
-          allocationsRequiredCount: allocationInfo?.allocationsMatchedCount,
+          allocationsRequiredCount:
+            allocationInfo?.requiredDealAllocationsCount,
           allocationsMatchedCount: allocationInfo?.allocationsMatchedCount,
           isAllocationsMatched: allocationInfo?.isAllocationsMatched,
           allocationIds: allocationInfo?.allocationIds,

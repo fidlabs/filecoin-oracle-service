@@ -82,6 +82,19 @@ export async function getCompletedDealsToSettleFromDb() {
   return deals ?? [];
 }
 
+export async function storeLastSettlementToDb(
+  porepMarketDealId: string,
+  epoch: bigint,
+) {
+  return prismaClient.porep_market_deal_settlement_history.create({
+    data: {
+      porepMarketDealId,
+      epoch,
+      settlementAt: new Date(),
+    },
+  });
+}
+
 export async function getCompletedDealsToCheckClaimTerminationFromDb() {
   const deals = await prismaClient.porep_market_deal.findMany({
     where: {
