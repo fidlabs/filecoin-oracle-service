@@ -1,5 +1,9 @@
 import { Address } from "viem";
 
+export interface BigInt {
+  toJSON: () => string;
+}
+
 export interface SLIThresholds {
   retrievabilityBps: number;
   bandwidthMbps: number;
@@ -108,7 +112,7 @@ export interface PorepMarketDeal {
   dealId: bigint;
   client: Address;
   provider: bigint;
-  validator: Address;
+  validatorContractAddress: Address;
   railId: bigint;
   dealStartEpoch?: number;
   dealEndEpoch?: number;

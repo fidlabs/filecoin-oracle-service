@@ -10,6 +10,16 @@ import { syncDealsJob } from "./jobs/sync-deal-job";
 import { trackTerminateDealJob } from "./jobs/terminate-deal-job";
 import { baseLogger } from "./utils/logger";
 
+declare global {
+  interface BigInt {
+    toJSON(): string;
+  }
+}
+
+BigInt.prototype.toJSON = function () {
+  return this.toString();
+};
+
 const childLogger = baseLogger.child(
   { avengers: "assemble" },
   { msgPrefix: "[Main] " },
@@ -55,12 +65,12 @@ try {
     `Scheduling Terminate Deals cron job "${terminateDealsInterval}"`,
   );
 
-  cron.schedule(syncDealsInterval, syncDealsJob);
-  cron.schedule(sliInterval, setSliOracleJob);
-  cron.schedule(trackDealEndEpochInterval, trackDealEndEpochJob);
-  cron.schedule(claimsTerminatedEarlyInterval, trackClaimsTerminatedEarlyJob);
-  cron.schedule(settlementBotInterval, runSettlementBotJob);
-  cron.schedule(terminateDealsInterval, trackTerminateDealJob);
+  // cron.schedule(syncDealsInterval, syncDealsJob);
+  // cron.schedule(sliInterval, setSliOracleJob);
+  // cron.schedule(trackDealEndEpochInterval, trackDealEndEpochJob);
+  // cron.schedule(claimsTerminatedEarlyInterval, trackClaimsTerminatedEarlyJob);
+  // cron.schedule(settlementBotInterval, runSettlementBotJob);
+  // cron.schedule(terminateDealsInterval, trackTerminateDealJob);
 } catch (err: unknown) {
   if (err instanceof Error) {
     const message = err instanceof Error ? err.message : String(err);

@@ -96,6 +96,7 @@ export async function syncDealsJob() {
 
         return {
           ...deal,
+          validatorContractAddress: deal.validator,
           state: getChainStateToDomain(deal.state),
           dealStartEpoch: allocationInfo.dealStartEpoch,
           dealEndEpoch: allocationInfo.dealEndEpoch,

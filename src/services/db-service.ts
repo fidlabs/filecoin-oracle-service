@@ -131,7 +131,7 @@ export async function getCompletedDealsToSetEndEpochFromDb(
   return deals ? deals : [];
 }
 
-export async function getDealFromDbByOnChainId(onChainDealId: bigint) {
+export async function getDealByOnChainIdFromDb(onChainDealId: bigint) {
   const deal = await prismaClient.porep_market_deal.findUnique({
     where: {
       onChainDealId,
@@ -149,8 +149,6 @@ export async function syncPoRepMarketContractDealsWithDb(
   deals: PorepMarketDeal[],
 ) {
   if (!deals.length) return;
-
-  const prismaClient = getPrismaClient();
 
   return prismaClient.$transaction(
     async (tx) => {
@@ -184,7 +182,7 @@ export async function syncPoRepMarketContractDealsWithDb(
               client: d.client,
               provider: d.provider,
               railId: d.railId,
-              validatorContractAddress: d.validator,
+              validatorContractAddress: d.validatorContractAddress,
               state: d.state,
               allocationsRequiredCount: d.allocationsRequiredCount,
               allocationsMatchedCount: d.allocationsMatchedCount,
@@ -195,7 +193,7 @@ export async function syncPoRepMarketContractDealsWithDb(
             update: {
               state: d.state,
               railId: d.railId,
-              validatorContractAddress: d.validator,
+              validatorContractAddress: d.validatorContractAddress,
               dealStartEpoch: d.dealStartEpoch,
               dealEndEpoch: d.dealEndEpoch,
               allocationIds: d.allocationIds,
@@ -298,16 +296,64 @@ export async function syncPoRepMarketContractDealsWithDb(
   );
 }
 
-export async function getDealsFromDbByState(state: DealState) {
-  const prismaClient = getPrismaClient();
+export async function getCountOfCompletedDealsFromDb() {
+  const count = await prismaClient.porep_market_deal.count({
+    where: {
+      state: DealState.Completed,
+      isAllocationsMatched: true,
+    },
+  });
+
+  return count;
+}
+
+export async function getDealsByStateFromDb({
+  state,
+  page,
+  limit,
+}: {
+  state: DealState;
+  page: number;
+  limit: number;
+}) {
+  const offset = (page - 1) * limit;
 
   const deals = await prismaClient.porep_market_deal.findMany({
     where: {
       state,
     },
-    include: {
-      terms: true,
-      requirements: true,
+    skip: offset,
+    take: limit,
+    select: {
+      onChainDealId: true,
+      client: true,
+      provider: true,
+      validatorContractAddress: true,
+      railId: true,
+      dealStartEpoch: true,
+      dealEndEpoch: true,
+      state: true,
+      allocationsRequiredCount: true,
+      allocationsMatchedCount: true,
+      isAllocationsMatched: true,
+      isDealEndEpochSetOnChain: true,
+      allocationIds: true,
+      isRailTerminated: true,
+      terms: {
+        select: {
+          dealSizeBytes: true,
+          pricePerSectorPerMonth: true,
+          durationDays: true,
+        },
+      },
+      requirements: {
+        select: {
+          retrievabilityBps: true,
+          bandwidthMbps: true,
+          latencyMs: true,
+          indexingPct: true,
+        },
+      },
     },
   });
 
