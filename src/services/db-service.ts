@@ -2,6 +2,7 @@ import {
   DealState,
   PorepMarketContractDealState,
   PorepMarketDeal,
+  ProviderScore,
 } from "../utils/types";
 import { getPrismaClient } from "./prisma-service";
 
@@ -358,4 +359,17 @@ export async function getDealsByStateFromDb({
   });
 
   return deals;
+}
+
+export function storeProviderScoreToDb(data: ProviderScore[]) {
+  return prismaClient.provider_score.createMany({
+    data: data.map((d) => ({
+      providerId: d.providerId,
+      calculatedScore: d.calculatedScore,
+      retrievabilityBps: d.slis.retrievabilityBps,
+      bandwidthMbps: d.slis.bandwidthMbps,
+      latencyMs: d.slis.latencyMs,
+      indexingPct: d.slis.indexingPct,
+    })),
+  });
 }

@@ -1,7 +1,15 @@
 import { setSliOnOracleContract } from "../blockchain/sli-oracle-contract";
+import { calculateScoreOnSliScorerContract } from "../blockchain/sli-scorer-contract";
 import { getProvidersFromSPRegistryContract } from "../blockchain/sp-registry-contract";
 import { getSliForStorageProviders } from "../services/cdp-fetch-service";
+import { storeProviderScoreToDb } from "../services/db-service";
 import { baseLogger } from "../utils/logger";
+import {
+  ProviderScore,
+  SliAttestation,
+  StorageProvidersSliData,
+  StorageProvidersSliMetricType,
+} from "../utils/types";
 
 const sliChildLogger = baseLogger.child(
   { avengers: "assemble" },
@@ -44,7 +52,81 @@ export async function setSliOracleJob() {
       `Fetched SLI data for ${providersSlis.length} providers from CDP`,
     );
 
-    await setSliOnOracleContract(sliDataForProviders.data);
+    sliChildLogger.info(`Preparing SLI data for providers...`);
+
+    const buildedSliData: SliAttestation[] = Object.entries(
+      sliDataForProviders.data,
+    ).map(([storageProviderId, data]) => {
+      const retrievability =
+        Number(
+          data.find(
+            (d: StorageProvidersSliData) =>
+              d.sliMetricType ===
+              StorageProvidersSliMetricType.RPA_RETRIEVABILITY,
+          )?.sliMetricValue,
+        ) || 0;
+      const indexingMetric =
+        Number(
+          data.find(
+            (d: StorageProvidersSliData) =>
+              d.sliMetricType === StorageProvidersSliMetricType.IPNI_REPORTING,
+          )?.sliMetricValue,
+        ) || 0;
+
+      const latencyMetric =
+        Number(
+          data.find(
+            (d: StorageProvidersSliData) =>
+              d.sliMetricType === StorageProvidersSliMetricType.TTFB,
+          )?.sliMetricValue,
+        ) || 0;
+
+      const bandwidthMetric =
+        Number(
+          data
+            .find(
+              (d: StorageProvidersSliData) =>
+                d.sliMetricType === StorageProvidersSliMetricType.BANDWIDTH,
+            )
+            ?.sliMetricValue?.split(".")[0],
+        ) || 0;
+
+      const sliAttestation: SliAttestation = {
+        provider: storageProviderId.startsWith("f0")
+          ? BigInt(storageProviderId.slice(2))
+          : BigInt(storageProviderId),
+        slis: {
+          retrievabilityBps:
+            retrievability !== null ? Math.floor(retrievability * 10000) : 0,
+          indexingPct: Math.floor(indexingMetric * 100),
+          latencyMs: latencyMetric,
+          bandwidthMbps: bandwidthMetric,
+        },
+      };
+
+      sliChildLogger.info(`Prepared SLI attestation for providers`);
+
+      return sliAttestation;
+    });
+
+    await setSliOnOracleContract(buildedSliData);
+
+    const providerScore: ProviderScore[] = [];
+
+    for (const sliAttestation of buildedSliData) {
+      const scoreResult = await calculateScoreOnSliScorerContract(
+        sliAttestation.provider,
+        sliAttestation.slis,
+      );
+
+      providerScore.push({
+        providerId: sliAttestation.provider,
+        calculatedScore: scoreResult,
+        slis: sliAttestation.slis,
+      });
+    }
+
+    await storeProviderScoreToDb(providerScore);
   } catch (err) {
     sliChildLogger.error({ err }, "Failed");
   } finally {
