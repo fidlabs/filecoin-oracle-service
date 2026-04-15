@@ -65,12 +65,12 @@ try {
     `Scheduling Terminate Deals cron job "${terminateDealsInterval}"`,
   );
 
-  // cron.schedule(syncDealsInterval, syncDealsJob);
-  // cron.schedule(sliInterval, setSliOracleJob);
-  // cron.schedule(trackDealEndEpochInterval, trackDealEndEpochJob);
-  // cron.schedule(claimsTerminatedEarlyInterval, trackClaimsTerminatedEarlyJob);
-  // cron.schedule(settlementBotInterval, runSettlementBotJob);
-  // cron.schedule(terminateDealsInterval, trackTerminateDealJob);
+  cron.schedule(syncDealsInterval, syncDealsJob);
+  cron.schedule(sliInterval, setSliOracleJob);
+  cron.schedule(trackDealEndEpochInterval, trackDealEndEpochJob);
+  cron.schedule(claimsTerminatedEarlyInterval, trackClaimsTerminatedEarlyJob);
+  cron.schedule(settlementBotInterval, runSettlementBotJob);
+  cron.schedule(terminateDealsInterval, trackTerminateDealJob);
 } catch (err: unknown) {
   if (err instanceof Error) {
     const message = err instanceof Error ? err.message : String(err);
