@@ -96,3 +96,14 @@ model porep_market_deal_settlement_history {
 
   @@index([porepMarketDealId])
 }
+
+model provider_score {
+  id                String   @id @default(uuid()) @db.Uuid
+  providerId        BigInt
+  calculatedScore   BigInt
+  retrievabilityBps BigInt
+  bandwidthMbps     BigInt
+  latencyMs         BigInt
+  indexingPct       BigInt
+  createdAt         DateTime @default(now())
+}

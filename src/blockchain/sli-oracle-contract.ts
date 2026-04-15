@@ -1,11 +1,7 @@
 import { Address, encodeFunctionData } from "viem";
 import { SERVICE_CONFIG } from "../config/env";
 import { baseLogger } from "../utils/logger";
-import {
-  SliAttestation,
-  StorageProvidersSliData,
-  StorageProvidersSliMetricType,
-} from "../utils/types";
+import { SliAttestation } from "../utils/types";
 import { SLI_ORACLE_CONTRACT_ABI } from "./abis/sli-oracle-abi";
 import { getRpcClient, getWalletClient } from "./blockchain-client";
 import { WalletAccountRole } from "./client-contract";
@@ -18,67 +14,11 @@ const childLogger = baseLogger.child(
 const rpcClient = getRpcClient();
 const walletClient = getWalletClient(WalletAccountRole.ORACLE_ROLE);
 
-export async function setSliOnOracleContract(sliDataForProviders: {
-  [storageProviderId: string]: StorageProvidersSliData[];
-}) {
+export async function setSliOnOracleContract(sliData: SliAttestation[]) {
   const oracleContractAddress =
     SERVICE_CONFIG.SLI_ORACLE_CONTRACT_ADDRESS as Address;
 
-  childLogger.info(`Preparing SLI data for providers...`);
-
-  const buildedSliData: SliAttestation[] = Object.entries(
-    sliDataForProviders,
-  ).map(([storageProviderId, data]) => {
-    const retrievability =
-      Number(
-        data.find(
-          (d) =>
-            d.sliMetricType ===
-            StorageProvidersSliMetricType.RPA_RETRIEVABILITY,
-        )?.sliMetricValue,
-      ) || 0;
-    const indexingMetric =
-      Number(
-        data.find(
-          (d) =>
-            d.sliMetricType === StorageProvidersSliMetricType.IPNI_REPORTING,
-        )?.sliMetricValue,
-      ) || 0;
-
-    const latencyMetric =
-      Number(
-        data.find((d) => d.sliMetricType === StorageProvidersSliMetricType.TTFB)
-          ?.sliMetricValue,
-      ) || 0;
-
-    const bandwidthMetric =
-      Number(
-        data
-          .find(
-            (d) => d.sliMetricType === StorageProvidersSliMetricType.BANDWIDTH,
-          )
-          ?.sliMetricValue?.split(".")[0],
-      ) || 0;
-
-    const sliAttestation: SliAttestation = {
-      provider: storageProviderId.startsWith("f0")
-        ? BigInt(storageProviderId.slice(2))
-        : BigInt(storageProviderId),
-      slis: {
-        retrievabilityBps:
-          retrievability !== null ? Math.floor(retrievability * 10000) : 0,
-        indexingPct: Math.floor(indexingMetric * 100),
-        latencyMs: latencyMetric,
-        bandwidthMbps: bandwidthMetric,
-      },
-    };
-
-    childLogger.info(`Prepared SLI attestation for providers`);
-
-    return sliAttestation;
-  });
-
-  const encodedCalls = buildedSliData.map((req) =>
+  const encodedCalls = sliData.map((req) =>
     encodeFunctionData({
       abi: SLI_ORACLE_CONTRACT_ABI,
       functionName: "setSLI",
