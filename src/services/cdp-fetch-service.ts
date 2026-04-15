@@ -2,8 +2,15 @@ import { SERVICE_CONFIG } from "../config/env";
 import { baseLogger } from "../utils/logger";
 import { CdpSliResponse } from "../utils/types";
 
+const cdpServiceLogger = baseLogger.child(
+  { avengers: "assemble" },
+  { msgPrefix: "[CDP Service] " },
+);
+
 async function fetchDataFromCdp(endpoint: string): Promise<CdpSliResponse> {
   const url = `${SERVICE_CONFIG.CDP_SERVICE_URL}/${endpoint}`;
+
+  cdpServiceLogger.info(`Calling CDP service at ${url}...`);
 
   const cdpResponse = await fetch(url);
 
@@ -21,7 +28,7 @@ export async function getSliForStorageProviders(
   storageProviders: string[],
 ): Promise<CdpSliResponse | null> {
   if (storageProviders.length === 0) {
-    baseLogger.info("No storage providers provided for SLI fetch");
+    cdpServiceLogger.info("No storage providers provided for SLI fetch");
     return null;
   }
 
@@ -29,13 +36,13 @@ export async function getSliForStorageProviders(
     .map((id) => `storageProvidersIds=${id}`)
     .join("&")}`;
 
-  baseLogger.info(`Fetching SLI data from CDP service... ${endpoint}`);
+  cdpServiceLogger.info(`Fetching SLI data from CDP service...`);
 
   const response = await fetchDataFromCdp(endpoint);
 
   const providersCount = Object.keys(response?.data || {}).length;
 
-  baseLogger.info(
+  cdpServiceLogger.info(
     `Fetched SLI data for ${providersCount} providers from CDP service`,
   );
 

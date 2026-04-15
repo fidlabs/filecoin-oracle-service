@@ -85,7 +85,7 @@ app.post(
           });
       }
 
-      res.json({ status: "ok", message: "Job triggered successfully" });
+      res.json({ status: "ok", message: "Job executed successfully" });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       httpLogger.error(`Manual job trigger failed: ${message}`);

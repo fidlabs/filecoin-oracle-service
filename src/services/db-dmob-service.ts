@@ -2,7 +2,7 @@ import { getDmobPrismaClient } from "./prisma-service";
 
 const dmobPrismaClient = getDmobPrismaClient();
 
-export async function getClientAllocationInfoByClientIdFromDmobDb(
+export async function getClientAllocationInfoByProviderIdFromDmobDb(
   providerId: string,
   allocationIds: number[],
 ): Promise<{
