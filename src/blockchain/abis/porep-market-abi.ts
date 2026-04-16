@@ -179,6 +179,11 @@ export const POREP_MARKET_CONTRACT_ABI = [
             internalType: "uint256",
           },
           {
+            name: "proposedAtBlock",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
             name: "manifestLocation",
             type: "string",
             internalType: "string",
@@ -284,6 +289,11 @@ export const POREP_MARKET_CONTRACT_ABI = [
             internalType: "uint256",
           },
           {
+            name: "proposedAtBlock",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
             name: "manifestLocation",
             type: "string",
             internalType: "string",
@@ -379,6 +389,11 @@ export const POREP_MARKET_CONTRACT_ABI = [
           },
           {
             name: "railId",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "proposedAtBlock",
             type: "uint256",
             internalType: "uint256",
           },
@@ -489,6 +504,11 @@ export const POREP_MARKET_CONTRACT_ABI = [
           },
           {
             name: "railId",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "proposedAtBlock",
             type: "uint256",
             internalType: "uint256",
           },
@@ -982,6 +1002,12 @@ export const POREP_MARKET_CONTRACT_ABI = [
         indexed: false,
         internalType: "uint256",
       },
+      {
+        name: "proposedAtBlock",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
     ],
     anonymous: false,
   },
@@ -1305,6 +1331,11 @@ export const POREP_MARKET_CONTRACT_ABI = [
   },
   {
     type: "error",
+    name: "InvalidDealPricePerSectorPerMonth",
+    inputs: [],
+  },
+  {
+    type: "error",
     name: "InvalidIndexingPct",
     inputs: [
       {
@@ -1352,7 +1383,7 @@ export const POREP_MARKET_CONTRACT_ABI = [
   },
   {
     type: "error",
-    name: "NotTheClientOrStorageProvider",
+    name: "NotTheClientOrStorageProviderOrAdmin",
     inputs: [
       {
         name: "dealId",

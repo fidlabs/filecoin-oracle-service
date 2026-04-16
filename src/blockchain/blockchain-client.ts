@@ -46,6 +46,7 @@ export const getChain = (chainId: number) => {
 
 const chain = getChain(Number(SERVICE_CONFIG.CHAIN_ID));
 let rpcClient: PublicClient;
+
 const walletClient: { [key in WalletAccountRole]?: WalletClient } = {};
 
 export const getWalletClientAccount = (role: WalletAccountRole) => {

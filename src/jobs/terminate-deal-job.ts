@@ -15,12 +15,19 @@ export async function trackTerminateDealJob() {
     claimTrackingLogger.info("Job started");
 
     const prismaClient = getPrismaClient();
-
     const rpcClient = getRpcClient();
+
     const currentBlock = await rpcClient.getBlockNumber();
 
     const dealsToTerminate =
       await getCompletedDealsToTerminateFromDb(currentBlock);
+
+    if (dealsToTerminate.length === 0) {
+      claimTrackingLogger.info(
+        "No completed deals found that require rail termination. Job will exit.",
+      );
+      return;
+    }
 
     claimTrackingLogger.info(
       `Found ${dealsToTerminate.length} deals to terminate in database, start terminating rails...`,

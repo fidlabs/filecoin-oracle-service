@@ -10,8 +10,6 @@ const childLogger = baseLogger.child(
   { msgPrefix: "[SLI Scorer Contract] " },
 );
 
-const rpcClient = getRpcClient();
-
 export async function calculateScoreOnSliScorerContract(
   providerId: bigint,
   slis: SLIThresholds,
@@ -19,6 +17,8 @@ export async function calculateScoreOnSliScorerContract(
   const functionName = "calculateScore";
 
   childLogger.info(`Calculating score for provider ${providerId}`);
+
+  const rpcClient = getRpcClient();
 
   const storageProviderScore = await rpcClient.readContract({
     address: SERVICE_CONFIG.SLI_SCORER_CONTRACT_ADDRESS as Address,

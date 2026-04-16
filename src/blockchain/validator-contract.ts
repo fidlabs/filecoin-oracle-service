@@ -9,15 +9,13 @@ const childLogger = baseLogger.child(
   { msgPrefix: "[Validator Contract] " },
 );
 
-const walletClient = getWalletClient(WalletAccountRole.POREP_SERVICE_ROLE);
-const rpcClient = getRpcClient();
-
 export async function terminateRailOnValidatorContract(
   validatorContractAddress: Address,
 ): Promise<boolean> {
-  const rpcClient = getRpcClient();
-
   childLogger.info("terminateRail: Simulating request...");
+
+  const rpcClient = getRpcClient();
+  const walletClient = getWalletClient(WalletAccountRole.POREP_SERVICE_ROLE);
 
   const { request } = await rpcClient.simulateContract({
     address: validatorContractAddress,
@@ -52,6 +50,9 @@ export async function setDealEndEpochOnValidatorContract(
 ): Promise<boolean> {
   childLogger.info("setDealEndEpoch: Simulating request...");
 
+  const rpcClient = getRpcClient();
+  const walletClient = getWalletClient(WalletAccountRole.POREP_SERVICE_ROLE);
+
   const { request } = await rpcClient.simulateContract({
     address: validatorContractAddress,
     abi: VALIDATOR_CONTRACT_ABI,
@@ -83,6 +84,9 @@ export async function modifyRailPaymentOnValidatorContract(
   validatorContractAddress: Address,
 ): Promise<boolean> {
   childLogger.info("modifyRailPayment: Simulating request...");
+
+  const rpcClient = getRpcClient();
+  const walletClient = getWalletClient(WalletAccountRole.POREP_SERVICE_ROLE);
 
   const { request } = await rpcClient.simulateContract({
     address: validatorContractAddress,

@@ -103,6 +103,7 @@ export interface PorepMarketContractDealProposal {
   validator: Address;
   railId: bigint;
   manifestLocation: string;
+  proposedAtBlock: bigint;
   state: PorepMarketContractDealState;
   terms: DealTerms;
   requirements: SLIThresholds;
@@ -126,6 +127,7 @@ export interface PorepMarketDeal {
   isRailTerminated: boolean;
   terms: DealTerms;
   requirements: SLIThresholds;
+  proposedAtBlock: bigint;
 }
 
 export interface ProviderScore {
