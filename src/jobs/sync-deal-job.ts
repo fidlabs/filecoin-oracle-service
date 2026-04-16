@@ -6,7 +6,7 @@ import {
   syncPoRepMarketContractDealsWithDb,
 } from "../services/db-service";
 import { baseLogger } from "../utils/logger";
-import { DealState, PorepMarketDeal } from "../utils/types";
+import { PorepMarketDeal } from "../utils/types";
 
 const syncDealLogger = baseLogger.child(
   { avengers: "assemble" },
@@ -32,34 +32,32 @@ export async function syncDealsJob() {
 
     const dealIdAllocationInfoMap: {
       [dealId: string]: {
-        dealStartEpoch?: number;
-        dealEndEpoch?: number;
-        allocationsMatchedCount?: number;
-        requiredDealAllocationsCount?: number;
-        isAllocationsMatched: boolean;
+        dealStartEpoch?: bigint;
+        dealEndEpoch?: bigint;
+        allocationsMatchedCount?: bigint;
+        requiredDealAllocationsCount?: bigint;
         allocationIds: bigint[];
       };
     } = {};
 
     for (const deal of contractAllDeals) {
       let allocationsInfo: {
-        termStart?: number;
-        termMax?: number;
-        allocationsCount?: number;
+        termStart?: bigint;
+        termMax?: bigint;
+        allocationsCount?: bigint;
       } = {};
 
-      let requiredDealAllocations: bigint[] | undefined = [];
-      let isAllocationsMatched = false;
+      let requiredAllocationsCount: bigint | undefined;
 
-      const porepMarketDealState = getChainStateToDomain(deal.state);
+      const requiredDealAllocations = await getClientAllocationIdsPerDeal(
+        deal.dealId,
+      );
 
-      // validate and match the allocations for the completed deals only
-      // events should exists
-      if (porepMarketDealState === DealState.Completed) {
-        requiredDealAllocations = await getClientAllocationIdsPerDeal(
-          deal.dealId,
-        );
+      syncDealLogger.info(
+        `Fetched ${requiredDealAllocations?.length || 0} required allocations for deal ${deal.dealId} from client contract`,
+      );
 
+      if (requiredDealAllocations.length) {
         syncDealLogger.info(
           `Fetching allocation info for client ${deal.client} from DMOB DB...`,
         );
@@ -69,12 +67,11 @@ export async function syncDealsJob() {
           requiredDealAllocations.map(Number),
         );
 
+        requiredAllocationsCount = BigInt(requiredDealAllocations?.length);
+
         syncDealLogger.info(
           `Fetched allocation info for client ${deal.client} from DMOB DB, found ${allocationsInfo.allocationsCount} matching allocations for deal ${deal.dealId}`,
         );
-
-        isAllocationsMatched =
-          allocationsInfo.allocationsCount === requiredDealAllocations.length;
       }
 
       dealIdAllocationInfoMap[deal.dealId.toString()] = {
@@ -84,9 +81,8 @@ export async function syncDealsJob() {
           allocationsInfo?.termMax &&
           allocationsInfo?.termStart + allocationsInfo?.termMax,
         allocationsMatchedCount: allocationsInfo?.allocationsCount,
-        requiredDealAllocationsCount: requiredDealAllocations?.length,
+        requiredDealAllocationsCount: requiredAllocationsCount,
         allocationIds: requiredDealAllocations || [],
-        isAllocationsMatched,
       };
     }
 
@@ -103,7 +99,6 @@ export async function syncDealsJob() {
           allocationsRequiredCount:
             allocationInfo?.requiredDealAllocationsCount,
           allocationsMatchedCount: allocationInfo?.allocationsMatchedCount,
-          isAllocationsMatched: allocationInfo?.isAllocationsMatched,
           allocationIds: allocationInfo?.allocationIds,
           isRailTerminated: false,
           isDealEndEpochSetOnChain: false,

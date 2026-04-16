@@ -16,16 +16,16 @@ export async function runSettlementBotJob() {
 
     const completedDeals = await getCompletedDealsToSettleFromDb();
 
-    settlementChildLogger.info(
-      `Fetched ${completedDeals.length} completed deals from PoRep Market contract`,
-    );
-
     if (completedDeals.length === 0) {
       settlementChildLogger.info(
-        "No completed deals found in PoRep Market contract, skipping settlement bot execution",
+        "No completed deals found that require settlement. Job will exit.",
       );
       return;
     }
+
+    settlementChildLogger.info(
+      `Fetched ${completedDeals.length} completed deals to settle from database`,
+    );
 
     for (const deal of completedDeals) {
       settlementChildLogger.info(
