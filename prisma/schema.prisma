@@ -67,6 +67,7 @@ model porep_market_deal {
   state                    DealState
   terms                    porep_market_deal_terms?
   requirements             porep_market_deal_requirement?
+  manifestLocation         String?
   allocationsRequiredCount BigInt?
   allocationsMatchedCount  BigInt?
   isAllocationsMatched     Boolean
