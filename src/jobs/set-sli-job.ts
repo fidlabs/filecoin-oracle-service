@@ -104,10 +104,10 @@ export async function setSliOracleJob() {
         },
       };
 
-      sliChildLogger.info(`Prepared SLI attestation for providers`);
-
       return sliAttestation;
     });
+
+    sliChildLogger.info(`Prepared SLI attestation for providers`);
 
     await setSliOnOracleContract(buildedSliData);
 
