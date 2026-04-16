@@ -200,6 +200,7 @@ export async function syncPoRepMarketContractDealsWithDb(
               state: d.state,
               dealEndEpoch: d.dealEndEpoch,
               dealStartEpoch: d.dealStartEpoch,
+              manifestLocation: d.manifestLocation,
               allocationsRequiredCount: d.allocationsRequiredCount,
               allocationsMatchedCount: d.allocationsMatchedCount,
               allocationIds: d.allocationIds,
@@ -215,6 +216,7 @@ export async function syncPoRepMarketContractDealsWithDb(
               dealStartEpoch: d.dealStartEpoch,
               dealEndEpoch: d.dealEndEpoch,
               allocationIds: d.allocationIds,
+              manifestLocation: d.manifestLocation,
               allocationsRequiredCount: d.allocationsRequiredCount,
               allocationsMatchedCount: d.allocationsMatchedCount,
               isAllocationsMatched:
