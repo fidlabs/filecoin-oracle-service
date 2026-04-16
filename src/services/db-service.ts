@@ -198,11 +198,15 @@ export async function syncPoRepMarketContractDealsWithDb(
               railId: d.railId,
               validatorContractAddress: d.validatorContractAddress,
               state: d.state,
+              dealEndEpoch: d.dealEndEpoch,
+              dealStartEpoch: d.dealStartEpoch,
               allocationsRequiredCount: d.allocationsRequiredCount,
               allocationsMatchedCount: d.allocationsMatchedCount,
-              isAllocationsMatched: d.isAllocationsMatched,
               allocationIds: d.allocationIds,
               isRailTerminated: d.isRailTerminated,
+              isAllocationsMatched:
+                d.state === DealState.Completed &&
+                d.allocationsRequiredCount === d.allocationsMatchedCount, // consider allocations matched only if deal is completed and all required allocations are matched
             },
             update: {
               state: d.state,
@@ -213,7 +217,10 @@ export async function syncPoRepMarketContractDealsWithDb(
               allocationIds: d.allocationIds,
               allocationsRequiredCount: d.allocationsRequiredCount,
               allocationsMatchedCount: d.allocationsMatchedCount,
-              isAllocationsMatched: d.isAllocationsMatched,
+              isAllocationsMatched:
+                d.state === DealState.Completed
+                  ? d.allocationsRequiredCount === d.allocationsMatchedCount
+                  : undefined, // don't change if state is diffetent than Completed, e.g Compleated => Terminated, we want to keep the isAllocationsMatched value forever
               lastSyncedAt: new Date(),
             },
           }),

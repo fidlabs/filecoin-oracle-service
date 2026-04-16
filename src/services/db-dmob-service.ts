@@ -6,9 +6,9 @@ export async function getClientAllocationInfoByProviderIdFromDmobDb(
   providerId: string,
   allocationIds: number[],
 ): Promise<{
-  termStart?: number;
-  termMax?: number;
-  allocationsCount: number;
+  termStart?: bigint;
+  termMax?: bigint;
+  allocationsCount: bigint;
 }> {
   const allocationInfo = await dmobPrismaClient.unified_verified_deal.aggregate(
     {
@@ -34,8 +34,12 @@ export async function getClientAllocationInfoByProviderIdFromDmobDb(
   );
 
   return {
-    termStart: allocationInfo._min.termStart || undefined,
-    termMax: allocationInfo._max.termMax || undefined,
-    allocationsCount: allocationInfo._count.claimId,
+    termStart: allocationInfo._min.termStart
+      ? BigInt(allocationInfo._min.termStart)
+      : undefined,
+    termMax: allocationInfo._max.termMax
+      ? BigInt(allocationInfo._max.termMax)
+      : undefined,
+    allocationsCount: BigInt(allocationInfo._count.claimId),
   };
 }

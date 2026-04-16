@@ -114,13 +114,13 @@ export interface PorepMarketDeal {
   provider: bigint;
   validatorContractAddress: Address;
   railId: bigint;
-  dealStartEpoch?: number;
-  dealEndEpoch?: number;
+  dealStartEpoch?: bigint;
+  dealEndEpoch?: bigint;
   manifestLocation: string;
   state: DealState;
-  allocationsRequiredCount?: number;
-  allocationsMatchedCount?: number;
-  isAllocationsMatched: boolean;
+  allocationsRequiredCount?: bigint;
+  allocationsMatchedCount?: bigint;
+  isAllocationsMatched?: boolean;
   isDealEndEpochSetOnChain: boolean;
   allocationIds: bigint[];
   isRailTerminated: boolean;

@@ -94,16 +94,19 @@ app.post(
   },
 );
 
-app.get("/total-deals-done", async (req: Request, res: Response) => {
-  try {
-    const totalCompletedDeals = await getCountOfCompletedDealsFromDb();
-    res.json({ totalCompletedDeals });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    httpLogger.error(`Manual job trigger failed: ${message}`);
-    res.status(500).json({ error: message });
-  }
-});
+app.get(
+  "/total-deals-done",
+  async (req: Request, res: Response<ApiResponse<number | null>>) => {
+    try {
+      const totalCompletedDeals = await getCountOfCompletedDealsFromDb();
+      res.status(200).json({ data: totalCompletedDeals, success: true });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      httpLogger.error(`Manual job trigger failed: ${message}`);
+      res.status(500).json({ error: message, data: null, success: false });
+    }
+  },
+);
 
 app.get(
   "/deals",

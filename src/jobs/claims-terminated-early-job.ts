@@ -17,13 +17,13 @@ export async function trackClaimsTerminatedEarlyJob() {
 
     if (completedDeals.length === 0) {
       claimTrackingLogger.info(
-        "No completed deals found in PoRep Market contract, skipping claims tracking",
+        "No completed deals found in database that require claim termination check. Job will exit.",
       );
       return;
     }
 
     claimTrackingLogger.info(
-      `Fetched ${completedDeals.length} completed deals from PoRep Market contract`,
+      `Fetched ${completedDeals.length} completed deals to check claim termination from database`,
     );
 
     const terminatedAllocations: bigint[] = [];
