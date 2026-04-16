@@ -11,9 +11,6 @@ const childLogger = baseLogger.child(
   { msgPrefix: "[SLI Oracle Contract] " },
 );
 
-const rpcClient = getRpcClient();
-const walletClient = getWalletClient(WalletAccountRole.ORACLE_ROLE);
-
 export async function setSliOnOracleContract(sliData: SliAttestation[]) {
   const oracleContractAddress =
     SERVICE_CONFIG.SLI_ORACLE_CONTRACT_ADDRESS as Address;
@@ -27,6 +24,9 @@ export async function setSliOnOracleContract(sliData: SliAttestation[]) {
   );
 
   childLogger.info("setSLI: Simulating request...");
+
+  const rpcClient = getRpcClient();
+  const walletClient = getWalletClient(WalletAccountRole.ORACLE_ROLE);
 
   const { request } = await rpcClient.simulateContract({
     address: oracleContractAddress,

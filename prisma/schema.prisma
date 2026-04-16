@@ -78,6 +78,7 @@ model porep_market_deal {
   allocationIds            BigInt[]
   history                  porep_market_deal_history[]
   settlement_history       porep_market_deal_settlement_history[]
+  proposedAtBlock          BigInt
   modifyRailPaymentAt      DateTime?
   lastSyncedAt             DateTime                               @updatedAt
   createdAt                DateTime                               @default(now())

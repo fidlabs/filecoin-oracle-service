@@ -10,9 +10,9 @@ const childLogger = baseLogger.child(
 );
 
 export async function getProvidersFromSPRegistryContract(): Promise<number[]> {
-  const rpcClient = getRpcClient();
-
   childLogger.info("Fetching storage providers...");
+
+  const rpcClient = getRpcClient();
 
   const storageProviders = await rpcClient.readContract({
     address: SERVICE_CONFIG.SP_REGISTRY_CONTRACT_ADDRESS as Address,

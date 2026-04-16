@@ -205,6 +205,7 @@ export async function syncPoRepMarketContractDealsWithDb(
               allocationsMatchedCount: d.allocationsMatchedCount,
               allocationIds: d.allocationIds,
               isRailTerminated: d.isRailTerminated,
+              proposedAtBlock: d.proposedAtBlock,
               isAllocationsMatched:
                 d.state === DealState.Completed &&
                 d.allocationsRequiredCount === d.allocationsMatchedCount, // consider allocations matched only if deal is completed and all required allocations are matched

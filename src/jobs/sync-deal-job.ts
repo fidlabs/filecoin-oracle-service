@@ -92,6 +92,7 @@ export async function syncDealsJob() {
 
         return {
           ...deal,
+          proposedAtBlock: deal.proposedAtBlock,
           validatorContractAddress: deal.validator,
           state: getChainStateToDomain(deal.state),
           dealStartEpoch: allocationInfo.dealStartEpoch,
@@ -105,7 +106,15 @@ export async function syncDealsJob() {
         };
       });
 
+    syncDealLogger.info(
+      `Syncing ${completedDealsWithAllocationInfo.length} deals with database...`,
+    );
+
     await syncPoRepMarketContractDealsWithDb(completedDealsWithAllocationInfo);
+
+    syncDealLogger.info(
+      `Successfully synced ${completedDealsWithAllocationInfo.length} deals with database`,
+    );
   } catch (error) {
     syncDealLogger.error({ error }, "Job failed");
   } finally {

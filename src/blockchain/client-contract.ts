@@ -17,32 +17,12 @@ export enum WalletAccountRole {
   FILECOIN_PAY_ROLE = "FILECOIN_PAY_ROLE",
 }
 
-const rpcClient = getRpcClient();
-const walletClient = getWalletClient(WalletAccountRole.TERMINATION_ORACLE_ROLE);
-
-export async function getClientsForSPFromClientContract(
-  storageProviderId: number,
-): Promise<Address[]> {
-  childLogger.info("Fetching clients for storage provider...");
-
-  const spClients = await rpcClient.readContract({
-    address: SERVICE_CONFIG.CLIENT_CONTRACT_ADDRESS as Address,
-    abi: CLIENT_CONTRACT_ABI,
-    functionName: "getSPClients",
-    args: [BigInt(storageProviderId)],
-  });
-
-  childLogger.info(
-    `Fetched ${spClients.length} clients for SP ${storageProviderId}`,
-  );
-
-  return spClients as Address[];
-}
-
 export async function getClientAllocationIdsPerDeal(
   onChainDealId: bigint,
 ): Promise<bigint[]> {
   childLogger.info(`Fetching allocation IDs for deal ${onChainDealId}...`);
+
+  const rpcClient = getRpcClient();
 
   const allocationIds = await rpcClient.readContract({
     address: SERVICE_CONFIG.CLIENT_CONTRACT_ADDRESS as Address,
@@ -62,6 +42,11 @@ export async function setClaimTerminatedEarlyOnClientContract(
   allocationIds: bigint[],
 ) {
   childLogger.info("claimsTerminatedEarly: Simulating request...");
+
+  const rpcClient = getRpcClient();
+  const walletClient = getWalletClient(
+    WalletAccountRole.TERMINATION_ORACLE_ROLE,
+  );
 
   const { request } = await rpcClient.simulateContract({
     address: SERVICE_CONFIG.CLIENT_CONTRACT_ADDRESS as Address,
