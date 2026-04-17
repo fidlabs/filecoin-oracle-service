@@ -57,6 +57,10 @@ export async function trackTerminateDealJob() {
           timeout: 2 * 60 * 1000, // 2 minutes
         },
       );
+
+      claimTrackingLogger.info(
+        `Successfully terminated railId ${deal.railId} for deal ${deal.onChainDealId} and updated database record`,
+      );
     }
   } catch (err) {
     claimTrackingLogger.error({ err }, "Job failed");
