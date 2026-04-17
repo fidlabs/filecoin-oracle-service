@@ -126,7 +126,13 @@ export async function setSliOracleJob() {
       });
     }
 
+    sliChildLogger.info(
+      `Calculated score for ${providerScore.length} providers, storing results to DB...`,
+    );
+
     await storeProviderScoreToDb(providerScore);
+
+    sliChildLogger.info(`Stored provider scores to DB`);
   } catch (err) {
     sliChildLogger.error({ err }, "Failed");
   } finally {

@@ -26,6 +26,13 @@ export async function trackDealEndEpochJob() {
     const dealsToSetEndEpoch =
       await getCompletedDealsToSetEndEpochFromDb(currentBlock);
 
+    if (dealsToSetEndEpoch.length === 0) {
+      dealEndEpochLogger.info(
+        "No completed deals found in database that require deal end epoch to be set on validator contract. Job will exit.",
+      );
+      return;
+    }
+
     dealEndEpochLogger.info(
       `Found ${dealsToSetEndEpoch.length} deals in database to update deal end epoch, start updating...`,
     );
