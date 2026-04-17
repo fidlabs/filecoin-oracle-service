@@ -385,14 +385,32 @@ export async function getDealsByStateFromDb({
 }
 
 export function storeProviderScoreToDb(data: ProviderScore[]) {
-  return prismaClient.provider_score.createMany({
-    data: data.map((d) => ({
-      providerId: d.providerId,
-      calculatedScore: d.calculatedScore,
-      retrievabilityBps: d.slis.retrievabilityBps,
-      bandwidthMbps: d.slis.bandwidthMbps,
-      latencyMs: d.slis.latencyMs,
-      indexingPct: d.slis.indexingPct,
-    })),
+  return prismaClient.porep_market_deal_provider_score.createMany({
+    data,
   });
+}
+
+export async function getDealsToCalculateScoreFromDb() {
+  const deals = await prismaClient.porep_market_deal.findMany({
+    where: {
+      state: {
+        notIn: [DealState.Terminated, DealState.Rejected],
+      },
+    },
+    select: {
+      id: true,
+      onChainDealId: true,
+      provider: true,
+      requirements: {
+        select: {
+          retrievabilityBps: true,
+          bandwidthMbps: true,
+          latencyMs: true,
+          indexingPct: true,
+        },
+      },
+    },
+  });
+
+  return deals;
 }

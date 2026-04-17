@@ -1,15 +1,13 @@
 import { setSliOnOracleContract } from "../blockchain/sli-oracle-contract";
-import { calculateScoreOnSliScorerContract } from "../blockchain/sli-scorer-contract";
 import { getProvidersFromSPRegistryContract } from "../blockchain/sp-registry-contract";
 import { getSliForStorageProviders } from "../services/cdp-fetch-service";
-import { storeProviderScoreToDb } from "../services/db-service";
 import { baseLogger } from "../utils/logger";
 import {
-  ProviderScore,
   SliAttestation,
   StorageProvidersSliData,
   StorageProvidersSliMetricType,
 } from "../utils/types";
+import { calculateScoreJob } from "./calculate-score-job";
 
 const sliChildLogger = baseLogger.child(
   { avengers: "assemble" },
@@ -111,28 +109,13 @@ export async function setSliOracleJob() {
 
     await setSliOnOracleContract(buildedSliData);
 
-    const providerScore: ProviderScore[] = [];
-
-    for (const sliAttestation of buildedSliData) {
-      const scoreResult = await calculateScoreOnSliScorerContract(
-        sliAttestation.provider,
-        sliAttestation.slis,
-      );
-
-      providerScore.push({
-        providerId: sliAttestation.provider,
-        calculatedScore: scoreResult,
-        slis: sliAttestation.slis,
-      });
-    }
-
     sliChildLogger.info(
-      `Calculated score for ${providerScore.length} providers, storing results to DB...`,
+      `Finished setting SLI on oracle contract for providers, starting score calculation for providers based on new set SLI values...`,
     );
 
-    await storeProviderScoreToDb(providerScore);
+    await calculateScoreJob();
 
-    sliChildLogger.info(`Stored provider scores to DB`);
+    sliChildLogger.info(`Finished calculating score for providers`);
   } catch (err) {
     sliChildLogger.error({ err }, "Failed");
   } finally {
