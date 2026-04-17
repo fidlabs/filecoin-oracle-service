@@ -39,6 +39,7 @@ export async function trackTerminateDealJob() {
       );
 
       await terminateRailOnValidatorContract(
+        deal.railId,
         deal.validatorContractAddress as Address,
       );
 

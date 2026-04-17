@@ -44,11 +44,13 @@ export async function trackDealEndEpochJob() {
 
       if (deal.dealEndEpoch) {
         await setDealEndEpochOnValidatorContract(
+          deal.onChainDealId,
           BigInt(deal.dealEndEpoch),
           deal.validatorContractAddress as Address,
         );
 
         await modifyRailPaymentOnValidatorContract(
+          deal.railId,
           deal.validatorContractAddress as Address,
         );
 
