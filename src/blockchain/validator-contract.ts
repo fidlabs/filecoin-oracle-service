@@ -10,6 +10,7 @@ const childLogger = baseLogger.child(
 );
 
 export async function terminateRailOnValidatorContract(
+  railId: bigint,
   validatorContractAddress: Address,
 ): Promise<boolean> {
   childLogger.info("terminateRail: Simulating request...");
@@ -21,7 +22,7 @@ export async function terminateRailOnValidatorContract(
     address: validatorContractAddress,
     abi: VALIDATOR_CONTRACT_ABI,
     functionName: "terminateRail",
-    args: [],
+    args: [railId],
     account: walletClient.account,
   });
 
@@ -45,6 +46,7 @@ export async function terminateRailOnValidatorContract(
 }
 
 export async function setDealEndEpochOnValidatorContract(
+  dealId: bigint,
   dealEndEpoch: bigint,
   validatorContractAddress: Address,
 ): Promise<boolean> {
@@ -57,7 +59,7 @@ export async function setDealEndEpochOnValidatorContract(
     address: validatorContractAddress,
     abi: VALIDATOR_CONTRACT_ABI,
     functionName: "setDealEndEpoch",
-    args: [dealEndEpoch],
+    args: [dealId, dealEndEpoch],
     account: walletClient.account,
   });
 
@@ -81,6 +83,7 @@ export async function setDealEndEpochOnValidatorContract(
 }
 
 export async function modifyRailPaymentOnValidatorContract(
+  railId: bigint,
   validatorContractAddress: Address,
 ): Promise<boolean> {
   childLogger.info("modifyRailPayment: Simulating request...");
@@ -92,7 +95,7 @@ export async function modifyRailPaymentOnValidatorContract(
     address: validatorContractAddress,
     abi: VALIDATOR_CONTRACT_ABI,
     functionName: "modifyRailPayment",
-    args: [],
+    args: [railId],
     account: walletClient.account,
   });
 

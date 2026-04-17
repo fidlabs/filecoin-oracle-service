@@ -41,6 +41,7 @@ export async function trackTerminateDealJob() {
       await prismaClient.$transaction(
         async (tx) => {
           await terminateRailOnValidatorContract(
+            deal.railId,
             deal.validatorContractAddress as Address,
           );
 
