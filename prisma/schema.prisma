@@ -78,6 +78,7 @@ model porep_market_deal {
   allocationIds            BigInt[]
   history                  porep_market_deal_history[]
   settlement_history       porep_market_deal_settlement_history[]
+  provider_score           porep_market_deal_provider_score[]
   proposedAtBlock          BigInt
   modifyRailPaymentAt      DateTime?
   lastSyncedAt             DateTime                               @updatedAt
@@ -99,13 +100,13 @@ model porep_market_deal_settlement_history {
   @@index([porepMarketDealId])
 }
 
-model provider_score {
-  id                String   @id @default(uuid()) @db.Uuid
+model porep_market_deal_provider_score {
+  id                String            @id @default(uuid()) @db.Uuid
+  porepMarketDealId String            @db.Uuid
   providerId        BigInt
   calculatedScore   BigInt
-  retrievabilityBps BigInt
-  bandwidthMbps     BigInt
-  latencyMs         BigInt
-  indexingPct       BigInt
-  createdAt         DateTime @default(now())
+  deal              porep_market_deal @relation(fields: [porepMarketDealId], references: [id])
+  createdAt         DateTime          @default(now())
+
+  @@index([providerId])
 }

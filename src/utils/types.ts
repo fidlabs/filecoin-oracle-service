@@ -133,5 +133,5 @@ export interface PorepMarketDeal {
 export interface ProviderScore {
   providerId: bigint;
   calculatedScore: bigint;
-  slis: SLIThresholds;
+  porepMarketDealId: string;
 }

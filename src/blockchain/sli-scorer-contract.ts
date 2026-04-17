@@ -12,7 +12,7 @@ const childLogger = baseLogger.child(
 
 export async function calculateScoreOnSliScorerContract(
   providerId: bigint,
-  slis: SLIThresholds,
+  requirements: SLIThresholds,
 ): Promise<bigint> {
   const functionName = "calculateScore";
 
@@ -24,12 +24,7 @@ export async function calculateScoreOnSliScorerContract(
     address: SERVICE_CONFIG.SLI_SCORER_CONTRACT_ADDRESS as Address,
     abi: SLI_SCORER_CONTRACT_ABI,
     functionName: functionName,
-    args: [
-      providerId,
-      {
-        ...slis,
-      },
-    ],
+    args: [providerId, { ...requirements }],
   });
 
   childLogger.info(

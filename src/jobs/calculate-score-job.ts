@@ -1,0 +1,71 @@
+import { calculateScoreOnSliScorerContract } from "../blockchain/sli-scorer-contract";
+import {
+  getDealsToCalculateScoreFromDb,
+  storeProviderScoreToDb,
+} from "../services/db-service";
+import { baseLogger } from "../utils/logger";
+import { ProviderScore } from "../utils/types";
+
+const sliChildLogger = baseLogger.child(
+  { avengers: "assemble" },
+  { msgPrefix: "[Calculate Score Job] " },
+);
+
+export async function calculateScoreJob() {
+  try {
+    sliChildLogger.info("Job started");
+
+    const dealsToCalculateScore = await getDealsToCalculateScoreFromDb();
+
+    if (dealsToCalculateScore.length === 0) {
+      sliChildLogger.info(
+        "No deals found in database that require score calculation. Job will exit.",
+      );
+
+      return;
+    }
+
+    sliChildLogger.info(
+      `Found ${dealsToCalculateScore.length} deals in database to calculate score`,
+    );
+
+    const providerScore: ProviderScore[] = [];
+
+    for (const deal of dealsToCalculateScore) {
+      if (!deal.requirements) {
+        sliChildLogger.warn(
+          `Deal ${deal.onChainDealId} does not have requirements data, skipping score calculation for this deal`,
+        );
+        continue;
+      }
+
+      const scoreResult = await calculateScoreOnSliScorerContract(
+        deal.provider,
+        {
+          retrievabilityBps: Number(deal.requirements?.retrievabilityBps),
+          bandwidthMbps: Number(deal.requirements?.bandwidthMbps),
+          latencyMs: Number(deal.requirements?.latencyMs),
+          indexingPct: Number(deal.requirements?.indexingPct),
+        },
+      );
+
+      providerScore.push({
+        providerId: deal.provider,
+        calculatedScore: scoreResult,
+        porepMarketDealId: deal.id,
+      });
+    }
+
+    sliChildLogger.info(
+      `Calculated score for ${providerScore.length} providers, storing results to DB...`,
+    );
+
+    await storeProviderScoreToDb(providerScore);
+
+    sliChildLogger.info(`Stored provider scores to DB`);
+  } catch (err) {
+    sliChildLogger.error({ err }, "Failed");
+  } finally {
+    sliChildLogger.info("Job finished");
+  }
+}
