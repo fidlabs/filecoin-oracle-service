@@ -1,9 +1,3 @@
-export type ApiResponse<T> = {
-  data: T;
-  success: boolean;
-  error?: string;
-};
-
 export type PorepMarketDealResponse = {
   onChainDealId: bigint;
   client: string;
