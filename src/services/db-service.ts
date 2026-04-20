@@ -336,52 +336,64 @@ export async function getDealsByStateFromDb({
   page,
   limit,
 }: {
-  state: DealState;
+  state?: DealState;
   page: number;
   limit: number;
 }) {
   const offset = (page - 1) * limit;
 
-  const deals = await prismaClient.porep_market_deal.findMany({
-    where: {
-      state,
-    },
-    skip: offset,
-    take: limit,
-    select: {
-      onChainDealId: true,
-      client: true,
-      provider: true,
-      validatorContractAddress: true,
-      railId: true,
-      dealStartEpoch: true,
-      dealEndEpoch: true,
-      state: true,
-      allocationsRequiredCount: true,
-      allocationsMatchedCount: true,
-      isAllocationsMatched: true,
-      isDealEndEpochSetOnChain: true,
-      allocationIds: true,
-      isRailTerminated: true,
-      terms: {
-        select: {
-          dealSizeBytes: true,
-          pricePerSectorPerMonth: true,
-          durationDays: true,
+  const [filteredDeals, totalDeals] = await Promise.all([
+    prismaClient.porep_market_deal.findMany({
+      where: {
+        state,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+      skip: offset,
+      take: limit,
+      select: {
+        onChainDealId: true,
+        client: true,
+        provider: true,
+        validatorContractAddress: true,
+        railId: true,
+        dealStartEpoch: true,
+        dealEndEpoch: true,
+        state: true,
+        allocationsRequiredCount: true,
+        allocationsMatchedCount: true,
+        isAllocationsMatched: true,
+        isDealEndEpochSetOnChain: true,
+        allocationIds: true,
+        isRailTerminated: true,
+        manifestLocation: true,
+        createdAt: true,
+        terms: {
+          select: {
+            dealSizeBytes: true,
+            pricePerSectorPerMonth: true,
+            durationDays: true,
+          },
+        },
+        requirements: {
+          select: {
+            retrievabilityBps: true,
+            bandwidthMbps: true,
+            latencyMs: true,
+            indexingPct: true,
+          },
         },
       },
-      requirements: {
-        select: {
-          retrievabilityBps: true,
-          bandwidthMbps: true,
-          latencyMs: true,
-          indexingPct: true,
-        },
+    }),
+    prismaClient.porep_market_deal.count({
+      where: {
+        state,
       },
-    },
-  });
+    }),
+  ]);
 
-  return deals;
+  return { filteredDeals, totalDeals };
 }
 
 export function storeProviderScoreToDb(data: ProviderScore[]) {
