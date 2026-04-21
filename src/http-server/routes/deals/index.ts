@@ -1,28 +1,51 @@
-import { FastifyInstance, FastifyPluginOptions, FastifyReply } from "fastify";
+import { FastifyPluginOptions } from "fastify";
 import {
   getCountOfCompletedDealsFromDb,
   getDealByOnChainIdFromDb,
   getDealsByStateFromDb,
 } from "../../../services/db-service";
 import { DealState } from "../../../utils/types";
+import { FastifyTypedInstance } from "../../server";
 import { normalizePagination } from "../../utils/pagination";
-import { RouteWithResponse } from "../../utils/response-formatter-plugin/types";
-import { GetDealByIdRequest, GetFilteredDealsRequest } from "./types";
+import {
+  GetDealByIdRequestSchema,
+  GetFilteredDealsQuerySchema,
+} from "./schema";
 
 export function dealRoutes(
-  fastify: FastifyInstance,
+  fastify: FastifyTypedInstance,
   options: FastifyPluginOptions,
   done: (err?: Error) => void,
 ) {
-  fastify.get<RouteWithResponse<number>>("/total-done", async (_, replay) => {
-    const totalCompletedDeals = await getCountOfCompletedDealsFromDb();
-
-    return replay.success(totalCompletedDeals);
+  fastify.addHook("onRoute", (routeOptions) => {
+    routeOptions.schema = routeOptions.schema || {};
+    routeOptions.schema.tags = routeOptions.schema.tags || ["Deals"];
   });
 
   fastify.get(
+    "/total-done",
+    {
+      schema: {
+        description: "Get the total number of completed deals",
+      },
+    },
+    async (_, replay) => {
+      const totalCompletedDeals = await getCountOfCompletedDealsFromDb();
+
+      return replay.success({ totalCompletedDeals });
+    },
+  );
+
+  fastify.get(
     "/",
-    async (request: GetFilteredDealsRequest, reply: FastifyReply) => {
+    {
+      schema: {
+        description:
+          "Get a paginated list of deals, optionally filtered by state. Supported states: Proposed, Accepted, Completed, Rejected, Terminated.",
+        querystring: GetFilteredDealsQuerySchema,
+      },
+    },
+    async (request, reply) => {
       const { state } = request.query;
 
       const pagination = normalizePagination(request.query);
@@ -43,11 +66,52 @@ export function dealRoutes(
   );
 
   fastify.get(
-    "/:id",
-    async (request: GetDealByIdRequest, reply: FastifyReply) => {
-      const { id } = request.params;
+    "/:onChainDealId",
+    {
+      preParsing: async (request) => {
+        const { onChainDealId } = request.params as {
+          onChainDealId: string;
+        };
 
-      const deal = await getDealByOnChainIdFromDb(BigInt(id));
+        if (!/^\d+$/.test(onChainDealId)) {
+          throw new Error("Invalid onChainDealId format");
+        }
+      },
+      schema: {
+        description: "Get deal details by on-chain deal ID",
+        params: GetDealByIdRequestSchema,
+      },
+    },
+    async (request, reply) => {
+      const { onChainDealId } = request.params;
+
+      const deal = await getDealByOnChainIdFromDb(BigInt(onChainDealId));
+
+      return reply.success(deal);
+    },
+  );
+
+  fastify.get(
+    "/:onChainDealId/provider-score",
+    {
+      preParsing: async (request) => {
+        const { onChainDealId } = request.params as {
+          onChainDealId: string;
+        };
+
+        if (!/^\d+$/.test(onChainDealId)) {
+          throw new Error("Invalid onChainDealId format");
+        }
+      },
+      schema: {
+        description: "Get deal details by on-chain deal ID",
+        params: GetDealByIdRequestSchema,
+      },
+    },
+    async (request, reply) => {
+      const { onChainDealId } = request.params;
+
+      const deal = await getDealByOnChainIdFromDb(BigInt(onChainDealId));
 
       return reply.success(deal);
     },
