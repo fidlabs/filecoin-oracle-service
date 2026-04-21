@@ -38,6 +38,9 @@ export function debugRoutes(
   fastify.post(
     "/trigger-job",
     {
+      schema: {
+        hide: true,
+      },
       preValidation: async (req: PostDebugJobRequest) => {
         debugMiddleware(req);
       },

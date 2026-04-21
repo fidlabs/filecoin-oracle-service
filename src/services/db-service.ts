@@ -153,6 +153,7 @@ export async function getDealByOnChainIdFromDb(onChainDealId: bigint) {
     include: {
       terms: true,
       requirements: true,
+      provider_score: true,
     },
   });
 
@@ -400,6 +401,21 @@ export function storeProviderScoreToDb(data: ProviderScore[]) {
   return prismaClient.porep_market_deal_provider_score.createMany({
     data,
   });
+}
+
+export async function getProviderScoreByOnChainDealIdFromDb(
+  onChainDealId: bigint,
+) {
+  const providerScore = await prismaClient.porep_market_deal.findFirst({
+    where: {
+      onChainDealId,
+    },
+    include: {
+      provider_score: true,
+    },
+  });
+
+  return providerScore;
 }
 
 export async function getDealsToCalculateScoreFromDb() {

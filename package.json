@@ -16,6 +16,8 @@
     "prisma:generate_dmob": "npx prisma generate --schema prismaDmob/schema.prisma --config prismaDmob/prisma.config.ts"
   },
   "dependencies": {
+    "@fastify/swagger": "^9.7.0",
+    "@fastify/swagger-ui": "^5.2.5",
     "@prisma/adapter-pg": "^7.5.0",
     "@prisma/client": "^7.5.0",
     "@types/body-parser": "^1.19.6",
@@ -23,13 +25,15 @@
     "dotenv": "^16.0.0",
     "fastify": "^5.8.5",
     "fastify-plugin": "^5.1.0",
+    "fastify-type-provider-zod": "^6.1.0",
     "i": "^0.3.7",
     "node-cron": "^4.2.1",
     "node-fetch": "^3.3.2",
     "npm": "^11.11.1",
     "pino": "^10.1.0",
     "pino-pretty": "^13.1.2",
-    "viem": "^2.38.6"
+    "viem": "^2.38.6",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
