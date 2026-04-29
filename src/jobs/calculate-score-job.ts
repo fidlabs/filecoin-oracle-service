@@ -1,3 +1,4 @@
+import { getLastSliForProviderFromSliOracleContract } from "../blockchain/sli-oracle-contract";
 import { calculateScoreOnSliScorerContract } from "../blockchain/sli-scorer-contract";
 import {
   getDealsToCalculateScoreFromDb,
@@ -31,10 +32,32 @@ export async function calculateScoreJob() {
 
     const providerScore: ProviderScore[] = [];
 
+    const uniqueProviders = [
+      ...new Set(dealsToCalculateScore.map((deal) => deal.provider)),
+    ];
+
+    sliChildLogger.info(
+      `Extracted ${uniqueProviders.length} unique providers from ${dealsToCalculateScore.length} deals get last attestations`,
+    );
+
+    const lastSliForProvider =
+      await getLastSliForProviderFromSliOracleContract(uniqueProviders);
+
     for (const deal of dealsToCalculateScore) {
       if (!deal.requirements) {
         sliChildLogger.warn(
           `Deal ${deal.onChainDealId} does not have requirements data, skipping score calculation for this deal`,
+        );
+        continue;
+      }
+
+      const lastSliForProviderValue = lastSliForProvider.find(
+        (sli) => sli.providerId === deal.provider,
+      )?.sliAttestation;
+
+      if (!lastSliForProviderValue) {
+        sliChildLogger.warn(
+          `No SLI attestation found for provider ${deal.provider} on sli oracle contract, skipping score calculation for this deal`,
         );
         continue;
       }
@@ -53,6 +76,18 @@ export async function calculateScoreJob() {
         providerId: deal.provider,
         calculatedScore: scoreResult,
         porepMarketDealId: deal.id,
+        averageBandwidthMbps: lastSliForProviderValue?.bandwidthMbps
+          ? BigInt(lastSliForProviderValue.bandwidthMbps)
+          : BigInt(0),
+        averageRetrievabilityBps: lastSliForProviderValue?.retrievabilityBps
+          ? BigInt(lastSliForProviderValue.retrievabilityBps)
+          : BigInt(0),
+        averageLatencyMs: lastSliForProviderValue?.latencyMs
+          ? BigInt(lastSliForProviderValue.latencyMs)
+          : BigInt(0),
+        averageIndexingPct: lastSliForProviderValue?.indexingPct
+          ? BigInt(lastSliForProviderValue.indexingPct)
+          : BigInt(0),
       });
     }
 
