@@ -3,6 +3,7 @@ import {
   getCountOfCompletedDealsFromDb,
   getDealByOnChainIdFromDb,
   getDealsByStateFromDb,
+  getProviderScoreByOnChainDealIdFromDb,
 } from "../../../services/db-service";
 import { DealState } from "../../../utils/types";
 import { FastifyTypedInstance } from "../../server";
@@ -111,9 +112,11 @@ export function dealRoutes(
     async (request, reply) => {
       const { onChainDealId } = request.params;
 
-      const deal = await getDealByOnChainIdFromDb(BigInt(onChainDealId));
+      const provider_score = await getProviderScoreByOnChainDealIdFromDb(
+        BigInt(onChainDealId),
+      );
 
-      return reply.success(deal);
+      return reply.success(provider_score);
     },
   );
 
