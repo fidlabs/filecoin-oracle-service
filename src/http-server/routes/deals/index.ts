@@ -1,5 +1,6 @@
 import { FastifyPluginOptions } from "fastify";
 import {
+  getAveragePricePerTibFromDb,
   getCountOfCompletedDealsFromDb,
   getDealByOnChainIdFromDb,
   getDealsByStateFromDb,
@@ -33,6 +34,20 @@ export function dealRoutes(
       const totalCompletedDeals = await getCountOfCompletedDealsFromDb();
 
       return replay.success({ totalCompletedDeals });
+    },
+  );
+
+  fastify.get(
+    "/avg-price-per-tb",
+    {
+      schema: {
+        description: "Get the average price per TB for completed deals",
+      },
+    },
+    async (_, replay) => {
+      const averagePricePerTiBPerMonth = await getAveragePricePerTibFromDb();
+
+      return replay.success({ averagePricePerTiBPerMonth });
     },
   );
 

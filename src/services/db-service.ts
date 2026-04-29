@@ -332,6 +332,22 @@ export async function getCountOfCompletedDealsFromDb() {
   return count;
 }
 
+export async function getAveragePricePerTibFromDb() {
+  const result = await prismaClient.$queryRaw<
+    Array<{
+      averagePricePerTiBPerMonth: number | null;
+    }>
+  >`
+  SELECT
+    AVG(("pricePerSectorPerMonth" * POWER(2, 40)::double precision) / "dealSizeBytes") AS "averagePricePerTiBPerMonth"
+  FROM porep_market_deal_terms terms
+  JOIN porep_market_deal deals ON terms."porepMarketDealId" = deals.id
+  WHERE deals.state = 'Completed' AND deals."isAllocationsMatched" = true;
+  `;
+
+  return result[0]?.averagePricePerTiBPerMonth;
+}
+
 export async function getDealsByStateFromDb({
   state,
   page,
