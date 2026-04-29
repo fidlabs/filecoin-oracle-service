@@ -1,4 +1,4 @@
-import { Address, encodeFunctionData } from "viem";
+import { Address, decodeFunctionResult, encodeFunctionData } from "viem";
 import { SERVICE_CONFIG } from "../config/env";
 import { baseLogger } from "../utils/logger";
 import { SliAttestation } from "../utils/types";
@@ -51,4 +51,49 @@ export async function setSliOnOracleContract(sliData: SliAttestation[]) {
   childLogger.info(
     `setSLI: Transaction executed in block ${receipt.blockNumber}`,
   );
+}
+
+export async function getLastSliForProviderFromSliOracleContract(
+  providerIds: bigint[],
+) {
+  const oracleContractAddress =
+    SERVICE_CONFIG.SLI_ORACLE_CONTRACT_ADDRESS as Address;
+
+  childLogger.info("getAttestation: Simulating request...");
+
+  const rpcClient = getRpcClient();
+
+  const encodedCalls = providerIds.map((providerId) =>
+    encodeFunctionData({
+      abi: SLI_ORACLE_CONTRACT_ABI,
+      functionName: "getAttestation",
+      args: [providerId],
+    }),
+  );
+
+  const { result } = await rpcClient.simulateContract({
+    address: oracleContractAddress,
+    abi: SLI_ORACLE_CONTRACT_ABI,
+    functionName: "multicall",
+    args: [encodedCalls],
+  });
+
+  childLogger.info(
+    `getAttestation: Fetched attestation for providers from oracle contract`,
+  );
+
+  const decoded = result.map((res) =>
+    decodeFunctionResult({
+      abi: SLI_ORACLE_CONTRACT_ABI,
+      functionName: "getAttestation",
+      data: res,
+    }),
+  );
+
+  const providerAttestations = decoded.map((res, index) => ({
+    providerId: providerIds[index],
+    sliAttestation: res.slis,
+  }));
+
+  return providerAttestations;
 }

@@ -134,4 +134,8 @@ export interface ProviderScore {
   providerId: bigint;
   calculatedScore: bigint;
   porepMarketDealId: string;
+  averageRetrievabilityBps: bigint;
+  averageBandwidthMbps: bigint;
+  averageLatencyMs: bigint;
+  averageIndexingPct: bigint;
 }

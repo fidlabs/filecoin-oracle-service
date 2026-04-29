@@ -101,12 +101,16 @@ model porep_market_deal_settlement_history {
 }
 
 model porep_market_deal_provider_score {
-  id                String            @id @default(uuid()) @db.Uuid
-  porepMarketDealId String            @db.Uuid
-  providerId        BigInt
-  calculatedScore   BigInt
-  deal              porep_market_deal @relation(fields: [porepMarketDealId], references: [id])
-  createdAt         DateTime          @default(now())
+  id                       String            @id @default(uuid()) @db.Uuid
+  porepMarketDealId        String            @db.Uuid
+  providerId               BigInt
+  calculatedScore          BigInt
+  averageRetrievabilityBps BigInt
+  averageBandwidthMbps     BigInt
+  averageLatencyMs         BigInt
+  averageIndexingPct       BigInt
+  deal                     porep_market_deal @relation(fields: [porepMarketDealId], references: [id])
+  createdAt                DateTime          @default(now())
 
   @@index([providerId])
 }

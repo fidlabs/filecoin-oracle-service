@@ -411,11 +411,24 @@ export async function getProviderScoreByOnChainDealIdFromDb(
       onChainDealId,
     },
     include: {
-      provider_score: true,
+      provider_score: {
+        select: {
+          providerId: true,
+          calculatedScore: true,
+          averageBandwidthMbps: true,
+          averageRetrievabilityBps: true,
+          averageLatencyMs: true,
+          averageIndexingPct: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: 1,
+      },
     },
   });
 
-  return providerScore;
+  return providerScore?.provider_score?.[0] ?? null;
 }
 
 export async function getDealsToCalculateScoreFromDb() {
