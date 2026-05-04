@@ -17,13 +17,7 @@ import { responseCustomFormatterPlugin } from "./utils/response-formatter-plugin
 
 const fastify = Fastify({
   logger: {
-    transport: {
-      target: "pino-pretty",
-      options: {
-        messageFormat: "{msg}",
-        ignore: "hostname,pid,avengers",
-      },
-    },
+    level: "info",
   },
 });
 
