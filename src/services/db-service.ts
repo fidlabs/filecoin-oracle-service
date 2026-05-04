@@ -366,6 +366,7 @@ export async function getDealsByStateFromDb({
         allocationsMatchedCount: true,
         isAllocationsMatched: true,
         isDealEndEpochSetOnChain: true,
+        modifyRailPaymentAt: true,
         allocationIds: true,
         isRailTerminated: true,
         manifestLocation: true,

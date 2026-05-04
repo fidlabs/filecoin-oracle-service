@@ -38,25 +38,18 @@ export async function trackTerminateDealJob() {
         `Terminating railId ${deal.railId} for deal ${deal.onChainDealId}...`,
       );
 
-      await prismaClient.$transaction(
-        async (tx) => {
-          await terminateRailOnValidatorContract(
-            deal.validatorContractAddress as Address,
-          );
-
-          await tx.porep_market_deal.update({
-            where: {
-              onChainDealId: deal.onChainDealId,
-            },
-            data: {
-              isRailTerminated: true,
-            },
-          });
-        },
-        {
-          timeout: 2 * 60 * 1000, // 2 minutes
-        },
+      await terminateRailOnValidatorContract(
+        deal.validatorContractAddress as Address,
       );
+
+      await prismaClient.porep_market_deal.update({
+        where: {
+          onChainDealId: deal.onChainDealId,
+        },
+        data: {
+          isRailTerminated: true,
+        },
+      });
 
       claimTrackingLogger.info(
         `Successfully terminated railId ${deal.railId} for deal ${deal.onChainDealId} and updated database record`,
