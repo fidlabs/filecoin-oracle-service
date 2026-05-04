@@ -43,7 +43,7 @@ export async function syncDealsJob() {
     for (const deal of contractAllDeals) {
       let allocationsInfo: {
         termStart?: bigint;
-        termMax?: bigint;
+        termMin?: bigint;
         allocationsCount?: bigint;
       } = {};
 
@@ -63,7 +63,6 @@ export async function syncDealsJob() {
         );
 
         allocationsInfo = await getClientAllocationInfoByProviderIdFromDmobDb(
-          deal.provider.toString(),
           requiredDealAllocations.map(Number),
         );
 
@@ -78,8 +77,8 @@ export async function syncDealsJob() {
         dealStartEpoch: allocationsInfo?.termStart,
         dealEndEpoch:
           allocationsInfo?.termStart &&
-          allocationsInfo?.termMax &&
-          allocationsInfo?.termStart + allocationsInfo?.termMax,
+          allocationsInfo?.termMin &&
+          allocationsInfo?.termStart + allocationsInfo?.termMin,
         allocationsMatchedCount: allocationsInfo?.allocationsCount,
         requiredDealAllocationsCount: requiredAllocationsCount,
         allocationIds: requiredDealAllocations || [],

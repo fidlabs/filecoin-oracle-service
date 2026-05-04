@@ -3,11 +3,10 @@ import { getDmobPrismaClient } from "./prisma-service";
 const dmobPrismaClient = getDmobPrismaClient();
 
 export async function getClientAllocationInfoByProviderIdFromDmobDb(
-  providerId: string,
   allocationIds: number[],
 ): Promise<{
   termStart?: bigint;
-  termMax?: bigint;
+  termMin?: bigint;
   allocationsCount: bigint;
 }> {
   const allocationInfo = await dmobPrismaClient.unified_verified_deal.aggregate(
@@ -16,7 +15,6 @@ export async function getClientAllocationInfoByProviderIdFromDmobDb(
         type: {
           in: ["claim", "claimUpdated"],
         },
-        providerId,
         claimId: {
           in: allocationIds,
         },
@@ -25,7 +23,7 @@ export async function getClientAllocationInfoByProviderIdFromDmobDb(
         termStart: true,
       },
       _max: {
-        termMax: true,
+        termMin: true,
       },
       _count: {
         claimId: true,
@@ -37,8 +35,8 @@ export async function getClientAllocationInfoByProviderIdFromDmobDb(
     termStart: allocationInfo._min.termStart
       ? BigInt(allocationInfo._min.termStart)
       : undefined,
-    termMax: allocationInfo._max.termMax
-      ? BigInt(allocationInfo._max.termMax)
+    termMin: allocationInfo._max.termMin
+      ? BigInt(allocationInfo._max.termMin)
       : undefined,
     allocationsCount: BigInt(allocationInfo._count.claimId),
   };
