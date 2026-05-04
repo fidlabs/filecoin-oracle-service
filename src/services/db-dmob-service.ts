@@ -16,7 +16,6 @@ export async function getClientAllocationInfoByProviderIdFromDmobDb(
         type: {
           in: ["claim", "claimUpdated"],
         },
-        providerId,
         claimId: {
           in: allocationIds,
         },
