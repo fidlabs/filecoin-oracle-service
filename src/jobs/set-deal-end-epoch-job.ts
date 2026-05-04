@@ -42,33 +42,26 @@ export async function trackDealEndEpochJob() {
         `Setting deal end epoch ${deal.dealEndEpoch} on validator contract for deal ${deal.onChainDealId}...`,
       );
 
-      await prismaClient.$transaction(
-        async (tx) => {
-          if (deal.dealEndEpoch) {
-            await setDealEndEpochOnValidatorContract(
-              BigInt(deal.dealEndEpoch),
-              deal.validatorContractAddress as Address,
-            );
+      if (deal.dealEndEpoch) {
+        await setDealEndEpochOnValidatorContract(
+          BigInt(deal.dealEndEpoch),
+          deal.validatorContractAddress as Address,
+        );
 
-            await modifyRailPaymentOnValidatorContract(
-              deal.validatorContractAddress as Address,
-            );
+        await modifyRailPaymentOnValidatorContract(
+          deal.validatorContractAddress as Address,
+        );
 
-            await tx.porep_market_deal.update({
-              where: {
-                onChainDealId: deal.onChainDealId,
-              },
-              data: {
-                modifyRailPaymentAt: new Date(),
-                isDealEndEpochSetOnChain: true,
-              },
-            });
-          }
-        },
-        {
-          timeout: 2 * 60 * 1000, // 2 minutes
-        },
-      );
+        await prismaClient.porep_market_deal.update({
+          where: {
+            onChainDealId: deal.onChainDealId,
+          },
+          data: {
+            modifyRailPaymentAt: new Date(),
+            isDealEndEpochSetOnChain: true,
+          },
+        });
+      }
 
       dealEndEpochLogger.info(
         `Successfully set deal end epoch ${deal.dealEndEpoch} on validator contract for deal ${deal.onChainDealId} and modified rail payment for railId ${deal.railId}`,
