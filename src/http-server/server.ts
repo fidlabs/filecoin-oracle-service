@@ -15,16 +15,12 @@ import { debugRoutes } from "./routes/debug";
 import { healthRoutes } from "./routes/health";
 import { responseCustomFormatterPlugin } from "./utils/response-formatter-plugin/response-plugin";
 
-const fastify = Fastify({
-  logger: {
-    level: "info",
-  },
-});
-
 const httpLogger = baseLogger.child(
   { avengers: "assemble" },
   { msgPrefix: "[HTTP] " },
 );
+
+const fastify = Fastify();
 
 export const app = fastify.withTypeProvider<ZodTypeProvider>();
 
@@ -54,23 +50,26 @@ app.register(responseCustomFormatterPlugin);
 app.register(debugRoutes, {
   prefix: "/debug",
 });
-app.register(healthRoutes, { prefix: "/health" });
+app.register(healthRoutes);
 app.register(dealRoutes, { prefix: "/deals" });
 
-app.listen({ port: Number(SERVICE_CONFIG.APP_PORT) }, (error, address) => {
-  if (error) {
-    httpLogger.error(
-      `Failed to start HTTP server: ${error instanceof Error ? error.message : String(error)}`,
+app.listen(
+  { port: Number(SERVICE_CONFIG.APP_PORT), host: "0.0.0.0" },
+  (error, address) => {
+    if (error) {
+      httpLogger.error(
+        `Failed to start HTTP server: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      process.exit(1);
+    }
+
+    httpLogger.info(`Oracle HTTP service listening on ${address}`);
+    httpLogger.info(`Health endpoint: GET /health`);
+
+    httpLogger.info(
+      `Manual job trigger endpoint: POST /trigger-job?job=<job-name>`,
     );
-    process.exit(1);
-  }
-
-  httpLogger.info(`Oracle HTTP service listening on ${address}`);
-  httpLogger.info(`Health endpoint: GET /health`);
-
-  httpLogger.info(
-    `Manual job trigger endpoint: POST /trigger-job?job=<job-name>`,
-  );
-});
+  },
+);
 
 export type FastifyTypedInstance = typeof app;
