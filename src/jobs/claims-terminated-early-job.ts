@@ -1,4 +1,3 @@
-import { setClaimTerminatedEarlyOnClientContract } from "../blockchain/client-contract";
 import { getCompletedDealsToCheckClaimTerminationFromDb } from "../services/db-service";
 import { fetchClaims, fetchSectorInfo } from "../services/filecoin-api-service";
 import { baseLogger } from "../utils/logger";
@@ -60,9 +59,9 @@ export async function trackClaimsTerminatedEarlyJob() {
       }
     }
 
-    await setClaimTerminatedEarlyOnClientContract(
-      terminatedAllocations.map(BigInt),
-    );
+    // await setClaimTerminatedEarlyOnClientContract(
+    //   terminatedAllocations.map(BigInt),
+    // );
   } catch (err) {
     claimTrackingLogger.error({ err }, "Job failed");
   } finally {

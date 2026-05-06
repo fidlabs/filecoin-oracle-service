@@ -2,7 +2,6 @@ import "dotenv/config";
 import cron from "node-cron";
 import { SERVICE_CONFIG } from "./config/env";
 import "./http-server/server";
-import { trackClaimsTerminatedEarlyJob } from "./jobs/claims-terminated-early-job";
 import { trackDealEndEpochJob } from "./jobs/set-deal-end-epoch-job";
 import { setSliOracleJob } from "./jobs/set-sli-job";
 import { runSettlementBotJob } from "./jobs/settlement-bot-job";
@@ -68,7 +67,7 @@ try {
   cron.schedule(syncDealsInterval, syncDealsJob);
   cron.schedule(sliInterval, setSliOracleJob);
   cron.schedule(trackDealEndEpochInterval, trackDealEndEpochJob);
-  cron.schedule(claimsTerminatedEarlyInterval, trackClaimsTerminatedEarlyJob);
+  //cron.schedule(claimsTerminatedEarlyInterval, trackClaimsTerminatedEarlyJob);
   cron.schedule(settlementBotInterval, runSettlementBotJob);
   cron.schedule(terminateDealsInterval, trackTerminateDealJob);
 } catch (err: unknown) {
