@@ -7,7 +7,7 @@ export function healthRoutes(
   done: (err?: Error) => void,
 ) {
   fastify.get(
-    "/",
+    "/health",
     {
       schema: {
         tags: ["Maintenance"],
@@ -16,7 +16,7 @@ export function healthRoutes(
       },
     },
     async (_, replay) => {
-      return replay.success({ status: "ok" });
+      return replay.status(200).send({ status: "ok" });
     },
   );
 
