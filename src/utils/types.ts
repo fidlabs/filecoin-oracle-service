@@ -61,6 +61,11 @@ export interface FilecoinAPIStateSectorGetInfo {
   DailyFee: string;
 }
 
+export interface FilecoinAPIStateSectorExpiration {
+  OnTime: number;
+  Early: number;
+}
+
 export interface FilecoinAPIStateGetClaim {
   Provider: number;
   Client: number;

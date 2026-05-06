@@ -1,6 +1,8 @@
-import { setClaimTerminatedEarlyOnClientContract } from "../blockchain/client-contract";
 import { getCompletedDealsToCheckClaimTerminationFromDb } from "../services/db-service";
-import { fetchClaims, fetchSectorInfo } from "../services/filecoin-api-service";
+import {
+  fetchClaims,
+  fetchStateSectorExpiration,
+} from "../services/filecoin-api-service";
 import { baseLogger } from "../utils/logger";
 
 const claimTrackingLogger = baseLogger.child(
@@ -43,26 +45,26 @@ export async function trackClaimsTerminatedEarlyJob() {
           Number(allocationId),
         );
 
-        const sectorInfo = await fetchSectorInfo(
+        if (!allocationInfo || !allocationInfo.Sector) {
+          claimTrackingLogger.warn(
+            `No claim info found for allocation ID ${allocationId} (SP: ${storageProviderId}, DealId: ${deal.onChainDealId}), skipping claim termination check for this allocation`,
+          );
+          continue;
+        }
+
+        const sectorExpiration = await fetchStateSectorExpiration(
           storageProviderId,
           allocationInfo.Sector,
         );
 
-        if (
-          !sectorInfo.ExpectedDayReward ||
-          !sectorInfo.ExpectedStoragePledge
-        ) {
+        if (sectorExpiration.Early > 0) {
           terminatedAllocations.push(allocationId);
           claimTrackingLogger.info(
-            `Marking allocation ${allocationId} for early termination (SP: ${storageProviderId}, DealId: ${deal.onChainDealId} Sector: ${allocationInfo.Sector}, )`,
+            `Marking allocation ${allocationId} for early termination (SP: ${storageProviderId}, DealId: ${deal.onChainDealId} Sector: ${allocationInfo.Sector})`,
           );
         }
       }
     }
-
-    await setClaimTerminatedEarlyOnClientContract(
-      terminatedAllocations.map(BigInt),
-    );
   } catch (err) {
     claimTrackingLogger.error({ err }, "Job failed");
   } finally {
