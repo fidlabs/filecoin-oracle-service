@@ -1,5 +1,4 @@
 import { getCompletedDealsToCheckClaimTerminationFromDb } from "../services/db/db-service";
-import { fetchClaims, fetchSectorInfo } from "../services/filecoin-api-service";
 import { baseLogger } from "../utils/logger";
 
 const claimTrackingLogger = baseLogger.child(
@@ -25,35 +24,30 @@ export async function trackClaimsTerminatedEarlyJob() {
       `Fetched ${completedDeals.length} completed deals to check claim termination from database`,
     );
 
-    const terminatedAllocations: bigint[] = [];
+    const terminatedClaims: bigint[] = [];
 
     claimTrackingLogger.info("Start processing completed deals...");
 
     for (const deal of completedDeals) {
       claimTrackingLogger.info(`Processing deal id: ${deal.onChainDealId}...`);
 
-      for (const allocationId of deal.allocationIds) {
-        claimTrackingLogger.info(`Processing allocation ID ${allocationId}...`);
+      for (const claim of deal.claims) {
+        const { claimId } = claim;
+
+        claimTrackingLogger.info(`Processing claim ID ${claimId}...`);
 
         const storageProviderId = `f0${deal.provider.toString()}`;
 
-        const allocationInfo = await fetchClaims(
-          storageProviderId,
-          Number(allocationId),
-        );
+        const isSectorDead = false; // TODO:
+        // const isSectorDead = await isSectorDeadFromDealInspectorContract(
+        //   deal.onChainDealId,
+        //   BigInt(claim.sector),
+        // );
 
-        const sectorInfo = await fetchSectorInfo(
-          storageProviderId,
-          allocationInfo.Sector,
-        );
-
-        if (
-          !sectorInfo.ExpectedDayReward ||
-          !sectorInfo.ExpectedStoragePledge
-        ) {
-          terminatedAllocations.push(allocationId);
+        if (isSectorDead) {
+          terminatedClaims.push(claimId);
           claimTrackingLogger.info(
-            `Marking allocation ${allocationId} for early termination (SP: ${storageProviderId}, DealId: ${deal.onChainDealId} Sector: ${allocationInfo.Sector}, )`,
+            `Marking claim ${claimId} for early termination (SP: ${storageProviderId}, DealId: ${deal.onChainDealId} Sector: ${claim.sector})`,
           );
         }
       }
@@ -62,6 +56,7 @@ export async function trackClaimsTerminatedEarlyJob() {
     // await setClaimTerminatedEarlyOnClientContract(
     //   terminatedAllocations.map(BigInt),
     // );
+    //await setClaimTerminatedEarlyOnClientContract(terminatedAllocations);
   } catch (err) {
     claimTrackingLogger.error({ err }, "Job failed");
   } finally {

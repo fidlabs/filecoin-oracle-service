@@ -109,6 +109,9 @@ export async function getCompletedDealsToCheckClaimTerminationFromDb() {
       isRailTerminated: false,
       isAllocationsMatched: true, // IMPORTANT: only consider deals with matching allocation count between expected and actual to avoid setting wrong deal end epoch
     },
+    include: {
+      claims: true,
+    },
   });
 
   return deals ? deals : [];
@@ -214,6 +217,11 @@ export async function syncPoRepMarketContractDealsWithDb(
               allocationsRequiredCount: d.allocationsRequiredCount,
               allocationsMatchedCount: d.allocationsMatchedCount,
               allocationIds: d.allocationIds,
+              claims: {
+                createMany: {
+                  data: d.claims ?? [],
+                },
+              },
               isRailTerminated: d.isRailTerminated,
               proposedAtBlock: d.proposedAtBlock,
               isAllocationsMatched:
@@ -233,6 +241,17 @@ export async function syncPoRepMarketContractDealsWithDb(
                   ? d.dealEndEpoch
                   : undefined, // update deal end epoch only if all required allocations are matched
               allocationIds: d.allocationIds,
+              claims: {
+                updateMany: d.claims?.map((claim) => ({
+                  where: {
+                    claimId: claim.claimId,
+                  },
+                  data: {
+                    sector: claim.sector,
+                    status: claim.status,
+                  },
+                })),
+              },
               manifestLocation: d.manifestLocation,
               allocationsRequiredCount: d.allocationsRequiredCount,
               allocationsMatchedCount: d.allocationsMatchedCount,
@@ -454,3 +473,39 @@ export async function getDealsByStateFromDb(
 
   return dealsByState;
 }
+
+// export async function updateClaimSectorStatusInDb(
+//   onChainDealId: bigint,
+//   provider: bigint,
+//   claimId: bigint,
+//   status: SectorStatus,
+// ) {
+//   return prismaClient.porep_market_deal.updateMany({
+//     include: {
+//       claims: true,
+//     },
+//     where: {
+//       onChainDealId,
+//       provider,
+//       claims: {
+//         some: {
+//           claimId,
+//         },
+//       },
+//     },
+//     data: {
+//       claims: {
+//         update: [
+//           {
+//             where: {
+//               claimId,
+//             },
+//             data: {
+//               status,
+//             },
+//           },
+//         ],
+//       },
+//     },
+//   });
+// }

@@ -12,6 +12,12 @@ datasource db {
   provider = "postgresql"
 }
 
+enum SectorStatus {
+  Dead
+  Active
+  Faulty
+}
+
 enum DealState {
   Proposed
   Accepted
@@ -57,6 +63,17 @@ model porep_market_deal_terms {
   deal                   porep_market_deal @relation(fields: [porepMarketDealId], references: [id])
 }
 
+model porep_market_deal_claim {
+  id                String            @id @default(uuid()) @db.Uuid
+  porepMarketDealId String            @db.Uuid
+  claimId           BigInt
+  sector            BigInt
+  status            SectorStatus?
+  deal              porep_market_deal @relation(fields: [porepMarketDealId], references: [id])
+
+  @@index([porepMarketDealId])
+}
+
 model porep_market_deal {
   id                       String                                 @id @default(uuid()) @db.Uuid
   onChainDealId            BigInt                                 @unique // external deal ID - from chain
@@ -76,6 +93,7 @@ model porep_market_deal {
   dealEndEpoch             BigInt?
   isDealEndEpochSetOnChain Boolean                                @default(false)
   allocationIds            BigInt[]
+  claims                   porep_market_deal_claim[]
   history                  porep_market_deal_history[]
   settlement_history       porep_market_deal_settlement_history[]
   provider_score           porep_market_deal_provider_score[]

@@ -67,6 +67,13 @@ export const porepMarkerDealSelect =
         settlementAt: "desc",
       },
     },
+    claims: {
+      select: {
+        claimId: true,
+        sector: true,
+        status: true,
+      },
+    },
   });
 
 export type PorepMarketDealDto = Prisma.porep_market_dealGetPayload<{

@@ -61,6 +61,11 @@ export interface FilecoinAPIStateSectorGetInfo {
   DailyFee: string;
 }
 
+export interface FilecoinAPIStateSectorExpiration {
+  OnTime: number;
+  Early: number;
+}
+
 export interface FilecoinAPIStateGetClaim {
   Provider: number;
   Client: number;
@@ -109,6 +114,12 @@ export interface PorepMarketContractDealProposal {
   requirements: SLIThresholds;
 }
 
+export interface PorepMarketDealClaim {
+  claimId: bigint;
+  sector: bigint;
+  status?: SectorStatus;
+}
+
 export interface PorepMarketDeal {
   dealId: bigint;
   client: Address;
@@ -123,7 +134,8 @@ export interface PorepMarketDeal {
   allocationsMatchedCount?: bigint;
   isAllocationsMatched?: boolean;
   isDealEndEpochSetOnChain: boolean;
-  allocationIds: bigint[];
+  allocationIds?: bigint[];
+  claims?: PorepMarketDealClaim[];
   isRailTerminated: boolean;
   terms: DealTerms;
   requirements: SLIThresholds;
@@ -138,4 +150,36 @@ export interface ProviderScore {
   averageBandwidthMbps: bigint;
   averageLatencyMs: bigint;
   averageIndexingPct: bigint;
+}
+
+export enum SectorStatus {
+  Dead = "Dead",
+  Active = "Active",
+  Faulty = "Faulty",
+}
+
+export interface FailCode {
+  idx: number;
+  code: number;
+}
+
+export interface BatchReturn {
+  success_count: number;
+  fail_codes: FailCode[];
+}
+
+export interface Claim {
+  provider: bigint;
+  client: bigint;
+  data: string;
+  size: bigint;
+  term_min: bigint;
+  term_max: bigint;
+  term_start: bigint;
+  sector: bigint;
+}
+
+export interface GetClaimsReturn {
+  batch_info: BatchReturn;
+  claims: Claim[];
 }
