@@ -109,6 +109,9 @@ export async function getCompletedDealsToCheckClaimTerminationFromDb() {
       isRailTerminated: false,
       isAllocationsMatched: true, // IMPORTANT: only consider deals with matching allocation count between expected and actual to avoid setting wrong deal end epoch
     },
+    include: {
+      claims: true,
+    },
   });
 
   return deals ? deals : [];
@@ -188,7 +191,6 @@ export async function syncPoRepMarketContractDealsWithDb(
         existing.map((dbDeals) => [dbDeals.onChainDealId.toString(), dbDeals]),
       );
 
-      // 2 .UPSERT DEALS (core entity only)
       const upserted = await Promise.all(
         deals.map((d) =>
           tx.porep_market_deal.upsert({
@@ -214,6 +216,11 @@ export async function syncPoRepMarketContractDealsWithDb(
               allocationsRequiredCount: d.allocationsRequiredCount,
               allocationsMatchedCount: d.allocationsMatchedCount,
               allocationIds: d.allocationIds,
+              history: {
+                create: {
+                  state: d.state,
+                },
+              },
               isRailTerminated: d.isRailTerminated,
               proposedAtBlock: d.proposedAtBlock,
               isAllocationsMatched:
@@ -301,6 +308,30 @@ export async function syncPoRepMarketContractDealsWithDb(
             },
           }),
         ),
+      );
+
+      await Promise.all(
+        deals.map((d) => {
+          const porepMarketDealId = allDBDealsMap.get(d.dealId.toString())!.id;
+
+          if (d.claims?.length) {
+            return tx.porep_market_deal_claim
+              .deleteMany({
+                where: {
+                  porepMarketDealId,
+                },
+              })
+              .then(() => {
+                return tx.porep_market_deal_claim.createMany({
+                  data:
+                    d.claims?.map((claim) => ({
+                      porepMarketDealId,
+                      ...claim,
+                    })) ?? [],
+                });
+              });
+          }
+        }),
       );
 
       // 5. HISTORY (state diff)
@@ -454,3 +485,39 @@ export async function getDealsByStateFromDb(
 
   return dealsByState;
 }
+
+// export async function updateClaimSectorStatusInDb(
+//   onChainDealId: bigint,
+//   provider: bigint,
+//   claimId: bigint,
+//   status: SectorStatus,
+// ) {
+//   return prismaClient.porep_market_deal.updateMany({
+//     include: {
+//       claims: true,
+//     },
+//     where: {
+//       onChainDealId,
+//       provider,
+//       claims: {
+//         some: {
+//           claimId,
+//         },
+//       },
+//     },
+//     data: {
+//       claims: {
+//         update: [
+//           {
+//             where: {
+//               claimId,
+//             },
+//             data: {
+//               status,
+//             },
+//           },
+//         ],
+//       },
+//     },
+//   });
+// }
