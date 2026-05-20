@@ -10,7 +10,10 @@ import { trackDealEndEpochJob } from "../../../jobs/set-deal-end-epoch-job";
 import { setSliOracleJob } from "../../../jobs/set-sli-job";
 import { runSettlementBotJob } from "../../../jobs/settlement-bot-job";
 import { syncDealsJob } from "../../../jobs/sync-deal-job";
-import { trackTerminateDealJob } from "../../../jobs/terminate-deal-job";
+import {
+  terminateRailByDealId,
+  trackTerminateDealJob,
+} from "../../../jobs/terminate-deal-job";
 import { AppError } from "../../utils/response-formatter-plugin/types";
 import { PostDebugJobRequest } from "./type";
 
@@ -53,17 +56,33 @@ export function debugRoutes(
         case "track-deal-end-epoch":
           await trackDealEndEpochJob();
           break;
-        case "sli":
+        case "set-sli":
           await setSliOracleJob();
           break;
-        case "claims":
+        case "track-claims":
           await trackClaimsTerminatedEarlyJob();
           break;
-        case "settlement":
+        case "run-settlement":
           await runSettlementBotJob();
           break;
-        case "terminated-deals":
+        case "track-terminated-deals":
           await trackTerminateDealJob();
+          break;
+        case "terminate-rail":
+          {
+            const { dealId } = req.body;
+
+            if (!dealId) {
+              throw new AppError(
+                "Missing required parameter: dealId",
+                "MISSING_PARAMETER",
+                400,
+              );
+            }
+
+            await terminateRailByDealId(dealId);
+          }
+
           break;
         default:
           throw new AppError("Invalid job type", "INVALID_JOB_TYPE", 400);
