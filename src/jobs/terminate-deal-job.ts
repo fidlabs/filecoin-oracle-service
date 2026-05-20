@@ -4,11 +4,59 @@ import { terminateRailOnValidatorContract } from "../blockchain/validator-contra
 import { getCompletedDealsToTerminateFromDb } from "../services/db-service";
 import { getPrismaClient } from "../services/prisma-service";
 import { baseLogger } from "../utils/logger";
+import { syncDealsJob } from "./sync-deal-job";
 
 const claimTrackingLogger = baseLogger.child(
   { avengers: "assemble" },
   { msgPrefix: "[Terminate Deal Job] " },
 );
+
+export async function terminateRailByDealId(onChainDealId: bigint) {
+  try {
+    claimTrackingLogger.info(`Terminating rail for deal ${onChainDealId}...`);
+
+    const prismaClient = getPrismaClient();
+
+    const deal = await prismaClient.porep_market_deal.findUnique({
+      where: {
+        onChainDealId,
+        isRailTerminated: false,
+      },
+    });
+
+    if (!deal) {
+      claimTrackingLogger.warn(
+        `No deal found in database with onChainDealId ${onChainDealId}, cannot terminate rail`,
+      );
+      return;
+    }
+
+    await terminateRailOnValidatorContract(
+      deal.validatorContractAddress as Address,
+    );
+
+    await prismaClient.porep_market_deal.update({
+      where: {
+        onChainDealId,
+        railId: deal.railId,
+      },
+      data: {
+        isRailTerminated: true,
+      },
+    });
+
+    await syncDealsJob();
+
+    claimTrackingLogger.info(
+      `Successfully terminated rail for deal ${onChainDealId} and updated database record`,
+    );
+  } catch (err) {
+    claimTrackingLogger.error(
+      { err },
+      `Failed to terminate rail for deal ${onChainDealId}`,
+    );
+  }
+}
 
 export async function trackTerminateDealJob() {
   try {
