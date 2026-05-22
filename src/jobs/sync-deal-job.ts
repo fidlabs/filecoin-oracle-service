@@ -4,7 +4,7 @@ import { getClientAllocationInfoByProviderIdFromDmobDb } from "../services/db-dm
 import {
   getChainStateToDomain,
   syncPoRepMarketContractDealsWithDb,
-} from "../services/db-service";
+} from "../services/db/db-service";
 import { baseLogger } from "../utils/logger";
 import { PorepMarketDeal } from "../utils/types";
 

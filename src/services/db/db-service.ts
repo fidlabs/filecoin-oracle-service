@@ -3,8 +3,12 @@ import {
   PorepMarketContractDealState,
   PorepMarketDeal,
   ProviderScore,
-} from "../utils/types";
-import { getPrismaClient } from "./prisma-service";
+} from "../../utils/types";
+import { getPrismaClient } from "../prisma-service";
+import {
+  porepMarkerDealSelect,
+  PorepMarketDealDto,
+} from "./dto/porep-market-deal.dto";
 
 const prismaClient = getPrismaClient();
 
@@ -26,7 +30,7 @@ export const getChainStateToDomain = (state: number): DealState => {
 };
 
 export async function getCompletedDealsToSettleFromDb() {
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const thirtyDaysAgo = new Date(Date.now() - 0 * 24 * 60 * 60 * 1000);
 
   const deals = await prismaClient.porep_market_deal.findMany({
     where: {
@@ -79,7 +83,7 @@ export async function getCompletedDealsToSettleFromDb() {
     },
   });
 
-  return deals ?? [];
+  return deals;
 }
 
 export async function storeLastSettlementToDb(
@@ -145,17 +149,16 @@ export async function getCompletedDealsToSetEndEpochFromDb(
   return deals ? deals : [];
 }
 
-export async function getDealByOnChainIdFromDb(onChainDealId: bigint) {
-  const deal = await prismaClient.porep_market_deal.findUnique({
-    where: {
-      onChainDealId,
-    },
-    include: {
-      terms: true,
-      requirements: true,
-      provider_score: true,
-    },
-  });
+export async function getDealByOnChainIdFromDb(
+  onChainDealId: bigint,
+): Promise<PorepMarketDealDto | null> {
+  const deal: PorepMarketDealDto | null =
+    await prismaClient.porep_market_deal.findUnique({
+      where: {
+        onChainDealId,
+      },
+      select: porepMarkerDealSelect,
+    });
 
   return deal;
 }
@@ -353,40 +356,7 @@ export async function getDealsByStateFromDb({
       },
       skip: offset,
       take: limit,
-      select: {
-        onChainDealId: true,
-        client: true,
-        provider: true,
-        validatorContractAddress: true,
-        railId: true,
-        dealStartEpoch: true,
-        dealEndEpoch: true,
-        state: true,
-        allocationsRequiredCount: true,
-        allocationsMatchedCount: true,
-        isAllocationsMatched: true,
-        isDealEndEpochSetOnChain: true,
-        modifyRailPaymentAt: true,
-        allocationIds: true,
-        isRailTerminated: true,
-        manifestLocation: true,
-        createdAt: true,
-        terms: {
-          select: {
-            dealSizeBytes: true,
-            pricePerSectorPerMonth: true,
-            durationDays: true,
-          },
-        },
-        requirements: {
-          select: {
-            retrievabilityBps: true,
-            bandwidthMbps: true,
-            latencyMs: true,
-            indexingPct: true,
-          },
-        },
-      },
+      select: porepMarkerDealSelect,
     }),
     prismaClient.porep_market_deal.count({
       where: {
@@ -407,7 +377,7 @@ export function storeProviderScoreToDb(data: ProviderScore[]) {
 export async function getProviderScoreByOnChainDealIdFromDb(
   onChainDealId: bigint,
 ) {
-  const providerScore = await prismaClient.porep_market_deal.findFirst({
+  const deal = await prismaClient.porep_market_deal.findFirst({
     where: {
       onChainDealId,
     },
@@ -429,7 +399,7 @@ export async function getProviderScoreByOnChainDealIdFromDb(
     },
   });
 
-  return providerScore?.provider_score?.[0] ?? null;
+  return deal?.provider_score?.[0] ?? null;
 }
 
 export async function getDealsToCalculateScoreFromDb() {

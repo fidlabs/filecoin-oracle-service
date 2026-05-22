@@ -2,7 +2,7 @@ import { settleRailOnFilecoinPayContract } from "../blockchain/filecoinpay-contr
 import {
   getCompletedDealsToSettleFromDb,
   storeLastSettlementToDb,
-} from "../services/db-service";
+} from "../services/db/db-service";
 import { baseLogger } from "../utils/logger";
 
 const settlementChildLogger = baseLogger.child(

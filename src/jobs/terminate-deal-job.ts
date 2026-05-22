@@ -1,7 +1,7 @@
 import { Address } from "viem";
 import { getRpcClient } from "../blockchain/blockchain-client";
 import { terminateRailOnValidatorContract } from "../blockchain/validator-contract";
-import { getCompletedDealsToTerminateFromDb } from "../services/db-service";
+import { getCompletedDealsToTerminateFromDb } from "../services/db/db-service";
 import { getPrismaClient } from "../services/prisma-service";
 import { baseLogger } from "../utils/logger";
 

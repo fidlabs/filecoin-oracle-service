@@ -4,7 +4,7 @@ import {
   modifyRailPaymentOnValidatorContract,
   setDealEndEpochOnValidatorContract,
 } from "../blockchain/validator-contract";
-import { getCompletedDealsToSetEndEpochFromDb } from "../services/db-service";
+import { getCompletedDealsToSetEndEpochFromDb } from "../services/db/db-service";
 import { getPrismaClient } from "../services/prisma-service";
 import { baseLogger } from "../utils/logger";
 
