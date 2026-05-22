@@ -335,7 +335,7 @@ export async function getCountOfCompletedDealsFromDb() {
   return count;
 }
 
-export async function getDealsByStateFromDb({
+export async function getPaginatedDealsByStateFromDb({
   state,
   page,
   limit,
@@ -425,4 +425,20 @@ export async function getDealsToCalculateScoreFromDb() {
   });
 
   return deals;
+}
+
+export async function getDealsByStateFromDb(
+  states: DealState[],
+): Promise<PorepMarketDealDto[]> {
+  const dealsByState: PorepMarketDealDto[] =
+    await prismaClient.porep_market_deal.findMany({
+      where: {
+        state: {
+          in: states,
+        },
+      },
+      select: porepMarkerDealSelect,
+    });
+
+  return dealsByState;
 }

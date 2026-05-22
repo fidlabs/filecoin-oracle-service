@@ -13,6 +13,7 @@ import { syncDealsJob } from "../../../jobs/sync-deal-job";
 import { trackTerminateDealJob } from "../../../jobs/terminate-deal-job";
 import { AppError } from "../../utils/response-formatter-plugin/types";
 import { PostDebugJobRequest } from "./type";
+import { runRejectExpiredDealJob } from "../../../jobs/reject-expired-deal-job";
 
 function debugMiddleware(req: FastifyRequest) {
   const authHeader = req.headers["authorization"];
@@ -64,6 +65,9 @@ export function debugRoutes(
           break;
         case "track-terminated-deals":
           await trackTerminateDealJob();
+          break;
+        case "reject-expired-deal":
+          await runRejectExpiredDealJob();
           break;
         default:
           throw new AppError("Invalid job type", "INVALID_JOB_TYPE", 400);

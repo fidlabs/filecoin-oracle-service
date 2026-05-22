@@ -2,7 +2,7 @@ import { FastifyPluginOptions } from "fastify";
 import {
   getCountOfCompletedDealsFromDb,
   getDealByOnChainIdFromDb,
-  getDealsByStateFromDb,
+  getPaginatedDealsByStateFromDb,
   getProviderScoreByOnChainDealIdFromDb,
 } from "../../../services/db/db-service";
 import { DealState } from "../../../utils/types";
@@ -51,11 +51,12 @@ export function dealRoutes(
 
       const pagination = normalizePagination(request.query);
 
-      const { filteredDeals, totalDeals } = await getDealsByStateFromDb({
-        state: state as DealState,
-        page: pagination.page,
-        limit: pagination.limit,
-      });
+      const { filteredDeals, totalDeals } =
+        await getPaginatedDealsByStateFromDb({
+          state: state as DealState,
+          page: pagination.page,
+          limit: pagination.limit,
+        });
 
       return reply.success({
         items: filteredDeals,
