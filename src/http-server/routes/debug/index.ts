@@ -53,16 +53,16 @@ export function debugRoutes(
         case "track-deal-end-epoch":
           await trackDealEndEpochJob();
           break;
-        case "sli":
+        case "set-sli":
           await setSliOracleJob();
           break;
-        case "claims":
+        case "track-terminated-claims":
           await trackClaimsTerminatedEarlyJob();
           break;
-        case "settlement":
+        case "run-settlement":
           await runSettlementBotJob();
           break;
-        case "terminated-deals":
+        case "track-terminated-deals":
           await trackTerminateDealJob();
           break;
         default:

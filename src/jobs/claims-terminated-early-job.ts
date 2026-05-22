@@ -1,4 +1,4 @@
-import { getCompletedDealsToCheckClaimTerminationFromDb } from "../services/db-service";
+import { getCompletedDealsToCheckClaimTerminationFromDb } from "../services/db/db-service";
 import { fetchClaims, fetchSectorInfo } from "../services/filecoin-api-service";
 import { baseLogger } from "../utils/logger";
 

@@ -3,7 +3,7 @@ import { calculateScoreOnSliScorerContract } from "../blockchain/sli-scorer-cont
 import {
   getDealsToCalculateScoreFromDb,
   storeProviderScoreToDb,
-} from "../services/db-service";
+} from "../services/db/db-service";
 import { baseLogger } from "../utils/logger";
 import { ProviderScore } from "../utils/types";
 

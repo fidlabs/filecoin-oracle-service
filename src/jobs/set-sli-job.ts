@@ -2,11 +2,7 @@ import { setSliOnOracleContract } from "../blockchain/sli-oracle-contract";
 import { getProvidersFromSPRegistryContract } from "../blockchain/sp-registry-contract";
 import { getSliForStorageProviders } from "../services/cdp-fetch-service";
 import { baseLogger } from "../utils/logger";
-import {
-  SliAttestation,
-  StorageProvidersSliData,
-  StorageProvidersSliMetricType,
-} from "../utils/types";
+import { SliAttestation } from "../utils/types";
 import { calculateScoreJob } from "./calculate-score-job";
 
 const sliChildLogger = baseLogger.child(
@@ -54,51 +50,50 @@ export async function setSliOracleJob() {
 
     const buildedSliData: SliAttestation[] = Object.entries(
       sliDataForProviders.data,
-    ).map(([storageProviderId, data]) => {
-      const retrievability =
-        Number(
-          data.find(
-            (d: StorageProvidersSliData) =>
-              d.sliMetricType ===
-              StorageProvidersSliMetricType.RPA_RETRIEVABILITY,
-          )?.sliMetricValue,
-        ) || 0;
-      const indexingMetric =
-        Number(
-          data.find(
-            (d: StorageProvidersSliData) =>
-              d.sliMetricType === StorageProvidersSliMetricType.IPNI_REPORTING,
-          )?.sliMetricValue,
-        ) || 0;
+    ).map(([storageProviderId]) => {
+      // const retrievability =
+      //   Number(
+      //     data.find(
+      //       (d: StorageProvidersSliData) =>
+      //         d.sliMetricType ===
+      //         StorageProvidersSliMetricType.RPA_RETRIEVABILITY,
+      //     )?.sliMetricValue,
+      //   ) || 0;
+      // const indexingMetric =
+      //   Number(
+      //     data.find(
+      //       (d: StorageProvidersSliData) =>
+      //         d.sliMetricType === StorageProvidersSliMetricType.IPNI_REPORTING,
+      //     )?.sliMetricValue,
+      //   ) || 0;
 
-      const latencyMetric =
-        Number(
-          data.find(
-            (d: StorageProvidersSliData) =>
-              d.sliMetricType === StorageProvidersSliMetricType.TTFB,
-          )?.sliMetricValue,
-        ) || 0;
+      // const latencyMetric =
+      //   Number(
+      //     data.find(
+      //       (d: StorageProvidersSliData) =>
+      //         d.sliMetricType === StorageProvidersSliMetricType.TTFB,
+      //     )?.sliMetricValue,
+      //   ) || 0;
 
-      const bandwidthMetric =
-        Number(
-          data
-            .find(
-              (d: StorageProvidersSliData) =>
-                d.sliMetricType === StorageProvidersSliMetricType.BANDWIDTH,
-            )
-            ?.sliMetricValue?.split(".")[0],
-        ) || 0;
+      // const bandwidthMetric =
+      //   Number(
+      //     data
+      //       .find(
+      //         (d: StorageProvidersSliData) =>
+      //           d.sliMetricType === StorageProvidersSliMetricType.BANDWIDTH,
+      //       )
+      //       ?.sliMetricValue?.split(".")[0],
+      //   ) || 0;
 
       const sliAttestation: SliAttestation = {
         provider: storageProviderId.startsWith("f0")
           ? BigInt(storageProviderId.slice(2))
           : BigInt(storageProviderId),
         slis: {
-          retrievabilityBps:
-            retrievability !== null ? Math.floor(retrievability * 10000) : 0,
-          indexingPct: Math.floor(indexingMetric * 100),
-          latencyMs: latencyMetric,
-          bandwidthMbps: bandwidthMetric,
+          retrievabilityBps: 5000,
+          bandwidthMbps: 100,
+          latencyMs: 30000,
+          indexingPct: 0,
         },
       };
 

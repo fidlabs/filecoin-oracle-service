@@ -4,7 +4,7 @@ import {
   getDealByOnChainIdFromDb,
   getDealsByStateFromDb,
   getProviderScoreByOnChainDealIdFromDb,
-} from "../../../services/db-service";
+} from "../../../services/db/db-service";
 import { DealState } from "../../../utils/types";
 import { FastifyTypedInstance } from "../../server";
 import { normalizePagination } from "../../utils/pagination";

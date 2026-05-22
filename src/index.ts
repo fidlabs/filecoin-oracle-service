@@ -6,7 +6,6 @@ import { trackDealEndEpochJob } from "./jobs/set-deal-end-epoch-job";
 import { setSliOracleJob } from "./jobs/set-sli-job";
 import { runSettlementBotJob } from "./jobs/settlement-bot-job";
 import { syncDealsJob } from "./jobs/sync-deal-job";
-import { trackTerminateDealJob } from "./jobs/terminate-deal-job";
 import { baseLogger } from "./utils/logger";
 
 declare global {
@@ -67,9 +66,9 @@ try {
   cron.schedule(syncDealsInterval, syncDealsJob);
   cron.schedule(sliInterval, setSliOracleJob);
   cron.schedule(trackDealEndEpochInterval, trackDealEndEpochJob);
-  //cron.schedule(claimsTerminatedEarlyInterval, trackClaimsTerminatedEarlyJob);
   cron.schedule(settlementBotInterval, runSettlementBotJob);
-  cron.schedule(terminateDealsInterval, trackTerminateDealJob);
+  //cron.schedule(claimsTerminatedEarlyInterval, trackClaimsTerminatedEarlyJob);
+  //cron.schedule(terminateDealsInterval, trackTerminateDealJob);
 } catch (err: unknown) {
   if (err instanceof Error) {
     const message = err instanceof Error ? err.message : String(err);
