@@ -7,7 +7,8 @@ export type DebugJob =
   | "set-sli"
   | "track-terminated-claims"
   | "run-settlement"
-  | "track-terminated-deals";
+  | "track-terminated-deals"
+  | "reject-expired-deal";
 
 export type PostDebugJobRequest = FastifyRequest<{
   Querystring: {

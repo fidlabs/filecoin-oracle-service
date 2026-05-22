@@ -91,6 +91,19 @@ export const POREP_MARKET_CONTRACT_ABI = [
   },
   {
     type: "function",
+    name: "rejectExpiredDeal",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "getCompletedDeals",
     inputs: [],
     outputs: [

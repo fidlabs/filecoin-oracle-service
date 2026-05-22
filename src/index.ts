@@ -2,6 +2,7 @@ import "dotenv/config";
 import cron from "node-cron";
 import { SERVICE_CONFIG } from "./config/env";
 import "./http-server/server";
+import { runRejectExpiredDealJob } from "./jobs/reject-expired-deal-job";
 import { trackDealEndEpochJob } from "./jobs/set-deal-end-epoch-job";
 import { setSliOracleJob } from "./jobs/set-sli-job";
 import { runSettlementBotJob } from "./jobs/settlement-bot-job";
@@ -30,7 +31,8 @@ try {
     !SERVICE_CONFIG.TRIGGER_SETTLEMENT_BOT_JOB_INTERVAL_CRON ||
     !SERVICE_CONFIG.TRIGGER_TERMINATE_DEAL_JOB_INTERVAL_CRON ||
     !SERVICE_CONFIG.TRIGGER_SYNC_DEALS_JOB_INTERVAL_CRON ||
-    !SERVICE_CONFIG.TRIGGER_END_EPOCH_DEAL_JOB_INTERVAL_CRON
+    !SERVICE_CONFIG.TRIGGER_END_EPOCH_DEAL_JOB_INTERVAL_CRON ||
+    !SERVICE_CONFIG.TRIGGER_REJECT_EXPIRED_DEAL_INTERVAL_CRON
   ) {
     throw new Error(
       `Missing one or more required cron job intervals in environment variables. Please check the configuration.`,
@@ -47,6 +49,8 @@ try {
   const syncDealsInterval = SERVICE_CONFIG.TRIGGER_SYNC_DEALS_JOB_INTERVAL_CRON;
   const trackDealEndEpochInterval =
     SERVICE_CONFIG.TRIGGER_END_EPOCH_DEAL_JOB_INTERVAL_CRON;
+  const rejectExpiredDealInterval =
+    SERVICE_CONFIG.TRIGGER_REJECT_EXPIRED_DEAL_INTERVAL_CRON;
 
   childLogger.info(`Scheduling sync deals cron job "${syncDealsInterval}"`);
   childLogger.info(
@@ -62,11 +66,16 @@ try {
   childLogger.info(
     `Scheduling Terminate Deals cron job "${terminateDealsInterval}"`,
   );
+  childLogger.info(
+    `Scheduling Reject Expired Deal cron job "${rejectExpiredDealInterval}"`,
+  );
 
+  cron.schedule(rejectExpiredDealInterval, runRejectExpiredDealJob);
   cron.schedule(syncDealsInterval, syncDealsJob);
   cron.schedule(sliInterval, setSliOracleJob);
   cron.schedule(trackDealEndEpochInterval, trackDealEndEpochJob);
   cron.schedule(settlementBotInterval, runSettlementBotJob);
+
   //cron.schedule(claimsTerminatedEarlyInterval, trackClaimsTerminatedEarlyJob);
   //cron.schedule(terminateDealsInterval, trackTerminateDealJob);
 } catch (err: unknown) {
