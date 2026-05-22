@@ -54,6 +54,19 @@ export const VALIDATOR_CONTRACT_ABI = [
   },
   {
     type: "function",
+    name: "getMinEpochsBetweenSettlements",
+    inputs: [],
+    outputs: [
+      {
+        name: "minTimeBetweenSettlementsInEpochs",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "getRoleAdmin",
     inputs: [
       {
@@ -242,6 +255,19 @@ export const VALIDATOR_CONTRACT_ABI = [
   },
   {
     type: "function",
+    name: "setMinEpochsBetweenSettlements",
+    inputs: [
+      {
+        name: "minEpochs",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "supportsInterface",
     inputs: [
       {
@@ -313,7 +339,7 @@ export const VALIDATOR_CONTRACT_ABI = [
       {
         name: "result",
         type: "tuple",
-        internalType: "struct IValidator.ValidationResult",
+        internalType: "struct IFilecoinPayValidator.ValidationResult",
         components: [
           {
             name: "modifiedAmount",
@@ -379,6 +405,25 @@ export const VALIDATOR_CONTRACT_ABI = [
       },
       {
         name: "newLockupPeriod",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "MinEpochsBetweenSettlementsUpdated",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "minTimeBetweenSettlementsInEpochs",
         type: "uint256",
         indexed: false,
         internalType: "uint256",
@@ -567,17 +612,17 @@ export const VALIDATOR_CONTRACT_ABI = [
   },
   {
     type: "error",
+    name: "EndEpochInThePast",
+    inputs: [],
+  },
+  {
+    type: "error",
     name: "InvalidAdminAddress",
     inputs: [],
   },
   {
     type: "error",
     name: "InvalidClientSCAddress",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "InvalidDealDuration",
     inputs: [],
   },
   {
@@ -598,6 +643,11 @@ export const VALIDATOR_CONTRACT_ABI = [
   {
     type: "error",
     name: "InvalidLockupAllowance",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidMinEpochsBetweenSettlements",
     inputs: [],
   },
   {
@@ -654,6 +704,11 @@ export const VALIDATOR_CONTRACT_ABI = [
   {
     type: "error",
     name: "MaxLockupPeriodLessThanMinimum",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "MinEpochsBetweenSettlementsExceeded",
     inputs: [],
   },
   {
