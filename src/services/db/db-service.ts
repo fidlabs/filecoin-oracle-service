@@ -202,8 +202,14 @@ export async function syncPoRepMarketContractDealsWithDb(
               railId: d.railId,
               validatorContractAddress: d.validatorContractAddress,
               state: d.state,
-              dealEndEpoch: d.dealEndEpoch,
-              dealStartEpoch: d.dealStartEpoch,
+              dealStartEpoch:
+                d.allocationsRequiredCount === d.allocationsMatchedCount
+                  ? d.dealStartEpoch
+                  : undefined, // set deal start epoch only if all required allocations are matched
+              dealEndEpoch:
+                d.allocationsRequiredCount === d.allocationsMatchedCount
+                  ? d.dealEndEpoch
+                  : undefined, // set deal end epoch only if all required allocations are matched
               manifestLocation: d.manifestLocation,
               allocationsRequiredCount: d.allocationsRequiredCount,
               allocationsMatchedCount: d.allocationsMatchedCount,
@@ -218,8 +224,14 @@ export async function syncPoRepMarketContractDealsWithDb(
               state: d.state,
               railId: d.railId,
               validatorContractAddress: d.validatorContractAddress,
-              dealStartEpoch: d.dealStartEpoch,
-              dealEndEpoch: d.dealEndEpoch,
+              dealStartEpoch:
+                d.allocationsRequiredCount === d.allocationsMatchedCount
+                  ? d.dealStartEpoch
+                  : undefined, // update deal start epoch only if all required allocations are matched
+              dealEndEpoch:
+                d.allocationsRequiredCount === d.allocationsMatchedCount
+                  ? d.dealEndEpoch
+                  : undefined, // update deal end epoch only if all required allocations are matched
               allocationIds: d.allocationIds,
               manifestLocation: d.manifestLocation,
               allocationsRequiredCount: d.allocationsRequiredCount,
