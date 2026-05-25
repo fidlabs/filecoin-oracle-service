@@ -30,7 +30,7 @@ export const getChainStateToDomain = (state: number): DealState => {
 };
 
 export async function getCompletedDealsToSettleFromDb() {
-  const thirtyDaysAgo = new Date(Date.now() - 0 * 24 * 60 * 60 * 1000);
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
   const deals = await prismaClient.porep_market_deal.findMany({
     where: {
