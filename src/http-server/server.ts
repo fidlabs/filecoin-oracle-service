@@ -50,7 +50,7 @@ app.register(responseCustomFormatterPlugin);
 app.register(debugRoutes, {
   prefix: "/debug",
 });
-app.register(healthRoutes);
+app.register(healthRoutes, { prefix: "/health" });
 app.register(dealRoutes, { prefix: "/deals" });
 
 app.listen(
