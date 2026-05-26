@@ -59,7 +59,7 @@ export async function rejectExpiredDealOnPoRepMarketContract(
   const porepMarketContractAddress =
     SERVICE_CONFIG.POREP_MARKET_CONTRACT_ADDRESS as Address;
 
-  childLogger.info("setSLI: Simulating request...");
+  childLogger.info("rejectExpiredDeal: Simulating request...");
 
   const rpcClient = getRpcClient();
   const walletClient = getWalletClient(WalletAccountRole.ORACLE_ROLE);

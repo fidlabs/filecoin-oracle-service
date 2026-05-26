@@ -21,6 +21,19 @@ export const POREP_MARKET_CONTRACT_ABI = [
   },
   {
     type: "function",
+    name: "EPOCHS_IN_MONTH",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "MAX_DEAL_DURATION_DAYS",
     inputs: [],
     outputs: [
@@ -28,6 +41,32 @@ export const POREP_MARKET_CONTRACT_ABI = [
         name: "",
         type: "uint32",
         internalType: "uint32",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "MIN_DEAL_DURATION_DAYS",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint32",
+        internalType: "uint32",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "SECTOR_SIZE",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
@@ -80,27 +119,22 @@ export const POREP_MARKET_CONTRACT_ABI = [
         type: "uint256",
         internalType: "uint256",
       },
-      {
-        name: "actualSizeBytes",
-        type: "uint256",
-        internalType: "uint256",
-      },
     ],
     outputs: [],
     stateMutability: "nonpayable",
   },
   {
     type: "function",
-    name: "rejectExpiredDeal",
-    inputs: [
+    name: "getClientSmartContract",
+    inputs: [],
+    outputs: [
       {
-        name: "dealId",
-        type: "uint256",
-        internalType: "uint256",
+        name: "",
+        type: "address",
+        internalType: "address",
       },
     ],
-    outputs: [],
-    stateMutability: "nonpayable",
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -202,6 +236,19 @@ export const POREP_MARKET_CONTRACT_ABI = [
             internalType: "string",
           },
         ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getDealCompletionPadding",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
@@ -312,6 +359,19 @@ export const POREP_MARKET_CONTRACT_ABI = [
             internalType: "string",
           },
         ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getDealProposalExpiration",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
@@ -575,6 +635,32 @@ export const POREP_MARKET_CONTRACT_ABI = [
   },
   {
     type: "function",
+    name: "getSPRegistryContract",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getValidatorFactoryContract",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "grantRole",
     inputs: [
       {
@@ -715,7 +801,33 @@ export const POREP_MARKET_CONTRACT_ABI = [
   },
   {
     type: "function",
+    name: "rejectAcceptedDeal",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "rejectDeal",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "rejectExpiredDeal",
     inputs: [
       {
         name: "dealId",
@@ -770,6 +882,32 @@ export const POREP_MARKET_CONTRACT_ABI = [
         name: "_clientSmartContract",
         type: "address",
         internalType: "address",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setDealCompletionPadding",
+    inputs: [
+      {
+        name: "padding",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setNewDealProposalExpiration",
+    inputs: [
+      {
+        name: "newDealProposalExpiration",
+        type: "uint256",
+        internalType: "uint256",
       },
     ],
     outputs: [],
@@ -955,6 +1093,25 @@ export const POREP_MARKET_CONTRACT_ABI = [
   },
   {
     type: "event",
+    name: "DealCompletionPaddingUpdated",
+    inputs: [
+      {
+        name: "oldPadding",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "newPadding",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
     name: "DealProposalCreated",
     inputs: [
       {
@@ -1019,6 +1176,38 @@ export const POREP_MARKET_CONTRACT_ABI = [
         name: "proposedAtBlock",
         type: "uint256",
         indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "DealProposalExpirationUpdated",
+    inputs: [
+      {
+        name: "newDealProposalExpiration",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "DealProposalExpired",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "expiredAtBlock",
+        type: "uint256",
+        indexed: true,
         internalType: "uint256",
       },
     ],
@@ -1282,8 +1471,45 @@ export const POREP_MARKET_CONTRACT_ABI = [
   },
   {
     type: "error",
+    name: "DealCompletionPaddingTooHigh",
+    inputs: [
+      {
+        name: "padding",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "maxPadding",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+  },
+  {
+    type: "error",
     name: "DealDoesNotExist",
     inputs: [],
+  },
+  {
+    type: "error",
+    name: "DealNotExpiredYet",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "currentBlock",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "expirationBlock",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
   },
   {
     type: "error",
@@ -1303,6 +1529,17 @@ export const POREP_MARKET_CONTRACT_ABI = [
         name: "expectedState",
         type: "uint8",
         internalType: "enum PoRepTypes.DealState",
+      },
+    ],
+  },
+  {
+    type: "error",
+    name: "DealNotRejectable",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
       },
     ],
   },
@@ -1334,6 +1571,11 @@ export const POREP_MARKET_CONTRACT_ABI = [
   },
   {
     type: "error",
+    name: "InvalidAllocationSizeForDealCompletion",
+    inputs: [],
+  },
+  {
+    type: "error",
     name: "InvalidClientSmartContractAddress",
     inputs: [],
   },
@@ -1345,6 +1587,27 @@ export const POREP_MARKET_CONTRACT_ABI = [
   {
     type: "error",
     name: "InvalidDealPricePerSectorPerMonth",
+    inputs: [
+      {
+        name: "totalPerMonth",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "epochsInMonth",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+  },
+  {
+    type: "error",
+    name: "InvalidDealProposalExpiration",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidDealSize",
     inputs: [],
   },
   {
@@ -1396,6 +1659,11 @@ export const POREP_MARKET_CONTRACT_ABI = [
   },
   {
     type: "error",
+    name: "NotTheClientAddress",
+    inputs: [],
+  },
+  {
+    type: "error",
     name: "NotTheClientOrStorageProviderOrAdmin",
     inputs: [
       {
@@ -1405,22 +1673,6 @@ export const POREP_MARKET_CONTRACT_ABI = [
       },
       {
         name: "rejector",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-  },
-  {
-    type: "error",
-    name: "NotTheClientSmartContract",
-    inputs: [
-      {
-        name: "dealId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "clientSmartContract",
         type: "address",
         internalType: "address",
       },
@@ -1502,27 +1754,6 @@ export const POREP_MARKET_CONTRACT_ABI = [
         name: "slot",
         type: "bytes32",
         internalType: "bytes32",
-      },
-    ],
-  },
-  {
-    type: "error",
-    name: "UnauthorisedCaller",
-    inputs: [
-      {
-        name: "dealId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "caller",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "expectedCaller",
-        type: "address",
-        internalType: "address",
       },
     ],
   },

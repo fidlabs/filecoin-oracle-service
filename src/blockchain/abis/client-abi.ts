@@ -21,6 +21,19 @@ export const CLIENT_CONTRACT_ABI = [
   },
   {
     type: "function",
+    name: "RESCUE_ROLE",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "TERMINATION_ORACLE",
     inputs: [],
     outputs: [
@@ -105,6 +118,25 @@ export const CLIENT_CONTRACT_ABI = [
         name: "",
         type: "bytes32",
         internalType: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getSizeOfAllocations",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
       },
     ],
     stateMutability: "view",
@@ -270,6 +302,60 @@ export const CLIENT_CONTRACT_ABI = [
   },
   {
     type: "function",
+    name: "rescueDealAllocations",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "params",
+        type: "tuple",
+        internalType: "struct DataCapTypes.TransferParams",
+        components: [
+          {
+            name: "to",
+            type: "tuple",
+            internalType: "struct CommonTypes.FilAddress",
+            components: [
+              {
+                name: "data",
+                type: "bytes",
+                internalType: "bytes",
+              },
+            ],
+          },
+          {
+            name: "amount",
+            type: "tuple",
+            internalType: "struct CommonTypes.BigInt",
+            components: [
+              {
+                name: "val",
+                type: "bytes",
+                internalType: "bytes",
+              },
+              {
+                name: "neg",
+                type: "bool",
+                internalType: "bool",
+              },
+            ],
+          },
+          {
+            name: "operator_data",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "revokeRole",
     inputs: [
       {
@@ -374,11 +460,6 @@ export const CLIENT_CONTRACT_ABI = [
         type: "uint256",
         internalType: "uint256",
       },
-      {
-        name: "dealCompleted",
-        type: "bool",
-        internalType: "bool",
-      },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -413,6 +494,31 @@ export const CLIENT_CONTRACT_ABI = [
       },
       {
         name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "DealAllocationsRescued",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "rescuer",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "totalSize",
         type: "uint256",
         indexed: false,
         internalType: "uint256",
@@ -601,6 +707,11 @@ export const CLIENT_CONTRACT_ABI = [
   },
   {
     type: "error",
+    name: "InvalidAllocationSize",
+    inputs: [],
+  },
+  {
+    type: "error",
     name: "InvalidCaller",
     inputs: [
       {
@@ -619,6 +730,22 @@ export const CLIENT_CONTRACT_ABI = [
     type: "error",
     name: "InvalidClaimExtensionRequest",
     inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidClaimWindow",
+    inputs: [
+      {
+        name: "termMin",
+        type: "int64",
+        internalType: "int64",
+      },
+      {
+        name: "termMax",
+        type: "int64",
+        internalType: "int64",
+      },
+    ],
   },
   {
     type: "error",
