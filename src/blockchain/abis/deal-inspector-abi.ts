@@ -45,7 +45,7 @@ export const INSPECTOR_CONTRACT_ABI = [
   },
   {
     type: "function",
-    name: "getClaims",
+    name: "getClaimForDeal",
     inputs: [
       {
         name: "dealId",
@@ -55,85 +55,125 @@ export const INSPECTOR_CONTRACT_ABI = [
     ],
     outputs: [
       {
-        name: "",
-        type: "tuple",
-        internalType: "struct VerifRegTypes.GetClaimsReturn",
+        name: "claimIds",
+        type: "uint64[]",
+        internalType: "CommonTypes.FilActorId[]",
+      },
+      {
+        name: "claims",
+        type: "tuple[]",
+        internalType: "struct VerifRegTypes.Claim[]",
         components: [
           {
-            name: "batch_info",
-            type: "tuple",
-            internalType: "struct CommonTypes.BatchReturn",
-            components: [
-              {
-                name: "success_count",
-                type: "uint32",
-                internalType: "uint32",
-              },
-              {
-                name: "fail_codes",
-                type: "tuple[]",
-                internalType: "struct CommonTypes.FailCode[]",
-                components: [
-                  {
-                    name: "idx",
-                    type: "uint32",
-                    internalType: "uint32",
-                  },
-                  {
-                    name: "code",
-                    type: "uint32",
-                    internalType: "uint32",
-                  },
-                ],
-              },
-            ],
+            name: "provider",
+            type: "uint64",
+            internalType: "CommonTypes.FilActorId",
           },
           {
-            name: "claims",
-            type: "tuple[]",
-            internalType: "struct VerifRegTypes.Claim[]",
-            components: [
-              {
-                name: "provider",
-                type: "uint64",
-                internalType: "CommonTypes.FilActorId",
-              },
-              {
-                name: "client",
-                type: "uint64",
-                internalType: "CommonTypes.FilActorId",
-              },
-              {
-                name: "data",
-                type: "bytes",
-                internalType: "bytes",
-              },
-              {
-                name: "size",
-                type: "uint64",
-                internalType: "uint64",
-              },
-              {
-                name: "term_min",
-                type: "int64",
-                internalType: "CommonTypes.ChainEpoch",
-              },
-              {
-                name: "term_max",
-                type: "int64",
-                internalType: "CommonTypes.ChainEpoch",
-              },
-              {
-                name: "term_start",
-                type: "int64",
-                internalType: "CommonTypes.ChainEpoch",
-              },
-              {
-                name: "sector",
-                type: "uint64",
-                internalType: "CommonTypes.FilActorId",
-              },
-            ],
+            name: "client",
+            type: "uint64",
+            internalType: "CommonTypes.FilActorId",
+          },
+          {
+            name: "data",
+            type: "bytes",
+            internalType: "bytes",
+          },
+          {
+            name: "size",
+            type: "uint64",
+            internalType: "uint64",
+          },
+          {
+            name: "term_min",
+            type: "int64",
+            internalType: "CommonTypes.ChainEpoch",
+          },
+          {
+            name: "term_max",
+            type: "int64",
+            internalType: "CommonTypes.ChainEpoch",
+          },
+          {
+            name: "term_start",
+            type: "int64",
+            internalType: "CommonTypes.ChainEpoch",
+          },
+          {
+            name: "sector",
+            type: "uint64",
+            internalType: "CommonTypes.FilActorId",
+          },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getClaimsForProvider",
+    inputs: [
+      {
+        name: "provider",
+        type: "uint64",
+        internalType: "CommonTypes.FilActorId",
+      },
+      {
+        name: "ids",
+        type: "uint64[]",
+        internalType: "CommonTypes.FilActorId[]",
+      },
+    ],
+    outputs: [
+      {
+        name: "claimIds",
+        type: "uint64[]",
+        internalType: "CommonTypes.FilActorId[]",
+      },
+      {
+        name: "claims",
+        type: "tuple[]",
+        internalType: "struct VerifRegTypes.Claim[]",
+        components: [
+          {
+            name: "provider",
+            type: "uint64",
+            internalType: "CommonTypes.FilActorId",
+          },
+          {
+            name: "client",
+            type: "uint64",
+            internalType: "CommonTypes.FilActorId",
+          },
+          {
+            name: "data",
+            type: "bytes",
+            internalType: "bytes",
+          },
+          {
+            name: "size",
+            type: "uint64",
+            internalType: "uint64",
+          },
+          {
+            name: "term_min",
+            type: "int64",
+            internalType: "CommonTypes.ChainEpoch",
+          },
+          {
+            name: "term_max",
+            type: "int64",
+            internalType: "CommonTypes.ChainEpoch",
+          },
+          {
+            name: "term_start",
+            type: "int64",
+            internalType: "CommonTypes.ChainEpoch",
+          },
+          {
+            name: "sector",
+            type: "uint64",
+            internalType: "CommonTypes.FilActorId",
           },
         ],
       },
@@ -144,6 +184,22 @@ export const INSPECTOR_CONTRACT_ABI = [
     type: "error",
     name: "ActorNotFound",
     inputs: [],
+  },
+  {
+    type: "error",
+    name: "ClaimIdsMismatch",
+    inputs: [
+      {
+        name: "claimsLength",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "claimIdsLength",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
   },
   {
     type: "error",

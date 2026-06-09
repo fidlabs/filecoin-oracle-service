@@ -118,6 +118,13 @@ export interface PorepMarketDealClaim {
   claimId: bigint;
   sector: bigint;
   status?: SectorStatus;
+  provider: bigint;
+  client: bigint;
+  data: `0x${string}`;
+  size: bigint;
+  term_min: bigint;
+  term_max: bigint;
+  term_start: bigint;
 }
 
 export interface PorepMarketDeal {
@@ -158,28 +165,13 @@ export enum SectorStatus {
   Faulty = "Faulty",
 }
 
-export interface FailCode {
-  idx: number;
-  code: number;
-}
-
-export interface BatchReturn {
-  success_count: number;
-  fail_codes: FailCode[];
-}
-
 export interface Claim {
   provider: bigint;
   client: bigint;
-  data: string;
+  data: `0x${string}`;
   size: bigint;
   term_min: bigint;
   term_max: bigint;
   term_start: bigint;
   sector: bigint;
-}
-
-export interface GetClaimsReturn {
-  batch_info: BatchReturn;
-  claims: Claim[];
 }

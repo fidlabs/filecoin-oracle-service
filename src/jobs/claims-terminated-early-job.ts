@@ -39,10 +39,6 @@ export async function trackClaimsTerminatedEarlyJob() {
         const storageProviderId = `f0${deal.provider.toString()}`;
 
         const isSectorDead = false; // TODO:
-        // const isSectorDead = await isSectorDeadFromDealInspectorContract(
-        //   deal.onChainDealId,
-        //   BigInt(claim.sector),
-        // );
 
         if (isSectorDead) {
           terminatedClaims.push(claimId);

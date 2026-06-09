@@ -191,7 +191,6 @@ export async function syncPoRepMarketContractDealsWithDb(
         existing.map((dbDeals) => [dbDeals.onChainDealId.toString(), dbDeals]),
       );
 
-      // 2 .UPSERT DEALS (core entity only)
       const upserted = await Promise.all(
         deals.map((d) =>
           tx.porep_market_deal.upsert({
@@ -217,9 +216,9 @@ export async function syncPoRepMarketContractDealsWithDb(
               allocationsRequiredCount: d.allocationsRequiredCount,
               allocationsMatchedCount: d.allocationsMatchedCount,
               allocationIds: d.allocationIds,
-              claims: {
-                createMany: {
-                  data: d.claims ?? [],
+              history: {
+                create: {
+                  state: d.state,
                 },
               },
               isRailTerminated: d.isRailTerminated,
@@ -241,17 +240,6 @@ export async function syncPoRepMarketContractDealsWithDb(
                   ? d.dealEndEpoch
                   : undefined, // update deal end epoch only if all required allocations are matched
               allocationIds: d.allocationIds,
-              claims: {
-                updateMany: d.claims?.map((claim) => ({
-                  where: {
-                    claimId: claim.claimId,
-                  },
-                  data: {
-                    sector: claim.sector,
-                    status: claim.status,
-                  },
-                })),
-              },
               manifestLocation: d.manifestLocation,
               allocationsRequiredCount: d.allocationsRequiredCount,
               allocationsMatchedCount: d.allocationsMatchedCount,
@@ -320,6 +308,30 @@ export async function syncPoRepMarketContractDealsWithDb(
             },
           }),
         ),
+      );
+
+      await Promise.all(
+        deals.map((d) => {
+          const porepMarketDealId = allDBDealsMap.get(d.dealId.toString())!.id;
+
+          if (d.claims?.length) {
+            return tx.porep_market_deal_claim
+              .deleteMany({
+                where: {
+                  porepMarketDealId,
+                },
+              })
+              .then(() => {
+                return tx.porep_market_deal_claim.createMany({
+                  data:
+                    d.claims?.map((claim) => ({
+                      porepMarketDealId,
+                      ...claim,
+                    })) ?? [],
+                });
+              });
+          }
+        }),
       );
 
       // 5. HISTORY (state diff)
