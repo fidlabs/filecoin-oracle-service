@@ -1,3 +1,4 @@
+import { SectorStatus } from "../../../prisma/generated/client";
 import {
   DealState,
   GasUsageByFunction,
@@ -41,6 +42,19 @@ export const getChainStateToDomain = (state: number): DealState => {
       return DealState.Terminated;
     default:
       throw new Error(`Unknown state from chain: ${state}`);
+  }
+};
+
+export const getChainSectorStatusToDomain = (status: number) => {
+  switch (status) {
+    case 0:
+      return SectorStatus.Dead;
+    case 1:
+      return SectorStatus.Active;
+    case 2:
+      return SectorStatus.Faulty;
+    default:
+      throw new Error(`Unknown sector status from chain: ${status}`);
   }
 };
 
@@ -236,7 +250,7 @@ export async function syncPoRepMarketContractDealsWithDb(
                   state: d.state,
                 },
               },
-              isRailTerminated: d.isRailTerminated,
+              isRailTerminated: false,
               proposedAtBlock: d.proposedAtBlock,
               isAllocationsMatched:
                 d.state === DealState.Completed && isClaimsAllocationsMatched, // consider allocations matched only if deal is completed and all required allocations are matched
@@ -498,41 +512,6 @@ export async function getDealsByStateFromDb(
   return dealsByState;
 }
 
-// export async function updateClaimSectorStatusInDb(
-//   onChainDealId: bigint,
-//   provider: bigint,
-//   claimId: bigint,
-//   status: SectorStatus,
-// ) {
-//   return prismaClient.porep_market_deal.updateMany({
-//     include: {
-//       claims: true,
-//     },
-//     where: {
-//       onChainDealId,
-//       provider,
-//       claims: {
-//         some: {
-//           claimId,
-//         },
-//       },
-//     },
-//     data: {
-//       claims: {
-//         update: [
-//           {
-//             where: {
-//               claimId,
-//             },
-//             data: {
-//               status,
-//             },
-//           },
-//         ],
-//       },
-//     },
-//   });
-// }
 export async function getDealsFromDb(dealIds: bigint[]) {
   const deals = await prismaClient.porep_market_deal.findMany({
     where: {
@@ -590,4 +569,30 @@ export async function getTotalGasUsageGroupedByFunctionFromDb(
   `;
 
   return result;
+}
+
+export async function updateClaimSectorStatusInDb(
+  claimsToUpdate: {
+    onChainDealId: bigint;
+    provider: bigint;
+    claimId: bigint;
+    status: SectorStatus;
+  }[],
+) {
+  return prismaClient.$transaction(
+    claimsToUpdate.map((claim) =>
+      prismaClient.porep_market_deal_claim.updateMany({
+        where: {
+          deal: {
+            onChainDealId: claim.onChainDealId,
+            provider: claim.provider,
+          },
+          claimId: claim.claimId,
+        },
+        data: {
+          status: claim.status,
+        },
+      }),
+    ),
+  );
 }

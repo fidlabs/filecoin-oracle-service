@@ -43,6 +43,11 @@ export interface CdpSliResponse {
   data: { [storageProviderId: string]: StorageProvidersSliData[] };
 }
 
+export interface FilecoinAPIStateSectorPartition {
+  Partition: bigint;
+  Deadline: bigint;
+}
+
 export interface FilecoinAPIStateSectorGetInfo {
   SectorNumber: number;
   SealProof: number;
@@ -141,10 +146,10 @@ export interface PorepMarketDeal {
   allocationsRequiredCount?: bigint;
   allocationsMatchedCount?: bigint;
   isAllocationsMatched?: boolean;
-  isDealEndEpochSetOnChain: boolean;
+  isDealEndEpochSetOnChain?: boolean;
   allocationIds?: bigint[];
   claims?: PorepMarketDealClaim[];
-  isRailTerminated: boolean;
+  isRailTerminated?: boolean;
   terms: DealTerms;
   requirements: SLIThresholds;
   proposedAtBlock: bigint;
@@ -164,6 +169,12 @@ export enum SectorStatus {
   Dead = "Dead",
   Active = "Active",
   Faulty = "Faulty",
+}
+
+export enum ChainSectorStatus {
+  Dead = 0,
+  Active = 1,
+  Faulty = 2,
 }
 
 export interface Claim {
