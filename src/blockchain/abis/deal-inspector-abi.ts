@@ -74,16 +74,8 @@ export const INSPECTOR_CONTRACT_ABI = [
             type: "uint64",
             internalType: "CommonTypes.FilActorId",
           },
-          {
-            name: "data",
-            type: "bytes",
-            internalType: "bytes",
-          },
-          {
-            name: "size",
-            type: "uint64",
-            internalType: "uint64",
-          },
+          { name: "data", type: "bytes", internalType: "bytes" },
+          { name: "size", type: "uint64", internalType: "uint64" },
           {
             name: "term_min",
             type: "int64",
@@ -145,16 +137,8 @@ export const INSPECTOR_CONTRACT_ABI = [
             type: "uint64",
             internalType: "CommonTypes.FilActorId",
           },
-          {
-            name: "data",
-            type: "bytes",
-            internalType: "bytes",
-          },
-          {
-            name: "size",
-            type: "uint64",
-            internalType: "uint64",
-          },
+          { name: "data", type: "bytes", internalType: "bytes" },
+          { name: "size", type: "uint64", internalType: "uint64" },
           {
             name: "term_min",
             type: "int64",
@@ -181,81 +165,75 @@ export const INSPECTOR_CONTRACT_ABI = [
     stateMutability: "view",
   },
   {
-    type: "error",
-    name: "ActorNotFound",
-    inputs: [],
+    type: "function",
+    name: "validateSectorStatus",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "sector",
+        type: "uint64",
+        internalType: "uint64",
+      },
+      {
+        name: "status",
+        type: "uint8",
+        internalType: "enum SectorStatus",
+      },
+      {
+        name: "deadline",
+        type: "int64",
+        internalType: "int64",
+      },
+      {
+        name: "partition",
+        type: "int64",
+        internalType: "int64",
+      },
+    ],
+    outputs: [
+      {
+        name: "valid",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "view",
   },
+  { type: "error", name: "ActorNotFound", inputs: [] },
   {
     type: "error",
     name: "ClaimIdsMismatch",
     inputs: [
-      {
-        name: "claimsLength",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "claimIdsLength",
-        type: "uint256",
-        internalType: "uint256",
-      },
+      { name: "claimsLength", type: "uint256", internalType: "uint256" },
+      { name: "claimIdsLength", type: "uint256", internalType: "uint256" },
     ],
   },
-  {
-    type: "error",
-    name: "FailToCallActor",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "GetClaimsCallFailed",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "InvalidClientAddress",
-    inputs: [],
-  },
+  { type: "error", name: "FailToCallActor", inputs: [] },
+  { type: "error", name: "GetClaimsCallFailed", inputs: [] },
+  { type: "error", name: "InvalidClientAddress", inputs: [] },
   {
     type: "error",
     name: "InvalidCodec",
-    inputs: [
-      {
-        name: "",
-        type: "uint64",
-        internalType: "uint64",
-      },
-    ],
+    inputs: [{ name: "", type: "uint64", internalType: "uint64" }],
   },
-  {
-    type: "error",
-    name: "InvalidDealId",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "InvalidPoRepMarketAddress",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "InvalidResponseLength",
-    inputs: [],
-  },
+  { type: "error", name: "InvalidDealId", inputs: [] },
+  { type: "error", name: "InvalidPoRepMarketAddress", inputs: [] },
+  { type: "error", name: "InvalidResponseLength", inputs: [] },
   {
     type: "error",
     name: "NotEnoughBalance",
     inputs: [
-      {
-        name: "balance",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "value",
-        type: "uint256",
-        internalType: "uint256",
-      },
+      { name: "balance", type: "uint256", internalType: "uint256" },
+      { name: "value", type: "uint256", internalType: "uint256" },
     ],
+  },
+  {
+    type: "error",
+    name: "ValidateSectorStatusFailed",
+    inputs: [{ name: "exitCode", type: "int256", internalType: "int256" }],
   },
 ] as const satisfies Abi;

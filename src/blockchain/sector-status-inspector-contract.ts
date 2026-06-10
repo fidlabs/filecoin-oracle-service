@@ -1,17 +1,17 @@
-import { Address } from "viem";
+import { Address, encodeFunctionData } from "viem";
 import { SERVICE_CONFIG } from "../config/env";
 import { getChainSectorStatusToDomain } from "../services/db/db-service";
 import { baseLogger } from "../utils/logger";
 import { ChainSectorStatus } from "../utils/types";
-import { INSPECTOR_CONTRACT_ABI } from "./abis/deal-inspector-abi";
 import { getRpcClient } from "./blockchain-client";
+import { SECTOR_STATUS_INSPECTOR_ABI } from "./abis/sector-status-inspector-abi";
 
 const childLogger = baseLogger.child(
   { avengers: "assemble" },
-  { msgPrefix: "[Deal Inspector Contract] " },
+  { msgPrefix: "[Sector Status Inspector Contract] " },
 );
 
-export const validateSectorStatusFromDealInspectorContract = async (
+export const validateSectorStatusFromDealStatusInspectorContract = async (
   onChainDealId: bigint,
   sector: bigint,
   expectedStatus: ChainSectorStatus,
@@ -24,9 +24,17 @@ export const validateSectorStatusFromDealInspectorContract = async (
 
   const rpcClient = getRpcClient();
 
+  const encodedCalls = sliData.map((req) =>
+    encodeFunctionData({
+      abi: SLI_ORACLE_CONTRACT_ABI,
+      functionName: "validateSectorStatus",
+      args: [onChainDealId, sector, expectedStatus, deadline, partition],
+    }),
+  );
+
   const isValid = await rpcClient.readContract({
-    address: SERVICE_CONFIG.DEAL_INSPECTOR_CONTRACT_ADDRESS as Address,
-    abi: INSPECTOR_CONTRACT_ABI,
+    address: SERVICE_CONFIG.SECTOR_STATUS_INSPECTOR_CONTRACT_ADDRESS as Address,
+    abi: SECTOR_STATUS_INSPECTOR_ABI,
     functionName: "validateSectorStatus",
     args: [onChainDealId, sector, expectedStatus, deadline, partition],
   });
@@ -38,7 +46,7 @@ export const validateSectorStatusFromDealInspectorContract = async (
   return isValid;
 };
 
-export const isSectorDeadFromDealInspectorContract = async (
+export const isSectorDeadFromSectorStatusInspectorContract = async (
   onChainDealId: bigint,
   sector: bigint,
   deadline: bigint,
@@ -48,7 +56,7 @@ export const isSectorDeadFromDealInspectorContract = async (
     `Checking if sector is dead for SP ${onChainDealId} and sector ${sector}...`,
   );
 
-  const isDead = await validateSectorStatusFromDealInspectorContract(
+  const isDead = await validateSectorStatusFromDealStatusInspectorContract(
     onChainDealId,
     sector,
     ChainSectorStatus.Dead,
@@ -61,25 +69,4 @@ export const isSectorDeadFromDealInspectorContract = async (
   );
 
   return isDead;
-};
-
-export const getAllClaimsFromDealInspectorContract = async (
-  onChainDealId: bigint,
-) => {
-  childLogger.info(`Fetching claims for deal ${onChainDealId}...`);
-
-  const rpcClient = getRpcClient();
-
-  const response = await rpcClient.readContract({
-    address: SERVICE_CONFIG.DEAL_INSPECTOR_CONTRACT_ADDRESS as Address,
-    abi: INSPECTOR_CONTRACT_ABI,
-    functionName: "getClaimForDeal",
-    args: [onChainDealId],
-  });
-
-  childLogger.info(
-    `Fetched ${response[1].length} success claims for deal ${onChainDealId} from contract`,
-  );
-
-  return response;
 };

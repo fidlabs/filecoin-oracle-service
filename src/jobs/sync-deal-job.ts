@@ -210,8 +210,6 @@ export async function syncDealsJob() {
           allocationsMatchedCount: allocationInfo?.allocationsMatchedCount,
           allocationIds: allocationInfo?.allocationIds,
           claims: allocationInfo?.claims,
-          isRailTerminated: false,
-          isDealEndEpochSetOnChain: false,
         };
       });
 

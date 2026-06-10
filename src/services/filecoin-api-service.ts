@@ -3,12 +3,40 @@ import { baseLogger } from "../utils/logger";
 import {
   FilecoinAPIStateGetClaim,
   FilecoinAPIStateSectorGetInfo,
+  FilecoinAPIStateSectorPartition,
 } from "../utils/types";
 
 const filecoinApiChildLogger = baseLogger.child(
   { avengers: "assemble" },
   { msgPrefix: "[Filecoin API] " },
 );
+
+export async function fetchStateSectorPartition(
+  spId: string,
+  sector: number,
+): Promise<FilecoinAPIStateSectorPartition> {
+  const response = await fetch("https://filecoin.chainup.net/rpc/v1", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "Filecoin.StateSectorPartition",
+      params: [spId, sector, null],
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch sector info: ${response.status} ${response.statusText}`,
+    );
+  }
+
+  const data = await response.json();
+  return data.result as FilecoinAPIStateSectorPartition;
+}
 
 export async function fetchSectorInfo(
   spId: string,
