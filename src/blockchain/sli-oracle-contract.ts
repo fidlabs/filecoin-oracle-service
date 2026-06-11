@@ -1,7 +1,8 @@
 import { Address, decodeFunctionResult, encodeFunctionData } from "viem";
+import { ContractName } from "../../prisma/generated/client";
 import { SERVICE_CONFIG } from "../config/env";
 import { baseLogger } from "../utils/logger";
-import { SliAttestation } from "../utils/types";
+import { OnChainTransactionResult, SliAttestation } from "../utils/types";
 import { SLI_ORACLE_CONTRACT_ABI } from "./abis/sli-oracle-abi";
 import { getRpcClient, getWalletClient } from "./blockchain-client";
 import { WalletAccountRole } from "./client-contract";
@@ -11,19 +12,25 @@ const childLogger = baseLogger.child(
   { msgPrefix: "[SLI Oracle Contract] " },
 );
 
-export async function setSliOnOracleContract(sliData: SliAttestation[]) {
+export async function setSliOnOracleContract(
+  sliData: SliAttestation[],
+): Promise<OnChainTransactionResult> {
+  childLogger.info(`Setting SLI for providers on oracle contract...`);
+
   const oracleContractAddress =
     SERVICE_CONFIG.SLI_ORACLE_CONTRACT_ADDRESS as Address;
+
+  const functionName = "setSLI";
 
   const encodedCalls = sliData.map((req) =>
     encodeFunctionData({
       abi: SLI_ORACLE_CONTRACT_ABI,
-      functionName: "setSLI",
+      functionName,
       args: [req.provider, req.slis],
     }),
   );
 
-  childLogger.info("setSLI: Simulating request...");
+  childLogger.info(`${functionName}: Simulating request...`);
 
   const rpcClient = getRpcClient();
   const walletClient = getWalletClient(WalletAccountRole.ORACLE_ROLE);
@@ -36,12 +43,12 @@ export async function setSliOnOracleContract(sliData: SliAttestation[]) {
     account: walletClient.account,
   });
 
-  childLogger.info("setSLI: Sending transaction...");
+  childLogger.info(`${functionName}: Sending transaction...`);
 
   const txHash = await walletClient.writeContract(request);
 
   childLogger.info(
-    `setSLI: Transaction sent: ${txHash}, waiting for confirmation...`,
+    `${functionName}: Transaction sent: ${txHash}, waiting for confirmation...`,
   );
 
   const receipt = await rpcClient.waitForTransactionReceipt({
@@ -49,8 +56,16 @@ export async function setSliOnOracleContract(sliData: SliAttestation[]) {
   });
 
   childLogger.info(
-    `setSLI: Transaction executed in block ${receipt.blockNumber}`,
+    `${functionName}: Transaction executed in block ${receipt.blockNumber}`,
   );
+
+  return {
+    success: true,
+    contractName: ContractName.SliOracle,
+    contractAddress: oracleContractAddress,
+    functionName,
+    receipt,
+  };
 }
 
 export async function getLastSliForProviderFromSliOracleContract(

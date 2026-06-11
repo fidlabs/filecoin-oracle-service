@@ -1,5 +1,6 @@
 import {
   DealState,
+  OnChainTransactionResult,
   PorepMarketContractDealState,
   PorepMarketDeal,
   ProviderScore,
@@ -521,3 +522,38 @@ export async function getDealsByStateFromDb(
 //     },
 //   });
 // }
+export async function getDealsFromDb(dealIds: bigint[]) {
+  const deals = await prismaClient.porep_market_deal.findMany({
+    where: {
+      onChainDealId: {
+        in: dealIds,
+      },
+    },
+  });
+
+  return deals;
+}
+
+export async function storeOnChainTransactionToDb(
+  porepMarketDealId: string,
+  transactionResult: OnChainTransactionResult,
+) {
+  const { receipt, contractName, functionName } = transactionResult;
+
+  return prismaClient.porep_market_deal_on_chain_transaction.create({
+    data: {
+      porepMarketDealId,
+      contractName,
+      functionName,
+      detail: {
+        create: {
+          transactionHash: receipt.transactionHash,
+          blockNumber: receipt.blockNumber,
+          fromAddress: receipt.from,
+          toAddress: receipt.to?.toString(),
+          gasUsed: receipt.gasUsed,
+        },
+      },
+    },
+  });
+}

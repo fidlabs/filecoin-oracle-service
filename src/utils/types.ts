@@ -1,4 +1,5 @@
-import { Address } from "viem";
+import { Address, TransactionReceipt } from "viem";
+import { ContractName } from "../../prisma/generated/client";
 
 export interface BigInt {
   toJSON: () => string;
@@ -174,4 +175,11 @@ export interface Claim {
   term_max: bigint;
   term_start: bigint;
   sector: bigint;
+}
+export interface OnChainTransactionResult {
+  success: boolean;
+  contractName: ContractName;
+  functionName: string;
+  contractAddress: Address;
+  receipt: TransactionReceipt;
 }

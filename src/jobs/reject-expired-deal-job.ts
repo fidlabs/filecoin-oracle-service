@@ -2,6 +2,10 @@ import {
   getDealsFromPoRepMarketContract,
   rejectExpiredDealOnPoRepMarketContract,
 } from "../blockchain/porep-market.contract";
+import {
+  getDealsFromDb,
+  storeOnChainTransactionToDb,
+} from "../services/db/db-service";
 import { baseLogger } from "../utils/logger";
 import { PorepMarketContractDealState } from "../utils/types";
 
@@ -33,15 +37,34 @@ export async function runRejectExpiredDealJob() {
 
     const proposedDealIds = proposedDeals.map((deal) => deal.dealId);
 
-    for (const onChainDealId of proposedDealIds) {
+    const dbDeals = await getDealsFromDb(proposedDealIds);
+
+    for (const onChainDeal of proposedDeals) {
       rejectExpiredDealChildLogger.info(
-        `Processing potentially expired deal with ID ${onChainDealId}`,
+        `Processing potentially expired deal with ID ${onChainDeal.dealId}`,
       );
 
-      await rejectExpiredDealOnPoRepMarketContract(onChainDealId);
+      const dbDeal = dbDeals.find(
+        (deal) => deal.onChainDealId === onChainDeal.dealId,
+      );
+
+      if (!dbDeal) {
+        rejectExpiredDealChildLogger.info(
+          `No corresponding deal found in database for on-chain deal with ID ${onChainDeal.dealId}, skipping storing transaction result to database`,
+        );
+        continue;
+
+        // the deal not synced with the database yet, it will be processed in the next job run, skipping for now to avoid storing transaction result without linking it to a deal in the database
+      }
+
+      const transactionResult = await rejectExpiredDealOnPoRepMarketContract(
+        onChainDeal.dealId,
+      );
+
+      await storeOnChainTransactionToDb(dbDeal.id, transactionResult);
 
       rejectExpiredDealChildLogger.info(
-        `Successfully processed potentially expired deal with ID ${onChainDealId}`,
+        `Successfully processed potentially expired deal with ID ${onChainDeal.dealId}`,
       );
     }
   } catch (error) {

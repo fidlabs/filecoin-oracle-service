@@ -1,10 +1,14 @@
 import { Address } from "viem";
 import { SERVICE_CONFIG } from "../config/env";
 import { baseLogger } from "../utils/logger";
-import { PorepMarketContractDealProposal } from "../utils/types";
+import {
+  OnChainTransactionResult,
+  PorepMarketContractDealProposal,
+} from "../utils/types";
 import { POREP_MARKET_CONTRACT_ABI } from "./abis/porep-market-abi";
 import { getRpcClient, getWalletClient } from "./blockchain-client";
 import { WalletAccountRole } from "./client-contract";
+import { ContractName } from "../../prisma/generated/client";
 
 const childLogger = baseLogger.child(
   { avengers: "assemble" },
@@ -53,33 +57,33 @@ export async function getDealsFromPoRepMarketContract(): Promise<
 
 export async function rejectExpiredDealOnPoRepMarketContract(
   onChainDealId: bigint,
-): Promise<void> {
+): Promise<OnChainTransactionResult> {
   childLogger.info(`Checking if deal with ID ${onChainDealId} is expired...`);
+
+  const functionName = "rejectExpiredDeal";
 
   const porepMarketContractAddress =
     SERVICE_CONFIG.POREP_MARKET_CONTRACT_ADDRESS as Address;
 
-  childLogger.info("rejectExpiredDeal: Simulating request...");
-
   const rpcClient = getRpcClient();
   const walletClient = getWalletClient(WalletAccountRole.ORACLE_ROLE);
 
-  childLogger.info("rejectExpiredDeal: Simulating request...");
+  childLogger.info(`${functionName}: Simulating request...`);
 
   const { request } = await rpcClient.simulateContract({
     address: porepMarketContractAddress,
     abi: POREP_MARKET_CONTRACT_ABI,
-    functionName: "rejectExpiredDeal",
+    functionName,
     args: [onChainDealId],
     account: walletClient.account,
   });
 
-  childLogger.info("rejectExpiredDeal: Sending transaction...");
+  childLogger.info(`${functionName}: Sending transaction...`);
 
   const txHash = await walletClient.writeContract(request);
 
   childLogger.info(
-    `rejectExpiredDeal: Transaction sent: ${txHash}, waiting for confirmation...`,
+    `${functionName}: Transaction sent: ${txHash}, waiting for confirmation...`,
   );
 
   const receipt = await rpcClient.waitForTransactionReceipt({
@@ -87,6 +91,14 @@ export async function rejectExpiredDealOnPoRepMarketContract(
   });
 
   childLogger.info(
-    `rejectExpiredDeal: Transaction executed in block ${receipt.blockNumber}`,
+    `${functionName}: Transaction executed in block ${receipt.blockNumber}`,
   );
+
+  return {
+    success: true,
+    contractName: ContractName.PoRepMarket,
+    contractAddress: porepMarketContractAddress,
+    functionName,
+    receipt,
+  };
 }

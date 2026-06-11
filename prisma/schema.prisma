@@ -26,6 +26,16 @@ enum DealState {
   Terminated
 }
 
+enum ContractName {
+  PoRepMarket
+  Client
+  SliOracle
+  SliScorer
+  SpRegistry
+  Validator
+  FilecoinPay
+}
+
 model porep_market_deal_history {
   id                String            @id @default(uuid()) @db.Uuid
   porepMarketDealId String            @db.Uuid
@@ -145,28 +155,27 @@ model porep_market_deal_provider_score {
 model porep_market_deal_on_chain_transaction {
   id                String                                          @id @default(uuid()) @db.Uuid
   porepMarketDealId String                                          @db.Uuid
-  transactionHash   String
-  contractAddress   String
-  contractName      String
+  contractName      ContractName
   functionName      String
   createdAt         DateTime                                        @default(now())
   deal              porep_market_deal                               @relation(fields: [porepMarketDealId], references: [id])
-  detail            porep_market_deal_on_chain_transaction_details?
+  detail            porep_market_deal_on_chain_transaction_detail?
 
   @@index([porepMarketDealId])
 }
 
-model porep_market_deal_on_chain_transaction_details {
+model porep_market_deal_on_chain_transaction_detail {
   id            String                                 @id @default(uuid()) @db.Uuid
   transactionId String                                 @unique @db.Uuid
+  transactionHash   String
   blockNumber   BigInt
-  gasUsed       BigInt
-  gasPrice      BigInt
-  nonce         BigInt
-  fromAddress   String
-  toAddress     String
-  value         BigInt
-  inputData     String
+  gasUsed       BigInt?
+  gasPrice      BigInt?
+  nonce         BigInt?
+  fromAddress   String?
+  toAddress     String?
+  value         BigInt?
+  inputData     String?
   createdAt     DateTime                               @default(now())
   transaction   porep_market_deal_on_chain_transaction @relation(fields: [transactionId], references: [id])
 }

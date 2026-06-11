@@ -3,6 +3,8 @@ import { baseLogger } from "../utils/logger";
 import { VALIDATOR_CONTRACT_ABI } from "./abis/validator-abi";
 import { getRpcClient, getWalletClient } from "./blockchain-client";
 import { WalletAccountRole } from "./client-contract";
+import { OnChainTransactionResult } from "../utils/types";
+import { ContractName } from "../../prisma/generated/client";
 
 const childLogger = baseLogger.child(
   { avengers: "assemble" },
@@ -11,26 +13,29 @@ const childLogger = baseLogger.child(
 
 export async function terminateRailOnValidatorContract(
   validatorContractAddress: Address,
-): Promise<boolean> {
-  childLogger.info("terminateRail: Simulating request...");
+): Promise<OnChainTransactionResult> {
+  childLogger.info("Terminating rail on validator contract...");
 
   const rpcClient = getRpcClient();
   const walletClient = getWalletClient(WalletAccountRole.POREP_SERVICE_ROLE);
+  const functionName = "terminateRail";
+
+  childLogger.info(`${functionName}: Simulating request...`);
 
   const { request } = await rpcClient.simulateContract({
     address: validatorContractAddress,
     abi: VALIDATOR_CONTRACT_ABI,
-    functionName: "terminateRail",
+    functionName,
     args: [],
     account: walletClient.account,
   });
 
-  childLogger.info("terminateRail: Sending transaction...");
+  childLogger.info(`${functionName}: Sending transaction...`);
 
   const txHash = await walletClient.writeContract(request);
 
   childLogger.info(
-    `terminateRail: Transaction sent: ${txHash}, waiting for confirmation...`,
+    `${functionName}: Transaction sent: ${txHash}, waiting for confirmation...`,
   );
 
   const receipt = await rpcClient.waitForTransactionReceipt({
@@ -38,35 +43,42 @@ export async function terminateRailOnValidatorContract(
   });
 
   childLogger.info(
-    `terminateRail: Transaction executed in block ${receipt.blockNumber}`,
+    `${functionName}: Transaction executed in block ${receipt.blockNumber}`,
   );
 
-  return true;
+  return {
+    success: true,
+    contractName: ContractName.Validator,
+    contractAddress: validatorContractAddress,
+    functionName,
+    receipt,
+  };
 }
 
 export async function setDealEndEpochOnValidatorContract(
   dealEndEpoch: bigint,
   validatorContractAddress: Address,
-): Promise<boolean> {
-  childLogger.info("setDealEndEpoch: Simulating request...");
-
+): Promise<OnChainTransactionResult> {
   const rpcClient = getRpcClient();
   const walletClient = getWalletClient(WalletAccountRole.POREP_SERVICE_ROLE);
+  const functionName = "setDealEndEpoch";
+
+  childLogger.info(`${functionName}: Simulating request...`);
 
   const { request } = await rpcClient.simulateContract({
     address: validatorContractAddress,
     abi: VALIDATOR_CONTRACT_ABI,
-    functionName: "setDealEndEpoch",
+    functionName,
     args: [dealEndEpoch],
     account: walletClient.account,
   });
 
-  childLogger.info("setDealEndEpoch: Sending transaction...");
+  childLogger.info(`${functionName}: Sending transaction...`);
 
   const txHash = await walletClient.writeContract(request);
 
   childLogger.info(
-    `setDealEndEpoch: Transaction sent: ${txHash}, waiting for confirmation...`,
+    `${functionName}: Transaction sent: ${txHash}, waiting for confirmation...`,
   );
 
   const receipt = await rpcClient.waitForTransactionReceipt({
@@ -74,29 +86,36 @@ export async function setDealEndEpochOnValidatorContract(
   });
 
   childLogger.info(
-    `setDealEndEpoch: Transaction executed in block ${receipt.blockNumber}`,
+    `${functionName}: Transaction executed in block ${receipt.blockNumber}`,
   );
 
-  return true;
+  return {
+    success: true,
+    contractName: ContractName.Validator,
+    contractAddress: validatorContractAddress,
+    functionName,
+    receipt,
+  };
 }
 
 export async function modifyRailPaymentOnValidatorContract(
   validatorContractAddress: Address,
-): Promise<boolean> {
-  childLogger.info("modifyRailPayment: Simulating request...");
-
+): Promise<OnChainTransactionResult> {
   const rpcClient = getRpcClient();
   const walletClient = getWalletClient(WalletAccountRole.POREP_SERVICE_ROLE);
+  const functionName = "modifyRailPayment";
+
+  childLogger.info("modifyRailPayment: Simulating request...");
 
   const { request } = await rpcClient.simulateContract({
     address: validatorContractAddress,
     abi: VALIDATOR_CONTRACT_ABI,
-    functionName: "modifyRailPayment",
+    functionName,
     args: [],
     account: walletClient.account,
   });
 
-  childLogger.info("modifyRailPayment: Sending transaction...");
+  childLogger.info(`${functionName}: Sending transaction...`);
 
   const txHash = await walletClient.writeContract(request);
 
@@ -109,8 +128,14 @@ export async function modifyRailPaymentOnValidatorContract(
   });
 
   childLogger.info(
-    `modifyRailPayment: Transaction executed in block ${receipt.blockNumber}`,
+    `${functionName}: Transaction executed in block ${receipt.blockNumber}`,
   );
 
-  return true;
+  return {
+    success: true,
+    contractName: ContractName.Validator,
+    contractAddress: validatorContractAddress,
+    functionName,
+    receipt,
+  };
 }
