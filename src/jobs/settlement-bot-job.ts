@@ -2,6 +2,7 @@ import { settleRailOnFilecoinPayContract } from "../blockchain/filecoinpay-contr
 import {
   getCompletedDealsToSettleFromDb,
   storeLastSettlementToDb,
+  storeOnChainTransactionToDb,
 } from "../services/db/db-service";
 import { baseLogger } from "../utils/logger";
 
@@ -32,8 +33,16 @@ export async function runSettlementBotJob() {
         `Processing completed deal with ID ${deal.onChainDealId} for provider ${deal.provider} and client ${deal.client}`,
       );
 
-      const blockNumber = await settleRailOnFilecoinPayContract(deal.railId);
-      await storeLastSettlementToDb(deal.id, blockNumber);
+      const transactionResult = await settleRailOnFilecoinPayContract(
+        deal.railId,
+      );
+
+      await storeLastSettlementToDb(
+        deal.id,
+        transactionResult.receipt?.blockNumber,
+      );
+
+      await storeOnChainTransactionToDb(deal.id, transactionResult);
 
       settlementChildLogger.info(
         `Successfully settled rail with ID ${deal.railId} for completed deal with ID ${deal.onChainDealId}`,

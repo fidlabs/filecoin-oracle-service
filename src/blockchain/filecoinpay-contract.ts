@@ -1,6 +1,8 @@
 import { Address } from "viem";
+import { ContractName } from "../../prisma/generated/client";
 import { SERVICE_CONFIG } from "../config/env";
 import { baseLogger } from "../utils/logger";
+import { OnChainTransactionResult } from "../utils/types";
 import { FILECOIN_PAY_CONTRACT_ABI } from "./abis/filecoinpay-abi";
 import { getRpcClient, getWalletClient } from "./blockchain-client";
 import { WalletAccountRole } from "./client-contract";
@@ -12,17 +14,21 @@ const childLogger = baseLogger.child(
 
 export async function settleRailOnFilecoinPayContract(
   railId: bigint,
-): Promise<bigint> {
+): Promise<OnChainTransactionResult> {
+  childLogger.info(`Settling rail id ${railId}...`);
+
   const rpcClient = getRpcClient();
   const walletClient = getWalletClient(WalletAccountRole.FILECOIN_PAY_ROLE);
-  const functionName = "settleRail";
 
+  const functionName = "settleRail";
   childLogger.info(`${functionName}: Simulating request...`);
 
   const currentBlock = await rpcClient.getBlockNumber();
+  const filecoinPayContractAddress =
+    SERVICE_CONFIG.FILECOIN_PAY_CONTRACT_ADDRESS as Address;
 
   const { request } = await rpcClient.simulateContract({
-    address: SERVICE_CONFIG.FILECOIN_PAY_CONTRACT_ADDRESS as Address,
+    address: filecoinPayContractAddress,
     abi: FILECOIN_PAY_CONTRACT_ABI,
     functionName: functionName,
     args: [railId, currentBlock],
@@ -45,5 +51,11 @@ export async function settleRailOnFilecoinPayContract(
     `${functionName}: Transaction executed in block ${receipt.blockNumber}`,
   );
 
-  return receipt.blockNumber;
+  return {
+    success: true,
+    contractName: ContractName.FilecoinPay,
+    contractAddress: filecoinPayContractAddress,
+    functionName,
+    receipt,
+  };
 }

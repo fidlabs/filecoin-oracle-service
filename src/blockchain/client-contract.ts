@@ -4,6 +4,8 @@ import { SERVICE_CONFIG } from "../config/env";
 import { baseLogger } from "../utils/logger";
 import { CLIENT_CONTRACT_ABI } from "./abis/client-abi";
 import { getRpcClient, getWalletClient } from "./blockchain-client";
+import { OnChainTransactionResult } from "../utils/types";
+import { ContractName } from "../../prisma/generated/client";
 
 const childLogger = baseLogger.child(
   { avengers: "assemble" },
@@ -40,28 +42,35 @@ export async function getClientAllocationIdsPerDeal(
 
 export async function setClaimTerminatedEarlyOnClientContract(
   allocationIds: bigint[],
-) {
-  childLogger.info("claimsTerminatedEarly: Simulating request...");
+): Promise<OnChainTransactionResult> {
+  childLogger.info(
+    `Setting claimTerminatedEarly for allocation IDs ${allocationIds.join(
+      ", ",
+    )} on client contract...`,
+  );
 
   const rpcClient = getRpcClient();
   const walletClient = getWalletClient(
     WalletAccountRole.TERMINATION_ORACLE_ROLE,
   );
+  const functionName = "claimsTerminatedEarly";
+
+  childLogger.info(`${functionName}: Simulating request...`);
 
   const { request } = await rpcClient.simulateContract({
     address: SERVICE_CONFIG.CLIENT_CONTRACT_ADDRESS as Address,
     abi: CLIENT_CONTRACT_ABI,
-    functionName: "claimsTerminatedEarly",
+    functionName,
     args: [allocationIds],
     account: walletClient.account,
   });
 
-  childLogger.info("claimsTerminatedEarly: Sending transaction...");
+  childLogger.info(`${functionName}: Sending transaction...`);
 
   const txHash = await walletClient.writeContract(request);
 
   childLogger.info(
-    `claimsTerminatedEarly: Transaction sent: ${txHash}, waiting for confirmation...`,
+    `${functionName}: Transaction sent: ${txHash}, waiting for confirmation...`,
   );
 
   const receipt = await rpcClient.waitForTransactionReceipt({
@@ -69,6 +78,14 @@ export async function setClaimTerminatedEarlyOnClientContract(
   });
 
   childLogger.info(
-    `claimsTerminatedEarly: Transaction executed in block ${receipt.blockNumber}`,
+    `${functionName}: Transaction executed in block ${receipt.blockNumber}`,
   );
+
+  return {
+    success: true,
+    contractName: ContractName.Client,
+    contractAddress: SERVICE_CONFIG.CLIENT_CONTRACT_ADDRESS as Address,
+    functionName,
+    receipt,
+  };
 }

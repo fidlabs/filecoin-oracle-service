@@ -4,7 +4,10 @@ import {
   modifyRailPaymentOnValidatorContract,
   setDealEndEpochOnValidatorContract,
 } from "../blockchain/validator-contract";
-import { getCompletedDealsToSetEndEpochFromDb } from "../services/db/db-service";
+import {
+  getCompletedDealsToSetEndEpochFromDb,
+  storeOnChainTransactionToDb,
+} from "../services/db/db-service";
 import { getPrismaClient } from "../services/prisma-service";
 import { baseLogger } from "../utils/logger";
 
@@ -43,14 +46,23 @@ export async function trackDealEndEpochJob() {
       );
 
       if (deal.dealEndEpoch) {
-        await setDealEndEpochOnValidatorContract(
+        const dealEnEpochResult = await setDealEndEpochOnValidatorContract(
           BigInt(deal.dealEndEpoch),
           deal.validatorContractAddress as Address,
         );
 
-        await modifyRailPaymentOnValidatorContract(
-          deal.validatorContractAddress as Address,
-        );
+        const modifyRaildPaymentTransactionResult =
+          await modifyRailPaymentOnValidatorContract(
+            deal.validatorContractAddress as Address,
+          );
+
+        await Promise.all([
+          storeOnChainTransactionToDb(deal.id, dealEnEpochResult),
+          storeOnChainTransactionToDb(
+            deal.id,
+            modifyRaildPaymentTransactionResult,
+          ),
+        ]);
 
         await prismaClient.porep_market_deal.update({
           where: {
