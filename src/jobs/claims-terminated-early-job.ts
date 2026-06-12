@@ -1,8 +1,11 @@
-import { isSectorDeadFromDealInspectorContract } from "../blockchain/deal-inspector-contract";
-import { getCompletedDealsToCheckClaimTerminationFromDb } from "../services/db/db-service";
+import { batchValidateSectorStatus } from "../blockchain/sector-status-inspector-contract";
+import {
+  getCompletedDealsToCheckClaimTerminationFromDb,
+  updateClaimSectorStatusInDb,
+} from "../services/db/db-service";
 import { fetchStateSectorPartition } from "../services/filecoin-api-service";
 import { baseLogger } from "../utils/logger";
-import { SectorStatus } from "../utils/types";
+import { ChainSectorStatus, SectorStatus } from "../utils/types";
 
 const claimTrackingLogger = baseLogger.child(
   { avengers: "assemble" },
@@ -32,60 +35,94 @@ export async function trackClaimsTerminatedEarlyJob() {
       provider: bigint;
       claimId: bigint;
       status: SectorStatus;
+      sector: bigint;
     }[] = [];
 
     claimTrackingLogger.info("Start processing completed deals...");
 
-    for (const deal of completedDeals) {
-      claimTrackingLogger.info(`Processing deal id: ${deal.onChainDealId}...`);
+    const CHUNK_SIZE = 50;
 
-      for (const claim of deal.claims) {
-        const { claimId } = claim;
+    const claimsToProcess = completedDeals.flatMap((deal) =>
+      deal.claims.map((claim) => ({
+        claimId: claim.claimId,
+        onChainDealId: deal.onChainDealId,
+        provider: deal.provider,
+        sector: claim.sector,
+      })),
+    );
 
-        claimTrackingLogger.info(`Processing claim ID ${claimId}...`);
+    claimTrackingLogger.info(
+      `Total claims to process for termination check: ${claimsToProcess.length}`,
+    );
 
-        const storageProviderId = `f0${deal.provider.toString()}`;
-
-        const stateSectorInfo = await fetchStateSectorPartition(
-          storageProviderId,
-          Number(claim.sector),
-        );
-
-        const isSectorDead = await isSectorDeadFromDealInspectorContract(
-          deal.onChainDealId,
-          claim.sector,
-          stateSectorInfo.Deadline,
-          stateSectorInfo.Partition,
-        );
-
-        if (isSectorDead) {
-          terminatedClaims.push({
-            claimId: claim.claimId,
-            onChainDealId: deal.onChainDealId,
-            provider: deal.provider,
-            status: SectorStatus.Dead,
-          });
-
-          claimTrackingLogger.info(
-            `Marking claim ${claimId} for early termination (SP: ${storageProviderId}, DealId: ${deal.onChainDealId} Sector: ${claim.sector})`,
-          );
-        }
-      }
+    for (let i = 0; i < claimsToProcess.length; i += CHUNK_SIZE) {
+      const chunk = claimsToProcess.slice(i, i + CHUNK_SIZE);
 
       claimTrackingLogger.info(
-        `Finished processing deal id: ${deal.onChainDealId}, claims ${terminatedClaims.length} / ${deal.claims?.length} marked for early termination`,
+        `Processing claims batch ${i / CHUNK_SIZE + 1} / ${Math.ceil(claimsToProcess.length / CHUNK_SIZE)}, chunk size: ${chunk.length}`,
       );
+
+      const sectorInfo = await Promise.all(
+        chunk.map(async (claim) => {
+          const storageProviderId = `f0${claim.provider.toString()}`;
+
+          const stateSectorInfo = await fetchStateSectorPartition(
+            storageProviderId,
+            Number(claim.sector),
+          );
+
+          return {
+            ...claim,
+            deadline: stateSectorInfo.Deadline,
+            partition: stateSectorInfo.Partition,
+          };
+        }),
+      );
+
+      const validatedClaims = await batchValidateSectorStatus(
+        sectorInfo.map((claim) => ({
+          onChainDealId: claim.onChainDealId,
+          sector: claim.sector,
+          status: ChainSectorStatus.Dead,
+          deadline: claim.deadline,
+          partition: claim.partition,
+        })),
+      );
+
+      validatedClaims.forEach((validateClaim, index) => {
+        if (!validateClaim.isValid) return;
+
+        const item = sectorInfo[index];
+
+        terminatedClaims.push({
+          claimId: item.claimId,
+          provider: item.provider,
+          onChainDealId: validateClaim.call.onChainDealId,
+          sector: validateClaim.call.sector,
+          status: SectorStatus.Dead,
+        });
+      });
     }
 
     claimTrackingLogger.info(
       `Finished processing all completed deals. Total claims marked for early termination: ${terminatedClaims.length}`,
     );
 
-    // await updateClaimSectorStatusInDb(terminatedClaims);
+    if (terminatedClaims.length > 0) {
+      await updateClaimSectorStatusInDb(terminatedClaims);
 
-    // await setClaimTerminatedEarlyOnClientContract(
-    //   terminatedClaims.map((claim) => claim.claimId),
-    // );
+      claimTrackingLogger.info(
+        `Updated ${terminatedClaims.length} claims in database with terminated status.`,
+      );
+
+      // claimTrackingLogger.info(
+      //   `Setting ${terminatedClaims.length} claims as terminated early on client contract.`,
+      // );
+
+      // await setClaimTerminatedEarlyOnClientContract(
+      //   terminatedClaims.map((claim) => claim.claimId),
+      // );
+    }
   } catch (err) {
     claimTrackingLogger.error({ err }, "Job failed");
   } finally {

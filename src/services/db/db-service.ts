@@ -577,6 +577,7 @@ export async function updateClaimSectorStatusInDb(
     provider: bigint;
     claimId: bigint;
     status: SectorStatus;
+    sector: bigint;
   }[],
 ) {
   return prismaClient.$transaction(
@@ -588,6 +589,7 @@ export async function updateClaimSectorStatusInDb(
             provider: claim.provider,
           },
           claimId: claim.claimId,
+          sector: claim.sector,
         },
         data: {
           status: claim.status,
