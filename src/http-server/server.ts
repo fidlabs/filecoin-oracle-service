@@ -14,6 +14,7 @@ import { dealRoutes } from "./routes/deals";
 import { debugRoutes } from "./routes/debug";
 import { healthRoutes } from "./routes/health";
 import { responseCustomFormatterPlugin } from "./utils/response-formatter-plugin/response-plugin";
+import { onChainTransactionsRoutes } from "./routes/on-chain-transactions";
 
 const httpLogger = baseLogger.child(
   { avengers: "assemble" },
@@ -52,6 +53,7 @@ app.register(debugRoutes, {
 });
 app.register(healthRoutes, { prefix: "/health" });
 app.register(dealRoutes, { prefix: "/deals" });
+app.register(onChainTransactionsRoutes, { prefix: "/on-chain-transactions" });
 
 app.listen(
   { port: Number(SERVICE_CONFIG.APP_PORT), host: "0.0.0.0" },

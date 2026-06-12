@@ -33,3 +33,7 @@ export const TotalCompletedDealsResponseSchema = z.object({
 export const GetDealByIdRequestSchema = z.object({
   onChainDealId: z.string(),
 });
+
+export const GetByIdDealIdQuerySchema = z.object({
+  onChainDealId: z.string().optional(),
+});
