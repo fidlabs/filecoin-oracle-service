@@ -1,72 +1,75 @@
-import { Address, encodeFunctionData } from "viem";
+import {
+  Address,
+  decodeAbiParameters,
+  decodeFunctionResult,
+  encodeFunctionData,
+} from "viem";
 import { SERVICE_CONFIG } from "../config/env";
-import { getChainSectorStatusToDomain } from "../services/db/db-service";
 import { baseLogger } from "../utils/logger";
 import { ChainSectorStatus } from "../utils/types";
-import { getRpcClient } from "./blockchain-client";
 import { SECTOR_STATUS_INSPECTOR_ABI } from "./abis/sector-status-inspector-abi";
+import { getRpcClient } from "./blockchain-client";
 
 const childLogger = baseLogger.child(
   { avengers: "assemble" },
   { msgPrefix: "[Sector Status Inspector Contract] " },
 );
 
-export const validateSectorStatusFromDealStatusInspectorContract = async (
-  onChainDealId: bigint,
-  sector: bigint,
-  expectedStatus: ChainSectorStatus,
-  deadline: bigint,
-  partition: bigint,
-): Promise<boolean> => {
-  childLogger.info(
-    `Validating sector status ${getChainSectorStatusToDomain(expectedStatus)} for SP ${onChainDealId} and sector ${sector}...`,
-  );
-
+export const batchValidateSectorStatus = async (
+  calls: {
+    onChainDealId: bigint;
+    sector: bigint;
+    status: ChainSectorStatus;
+    deadline: bigint;
+    partition: bigint;
+  }[],
+) => {
   const rpcClient = getRpcClient();
 
-  const encodedCalls = sliData.map((req) =>
+  childLogger.info(
+    `Batch validating sector status for ${calls.length} calls...`,
+  );
+
+  const encodedCalls = calls.map((c) =>
     encodeFunctionData({
-      abi: SLI_ORACLE_CONTRACT_ABI,
+      abi: SECTOR_STATUS_INSPECTOR_ABI,
       functionName: "validateSectorStatus",
-      args: [onChainDealId, sector, expectedStatus, deadline, partition],
+      args: [c.onChainDealId, c.sector, c.status, c.deadline, c.partition],
     }),
   );
 
-  const isValid = await rpcClient.readContract({
-    address: SERVICE_CONFIG.SECTOR_STATUS_INSPECTOR_CONTRACT_ADDRESS as Address,
+  const encoded = encodeFunctionData({
     abi: SECTOR_STATUS_INSPECTOR_ABI,
-    functionName: "validateSectorStatus",
-    args: [onChainDealId, sector, expectedStatus, deadline, partition],
+    functionName: "multicall",
+    args: [encodedCalls],
+  });
+
+  const raw = await rpcClient.call({
+    to: SERVICE_CONFIG.SECTOR_STATUS_INSPECTOR_CONTRACT_ADDRESS as Address,
+    data: encoded,
+  });
+
+  const decoded = decodeAbiParameters(
+    [{ type: "bytes[]" }],
+    raw.data as `0x${string}`,
+  );
+
+  const results = decoded[0].map((result, index) => {
+    const decodedBool = decodeFunctionResult({
+      abi: SECTOR_STATUS_INSPECTOR_ABI,
+      functionName: "validateSectorStatus",
+      data: result,
+    });
+
+    return {
+      call: calls[index],
+      isValid: decodedBool,
+    };
   });
 
   childLogger.info(
-    `Fetched sector status for deal id ${onChainDealId}: sector ${sector}: ${isValid ? "VALID" : "INVALID"}`,
+    `Batch validation completed for ${calls.length} calls. Valid results: ${results.filter((r) => r.isValid).length}, Invalid results: ${results.filter((r) => !r.isValid).length}`,
   );
 
-  return isValid;
-};
-
-export const isSectorDeadFromSectorStatusInspectorContract = async (
-  onChainDealId: bigint,
-  sector: bigint,
-  deadline: bigint,
-  partition: bigint,
-): Promise<boolean> => {
-  childLogger.info(
-    `Checking if sector is dead for SP ${onChainDealId} and sector ${sector}...`,
-  );
-
-  const isDead = await validateSectorStatusFromDealStatusInspectorContract(
-    onChainDealId,
-    sector,
-    ChainSectorStatus.Dead,
-    deadline,
-    partition,
-  );
-
-  childLogger.info(
-    `Fetched sector status for deal id ${onChainDealId}: sector ${sector}: ${isDead ? "DEAD" : "ALIVE"}`,
-  );
-
-  return isDead;
+  return results;
 };
