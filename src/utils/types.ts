@@ -183,3 +183,9 @@ export interface OnChainTransactionResult {
   contractAddress: Address;
   receipt: TransactionReceipt;
 }
+
+export type GasUsageByFunction = {
+  functionName: string;
+  transactionCount: bigint;
+  gasUsed: bigint;
+};

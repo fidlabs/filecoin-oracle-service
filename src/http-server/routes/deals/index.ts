@@ -18,11 +18,6 @@ export function dealRoutes(
   options: FastifyPluginOptions,
   done: (err?: Error) => void,
 ) {
-  fastify.addHook("onRoute", (routeOptions) => {
-    routeOptions.schema = routeOptions.schema || {};
-    routeOptions.schema.tags = routeOptions.schema.tags || ["Deals"];
-  });
-
   fastify.get(
     "/total-done",
     {
