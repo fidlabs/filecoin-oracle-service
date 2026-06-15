@@ -32,12 +32,12 @@ export const porepMarkerDealSelect =
     requirements: {
       select: {
         retrievabilityBps: true,
-        bandwidthMbps: true,
+        bandwidthBytesPerSecond: true,
         latencyMs: true,
         indexingPct: true,
       },
     },
-    provider_score: {
+    score: {
       select: {
         calculatedScore: true,
         averageBandwidthMbps: true,

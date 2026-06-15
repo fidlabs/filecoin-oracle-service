@@ -50,14 +50,14 @@ export const SLI_SCORER_CONTRACT_ABI = [
     name: "calculateScore",
     inputs: [
       {
-        name: "provider",
-        type: "uint64",
-        internalType: "CommonTypes.FilActorId",
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
       },
       {
         name: "required",
         type: "tuple",
-        internalType: "struct SLITypes.SLIThresholds",
+        internalType: "struct SharedTypes.SLIThresholds",
         components: [
           {
             name: "retrievabilityBps",
@@ -65,9 +65,9 @@ export const SLI_SCORER_CONTRACT_ABI = [
             internalType: "uint16",
           },
           {
-            name: "bandwidthMbps",
-            type: "uint16",
-            internalType: "uint16",
+            name: "bandwidthBytesPerSecond",
+            type: "uint64",
+            internalType: "uint64",
           },
           {
             name: "latencyMs",
@@ -394,9 +394,9 @@ export const SLI_SCORER_CONTRACT_ABI = [
     name: "AttestationExpired",
     inputs: [
       {
-        name: "provider",
-        type: "uint64",
-        internalType: "CommonTypes.FilActorId",
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
       },
     ],
   },
@@ -428,6 +428,11 @@ export const SLI_SCORER_CONTRACT_ABI = [
   },
   {
     type: "error",
+    name: "InvalidDealId",
+    inputs: [],
+  },
+  {
+    type: "error",
     name: "InvalidInitialization",
     inputs: [],
   },
@@ -441,9 +446,9 @@ export const SLI_SCORER_CONTRACT_ABI = [
     name: "NoAttestation",
     inputs: [
       {
-        name: "provider",
-        type: "uint64",
-        internalType: "CommonTypes.FilActorId",
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
       },
     ],
   },

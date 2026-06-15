@@ -11,25 +11,23 @@ const childLogger = baseLogger.child(
 );
 
 export async function calculateScoreOnSliScorerContract(
-  providerId: bigint,
+  onChainDealId: bigint,
   requirements: SLIThresholds,
 ): Promise<bigint> {
   const functionName = "calculateScore";
 
-  childLogger.info(`Calculating score for provider ${providerId}`);
+  childLogger.info(`Calculating score for deal ${onChainDealId}`);
 
   const rpcClient = getRpcClient();
 
-  const storageProviderScore = await rpcClient.readContract({
+  const dealScore = await rpcClient.readContract({
     address: SERVICE_CONFIG.SLI_SCORER_CONTRACT_ADDRESS as Address,
     abi: SLI_SCORER_CONTRACT_ABI,
     functionName: functionName,
-    args: [providerId, { ...requirements }],
+    args: [onChainDealId, { ...requirements }],
   });
 
-  childLogger.info(
-    `Calculated score for provider ${providerId}: ${storageProviderScore}`,
-  );
+  childLogger.info(`Calculated score for deal ${onChainDealId}: ${dealScore}`);
 
-  return storageProviderScore;
+  return dealScore;
 }

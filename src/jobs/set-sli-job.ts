@@ -1,6 +1,6 @@
 import { setSliOnOracleContract } from "../blockchain/sli-oracle-contract";
-import { getProvidersFromSPRegistryContract } from "../blockchain/sp-registry-contract";
-import { getSliForStorageProviders } from "../services/cdp-fetch-service";
+import { getSliForDeals } from "../services/cdp-fetch-service";
+import { getDealsToSetSliFromDb } from "../services/db/db-service";
 import { baseLogger } from "../utils/logger";
 import { SliAttestation } from "../utils/types";
 import { calculateScoreJob } from "./calculate-score-job";
@@ -14,43 +14,41 @@ export async function setSliOracleJob() {
   try {
     sliChildLogger.info("Job started");
 
-    const storageProviders = await getProvidersFromSPRegistryContract();
+    const dealsToSetSli = await getDealsToSetSliFromDb();
 
-    const uniqueStorageProviders = [...new Set(storageProviders)];
+    const uniqueDealIds = [
+      ...new Set(dealsToSetSli.map((deal) => deal.onChainDealId)),
+    ];
 
-    if (uniqueStorageProviders.length === 0) {
-      sliChildLogger.info(
-        "No storage providers found in SP Registry contract, skipping SLI update on oracle contract",
-      );
+    if (uniqueDealIds.length === 0) {
+      sliChildLogger.info("No deals found to set SLI, skipping SLI update");
 
       return;
     }
 
     sliChildLogger.info(
-      `Extracted ${uniqueStorageProviders.length} unique of ${storageProviders.length} all storage providers`,
+      `Extracted ${uniqueDealIds.length} unique of ${dealsToSetSli.length} all deals`,
     );
 
-    const sps = uniqueStorageProviders.map((sp) => `f0${sp.toString()}`);
+    const sliDataForDeals = await getSliForDeals(uniqueDealIds); //TODO: move to the new endpoint to track sli per deal instead of per provider
+    const dealsSlis = Object.values(sliDataForDeals?.data || {});
 
-    const sliDataForProviders = await getSliForStorageProviders(sps);
-    const providersSlis = Object.values(sliDataForProviders?.data || {});
-
-    if (providersSlis.length === 0 || !sliDataForProviders) {
+    if (dealsSlis.length === 0 || !sliDataForDeals) {
       sliChildLogger.info(
-        "No SLI data fetched for any provider from CDP, skipping SLI update on oracle contract",
+        "No SLI data fetched for any deals from CDP, skipping SLI update",
       );
       return;
     }
 
     sliChildLogger.info(
-      `Fetched SLI data for ${providersSlis.length} providers from CDP`,
+      `Fetched SLI data for ${dealsSlis.length} providers from CDP`,
     );
 
     sliChildLogger.info(`Preparing SLI data for providers...`);
 
     const buildedSliData: SliAttestation[] = Object.entries(
-      sliDataForProviders.data,
-    ).map(([storageProviderId]) => {
+      sliDataForDeals.data,
+    ).map(([onChainDealId]) => {
       // const retrievability =
       //   Number(
       //     data.find(
@@ -86,12 +84,10 @@ export async function setSliOracleJob() {
       //   ) || 0;
 
       const sliAttestation: SliAttestation = {
-        provider: storageProviderId.startsWith("f0")
-          ? BigInt(storageProviderId.slice(2))
-          : BigInt(storageProviderId),
+        onChainDealId: BigInt(onChainDealId),
         slis: {
           retrievabilityBps: 5000,
-          bandwidthMbps: 100,
+          bandwidthBytesPerSecond: 100n,
           latencyMs: 30000,
           indexingPct: 0,
         },

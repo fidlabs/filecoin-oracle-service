@@ -1,12 +1,6 @@
 import "dotenv/config";
-import cron from "node-cron";
 import { SERVICE_CONFIG } from "./config/env";
 import "./http-server/server";
-import { runRejectExpiredDealJob } from "./jobs/reject-expired-deal-job";
-import { trackDealEndEpochJob } from "./jobs/set-deal-end-epoch-job";
-import { setSliOracleJob } from "./jobs/set-sli-job";
-import { runSettlementBotJob } from "./jobs/settlement-bot-job";
-import { syncDealsJob } from "./jobs/sync-deal-job";
 import { baseLogger } from "./utils/logger";
 
 declare global {
@@ -70,11 +64,11 @@ try {
     `Scheduling Reject Expired Deal cron job "${rejectExpiredDealInterval}"`,
   );
 
-  cron.schedule(rejectExpiredDealInterval, runRejectExpiredDealJob);
-  cron.schedule(syncDealsInterval, syncDealsJob);
-  cron.schedule(sliInterval, setSliOracleJob);
-  cron.schedule(trackDealEndEpochInterval, trackDealEndEpochJob);
-  cron.schedule(settlementBotInterval, runSettlementBotJob);
+  // cron.schedule(rejectExpiredDealInterval, runRejectExpiredDealJob);
+  // cron.schedule(syncDealsInterval, syncDealsJob);
+  // cron.schedule(sliInterval, setSliOracleJob);
+  // cron.schedule(trackDealEndEpochInterval, trackDealEndEpochJob);
+  // cron.schedule(settlementBotInterval, runSettlementBotJob);
 
   //cron.schedule(claimsTerminatedEarlyInterval, trackClaimsTerminatedEarlyJob);
   //cron.schedule(terminateDealsInterval, trackTerminateDealJob);
