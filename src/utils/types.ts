@@ -7,13 +7,13 @@ export interface BigInt {
 
 export interface SLIThresholds {
   retrievabilityBps: number;
-  bandwidthMbps: number;
+  bandwidthBytesPerSecond: bigint;
   latencyMs: number;
   indexingPct: number;
 }
 
 export interface SliAttestation {
-  provider: bigint;
+  onChainDealId: bigint;
   slis: SLIThresholds;
 }
 
@@ -177,7 +177,7 @@ export interface PorepMarketDeal {
   proposedAtBlock: bigint;
 }
 
-export interface ProviderScore {
+export interface DealScore {
   providerId: bigint;
   calculatedScore: bigint;
   porepMarketDealId: string;
