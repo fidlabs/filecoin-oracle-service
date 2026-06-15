@@ -63,16 +63,16 @@ export const SLI_ORACLE_CONTRACT_ABI = [
     name: "getAttestation",
     inputs: [
       {
-        name: "provider",
-        type: "uint64",
-        internalType: "CommonTypes.FilActorId",
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
       },
     ],
     outputs: [
       {
         name: "attestation",
         type: "tuple",
-        internalType: "struct SLITypes.Attestation",
+        internalType: "struct SharedTypes.Attestation",
         components: [
           {
             name: "lastUpdate",
@@ -82,7 +82,7 @@ export const SLI_ORACLE_CONTRACT_ABI = [
           {
             name: "slis",
             type: "tuple",
-            internalType: "struct SLITypes.SLIThresholds",
+            internalType: "struct SharedTypes.SLIThresholds",
             components: [
               {
                 name: "retrievabilityBps",
@@ -90,9 +90,9 @@ export const SLI_ORACLE_CONTRACT_ABI = [
                 internalType: "uint16",
               },
               {
-                name: "bandwidthMbps",
-                type: "uint16",
-                internalType: "uint16",
+                name: "bandwidthBytesPerSecond",
+                type: "uint64",
+                internalType: "uint64",
               },
               {
                 name: "latencyMs",
@@ -263,14 +263,14 @@ export const SLI_ORACLE_CONTRACT_ABI = [
     name: "setSLI",
     inputs: [
       {
-        name: "provider",
-        type: "uint64",
-        internalType: "CommonTypes.FilActorId",
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
       },
       {
         name: "slis",
         type: "tuple",
-        internalType: "struct SLITypes.SLIThresholds",
+        internalType: "struct SharedTypes.SLIThresholds",
         components: [
           {
             name: "retrievabilityBps",
@@ -278,9 +278,9 @@ export const SLI_ORACLE_CONTRACT_ABI = [
             internalType: "uint16",
           },
           {
-            name: "bandwidthMbps",
-            type: "uint16",
-            internalType: "uint16",
+            name: "bandwidthBytesPerSecond",
+            type: "uint64",
+            internalType: "uint64",
           },
           {
             name: "latencyMs",
@@ -428,10 +428,10 @@ export const SLI_ORACLE_CONTRACT_ABI = [
     name: "SLIAttestationUpdate",
     inputs: [
       {
-        name: "provider",
-        type: "uint64",
+        name: "dealId",
+        type: "uint256",
         indexed: true,
-        internalType: "CommonTypes.FilActorId",
+        internalType: "uint256",
       },
       {
         name: "lastUpdate",
@@ -443,7 +443,7 @@ export const SLI_ORACLE_CONTRACT_ABI = [
         name: "slis",
         type: "tuple",
         indexed: false,
-        internalType: "struct SLITypes.SLIThresholds",
+        internalType: "struct SharedTypes.SLIThresholds",
         components: [
           {
             name: "retrievabilityBps",
@@ -451,9 +451,9 @@ export const SLI_ORACLE_CONTRACT_ABI = [
             internalType: "uint16",
           },
           {
-            name: "bandwidthMbps",
-            type: "uint16",
-            internalType: "uint16",
+            name: "bandwidthBytesPerSecond",
+            type: "uint64",
+            internalType: "uint64",
           },
           {
             name: "latencyMs",
@@ -539,6 +539,11 @@ export const SLI_ORACLE_CONTRACT_ABI = [
   {
     type: "error",
     name: "InvalidAdmin",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidDealId",
     inputs: [],
   },
   {
