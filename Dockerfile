@@ -8,9 +8,6 @@ COPY --chown=1000:1000 . .
 RUN --mount=type=secret,id=DATABASE_URL,uid=1000 \
     env DATABASE_URL=$(cat /run/secrets/DATABASE_URL) \
     npx prisma generate --schema=./prisma/schema.prisma
-RUN --mount=type=secret,id=DMOB_DATABASE_URL,uid=1000 \
-    env DMOB_DATABASE_URL=$(cat /run/secrets/DMOB_DATABASE_URL) \
-    npx prisma generate --schema=./prismaDmob/schema.prisma
 
 RUN npm run build
 
@@ -20,7 +17,6 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 COPY --from=build /app/dist ./dist
 COPY --from=build --chown=node:node /app/prisma/ ./prisma/
-COPY --from=build --chown=node:node /app/prismaDmob/ ./prismaDmob/
 COPY ci/aws-secret-to-db-url.js ./
 COPY ci/runner.sh ./
 
