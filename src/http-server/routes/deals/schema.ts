@@ -35,5 +35,8 @@ export const GetDealByIdRequestSchema = z.object({
 });
 
 export const GetByIdDealIdQuerySchema = z.object({
-  onChainDealId: z.string().optional(),
+  onChainDealId: z
+    .string()
+    .regex(/^\d+$/, "onChainDealId must be a numeric string")
+    .optional(),
 });

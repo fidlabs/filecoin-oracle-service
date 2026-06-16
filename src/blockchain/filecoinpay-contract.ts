@@ -54,7 +54,6 @@ export async function settleRailOnFilecoinPayContract(
   return {
     success: true,
     contractName: ContractName.FilecoinPay,
-    contractAddress: filecoinPayContractAddress,
     functionName,
     receipt,
   };

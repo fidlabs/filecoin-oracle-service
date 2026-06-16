@@ -62,7 +62,6 @@ export async function setSliOnOracleContract(
   return {
     success: true,
     contractName: ContractName.SliOracle,
-    contractAddress: oracleContractAddress,
     functionName,
     receipt,
   };

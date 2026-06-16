@@ -180,7 +180,6 @@ export interface OnChainTransactionResult {
   success: boolean;
   contractName: ContractName;
   functionName: string;
-  contractAddress: Address;
   receipt: TransactionReceipt;
 }
 

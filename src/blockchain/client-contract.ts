@@ -84,7 +84,6 @@ export async function setClaimTerminatedEarlyOnClientContract(
   return {
     success: true,
     contractName: ContractName.Client,
-    contractAddress: SERVICE_CONFIG.CLIENT_CONTRACT_ADDRESS as Address,
     functionName,
     receipt,
   };
