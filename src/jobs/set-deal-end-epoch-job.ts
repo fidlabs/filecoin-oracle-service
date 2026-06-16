@@ -46,21 +46,21 @@ export async function trackDealEndEpochJob() {
       );
 
       if (deal.dealEndEpoch) {
-        const dealEnEpochResult = await setDealEndEpochOnValidatorContract(
+        const dealEndEpochResult = await setDealEndEpochOnValidatorContract(
           BigInt(deal.dealEndEpoch),
           deal.validatorContractAddress as Address,
         );
 
-        const modifyRaildPaymentTransactionResult =
+        const modifyRailPaymentTransactionResult =
           await modifyRailPaymentOnValidatorContract(
             deal.validatorContractAddress as Address,
           );
 
         await Promise.all([
-          storeOnChainTransactionToDb(deal.id, dealEnEpochResult),
+          storeOnChainTransactionToDb(deal.id, dealEndEpochResult),
           storeOnChainTransactionToDb(
             deal.id,
-            modifyRaildPaymentTransactionResult,
+            modifyRailPaymentTransactionResult,
           ),
         ]);
 

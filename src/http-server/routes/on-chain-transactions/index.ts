@@ -12,7 +12,8 @@ export function onChainTransactionsRoutes(
     "/gas-usage",
     {
       schema: {
-        description: "Get deal details by on-chain deal ID",
+        description:
+          "Get gas usage grouped by function (optionally filtered by on-chain deal ID)",
         querystring: GetByIdDealIdQuerySchema,
       },
     },

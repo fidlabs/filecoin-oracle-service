@@ -49,7 +49,6 @@ export async function terminateRailOnValidatorContract(
   return {
     success: true,
     contractName: ContractName.Validator,
-    contractAddress: validatorContractAddress,
     functionName,
     receipt,
   };
@@ -92,7 +91,6 @@ export async function setDealEndEpochOnValidatorContract(
   return {
     success: true,
     contractName: ContractName.Validator,
-    contractAddress: validatorContractAddress,
     functionName,
     receipt,
   };
@@ -134,7 +132,6 @@ export async function modifyRailPaymentOnValidatorContract(
   return {
     success: true,
     contractName: ContractName.Validator,
-    contractAddress: validatorContractAddress,
     functionName,
     receipt,
   };

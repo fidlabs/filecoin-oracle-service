@@ -562,18 +562,20 @@ export async function storeOnChainTransactionToDb(
 export async function getTotalGasUsageGroupedByFunctionFromDb(
   onChainDealId?: bigint,
 ): Promise<GasUsageByFunction[]> {
+  const dealId = onChainDealId ?? null;
+
   const result = await prismaClient.$queryRaw<GasUsageByFunction[]>`
     SELECT 
     transaction."functionName",
       COUNT(*) AS "transactionCount",
-      SUM(transaction_detail."gasUsed") AS "gasUsed"
+      COALESCE(SUM(transaction_detail."gasUsed"), 0)::bigint AS "gasUsed"
     FROM "porep_market_deal_on_chain_transaction" transaction
     JOIN "porep_market_deal_on_chain_transaction_detail" transaction_detail
       ON transaction_detail."transactionId" = transaction.id
     JOIN "porep_market_deal" deal
     ON deal.id = transaction."porepMarketDealId"
     WHERE 
-    (${onChainDealId}::bigint IS NULL OR deal."onChainDealId" = ${onChainDealId}::bigint)
+      (${dealId}::bigint IS NULL OR deal."onChainDealId" = ${dealId}::bigint)
     GROUP BY transaction."functionName"
   `;
 

@@ -97,7 +97,6 @@ export async function rejectExpiredDealOnPoRepMarketContract(
   return {
     success: true,
     contractName: ContractName.PoRepMarket,
-    contractAddress: porepMarketContractAddress,
     functionName,
     receipt,
   };

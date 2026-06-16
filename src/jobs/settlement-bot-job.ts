@@ -39,7 +39,7 @@ export async function runSettlementBotJob() {
 
       await storeLastSettlementToDb(
         deal.id,
-        transactionResult.receipt?.blockNumber,
+        transactionResult.receipt.blockNumber,
       );
 
       await storeOnChainTransactionToDb(deal.id, transactionResult);
