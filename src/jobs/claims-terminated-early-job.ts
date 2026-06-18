@@ -40,7 +40,7 @@ export async function trackClaimsTerminatedEarlyJob() {
 
     claimTrackingLogger.info("Start processing completed deals...");
 
-    const CHUNK_SIZE = 50;
+    const CHUNK_SIZE = 30;
 
     const claimsToProcess = completedDeals.flatMap((deal) =>
       deal.claims.map((claim) => ({

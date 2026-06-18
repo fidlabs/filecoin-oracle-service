@@ -15,7 +15,7 @@ export async function fetchStateSectorPartition(
   spId: string,
   sector: number,
 ): Promise<FilecoinAPIStateSectorPartition> {
-  const response = await fetch("https://filecoin.chainup.net/rpc/v1", {
+  const response = await fetch(SERVICE_CONFIG.RPC_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
