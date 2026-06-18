@@ -16,7 +16,7 @@ import { healthRoutes } from "./routes/health";
 import { responseCustomFormatterPlugin } from "./utils/response-formatter-plugin/response-plugin";
 import { onChainTransactionsRoutes } from "./routes/on-chain-transactions";
 
-const httpLogger = baseLogger.child(
+export const httpLogger = baseLogger.child(
   { avengers: "assemble" },
   { msgPrefix: "[HTTP] " },
 );
