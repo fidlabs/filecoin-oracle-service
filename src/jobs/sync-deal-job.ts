@@ -15,6 +15,54 @@ const syncDealLogger = baseLogger.child(
   { msgPrefix: "[Sync Deal Job] " },
 );
 
+const isDealEligibleForSyncClaims = async (
+  porepMarketContractDealId: bigint,
+) => {
+  const dealExistInDb = await getDealByOnChainIdFromDb(
+    porepMarketContractDealId,
+  );
+
+  if (!dealExistInDb) {
+    syncDealLogger.info(
+      `Deal with ID ${porepMarketContractDealId} does not exist in database, will sync it`,
+    );
+
+    return true;
+  }
+
+  if (
+    dealExistInDb &&
+    dealExistInDb.state === "Completed" &&
+    !dealExistInDb.allocationsMatchedCount
+  ) {
+    syncDealLogger.info(
+      `Deal with ID ${porepMarketContractDealId} exists in database with Completed state, but allocationsMatchedCount is not set, will sync it`,
+    );
+
+    return true;
+  }
+
+  if (dealExistInDb && dealExistInDb.state !== "Completed") {
+    syncDealLogger.info(
+      `Deal with ID ${porepMarketContractDealId} exists in database with state ${dealExistInDb.state}, will not sync it`,
+    );
+
+    return false;
+  }
+
+  if (
+    dealExistInDb &&
+    dealExistInDb.state === "Completed" &&
+    dealExistInDb.allocationsMatchedCount
+  ) {
+    syncDealLogger.info(
+      `Deal with ID ${porepMarketContractDealId} exists in database and allocations are matched with claims, will not sync it`,
+    );
+  }
+
+  return false;
+};
+
 export async function syncDealsJob() {
   try {
     syncDealLogger.info("Job started");
@@ -46,18 +94,11 @@ export async function syncDealsJob() {
     for (const deal of contractAllDeals) {
       const porepMarketContractDealId = deal.dealId;
 
-      const dealExistInDb = await getDealByOnChainIdFromDb(
+      const shouldSyncClaims = await isDealEligibleForSyncClaims(
         porepMarketContractDealId,
       );
 
-      // If the deal doesn't exist in db or if there is a mismatch in count between claims and allocationIds for the existing deal in db,
-      if (
-        !dealExistInDb ||
-        (dealExistInDb?.claims?.length !=
-          dealExistInDb?.allocationIds?.length &&
-          dealExistInDb?.state !== "Rejected" &&
-          dealExistInDb?.state !== "Terminated")
-      ) {
+      if (shouldSyncClaims) {
         let claimsInfo: {
           minTermStart?: bigint;
           maxTermMin?: bigint;

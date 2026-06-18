@@ -14,6 +14,7 @@ import { trackTerminateDealJob } from "../../../jobs/terminate-deal-job";
 import { AppError } from "../../utils/response-formatter-plugin/types";
 import { PostDebugJobRequest } from "./type";
 import { runRejectExpiredDealJob } from "../../../jobs/reject-expired-deal-job";
+import { httpLogger } from "../../server";
 
 function debugMiddleware(req: FastifyRequest) {
   const authHeader = req.headers["authorization"];
@@ -47,6 +48,8 @@ export function debugRoutes(
       },
     },
     async (req: PostDebugJobRequest, replay: FastifyReply) => {
+      httpLogger.info(`Received request to trigger job: ${req.query.job}`);
+
       switch (req.query.job) {
         case "sync-deals":
           await syncDealsJob();
