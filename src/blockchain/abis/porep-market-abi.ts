@@ -125,19 +125,6 @@ export const POREP_MARKET_CONTRACT_ABI = [
   },
   {
     type: "function",
-    name: "getClientSmartContract",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     name: "getCompletedDeals",
     inputs: [],
     outputs: [
@@ -236,6 +223,19 @@ export const POREP_MARKET_CONTRACT_ABI = [
             internalType: "string",
           },
         ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getDataCapEvidenceAdapter",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
@@ -876,10 +876,10 @@ export const POREP_MARKET_CONTRACT_ABI = [
   },
   {
     type: "function",
-    name: "setClientSmartContract",
+    name: "setDataCapEvidenceAdapter",
     inputs: [
       {
-        name: "_clientSmartContract",
+        name: "_dataCapEvidenceAdapter",
         type: "address",
         internalType: "address",
       },
@@ -1024,10 +1024,10 @@ export const POREP_MARKET_CONTRACT_ABI = [
   },
   {
     type: "event",
-    name: "ClientSmartContractUpdated",
+    name: "DataCapEvidenceAdapterUpdated",
     inputs: [
       {
-        name: "clientSmartContract",
+        name: "dataCapEvidenceAdapter",
         type: "address",
         indexed: true,
         internalType: "address",
@@ -1576,7 +1576,7 @@ export const POREP_MARKET_CONTRACT_ABI = [
   },
   {
     type: "error",
-    name: "InvalidClientSmartContractAddress",
+    name: "InvalidDataCapEvidenceAdapterAddress",
     inputs: [],
   },
   {

@@ -67,6 +67,19 @@ export const VALIDATOR_CONTRACT_ABI = [
   },
   {
     type: "function",
+    name: "getRailStatus",
+    inputs: [],
+    outputs: [
+      {
+        name: "railStatus",
+        type: "uint8",
+        internalType: "uint8",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "getRoleAdmin",
     inputs: [
       {
@@ -151,7 +164,7 @@ export const VALIDATOR_CONTRACT_ABI = [
         internalType: "address",
       },
       {
-        name: "_clientSC",
+        name: "_dataCapEvidenceAdapter",
         type: "address",
         internalType: "address",
       },
@@ -591,7 +604,7 @@ export const VALIDATOR_CONTRACT_ABI = [
   },
   {
     type: "error",
-    name: "CallerIsNotClientSC",
+    name: "CallerIsNotDataCapEvidenceAdapter",
     inputs: [],
   },
   {
@@ -622,7 +635,7 @@ export const VALIDATOR_CONTRACT_ABI = [
   },
   {
     type: "error",
-    name: "InvalidClientSCAddress",
+    name: "InvalidDataCapEvidenceAdapterAddress",
     inputs: [],
   },
   {
