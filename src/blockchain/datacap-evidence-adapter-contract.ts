@@ -1,27 +1,23 @@
 import { Address } from "viem";
 import { SERVICE_CONFIG } from "../config/env";
 
+import { ContractName } from "../../prisma/generated/client";
 import { baseLogger } from "../utils/logger";
-import { CLIENT_CONTRACT_ABI } from "./abis/client-abi";
+import { OnChainTransactionResult } from "../utils/types";
+import { DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI } from "./abis/datacap-evidence-adapter-abi";
 import {
   getRpcClient,
   getWalletClient,
   waitForTransactionReceiptWithRetry,
+  WalletAccountRole,
 } from "./blockchain-client";
-import { OnChainTransactionResult } from "../utils/types";
-import { ContractName } from "../../prisma/generated/client";
 
 const childLogger = baseLogger.child(
   { avengers: "assemble" },
   { msgPrefix: "[Client Contract] " },
 );
 
-export enum WalletAccountRole {
-  POREP_SERVICE_ROLE = "POREP_SERVICE_ROLE",
-  ORACLE_ROLE = "ORACLE_ROLE",
-  TERMINATION_ORACLE_ROLE = "TERMINATION_ORACLE_ROLE",
-  FILECOIN_PAY_ROLE = "FILECOIN_PAY_ROLE",
-}
+const ALLOCATION_IDS_PAGE_SIZE = 500n;
 
 export async function getClientAllocationIdsPerDeal(
   onChainDealId: bigint,
@@ -29,13 +25,31 @@ export async function getClientAllocationIdsPerDeal(
   childLogger.info(`Fetching allocation IDs for deal ${onChainDealId}...`);
 
   const rpcClient = getRpcClient();
+  const allocationIds: bigint[] = [];
+  let offset = 0n;
+  let sumOfAllocations: bigint | undefined;
 
-  const allocationIds = await rpcClient.readContract({
-    address: SERVICE_CONFIG.CLIENT_CONTRACT_ADDRESS as Address,
-    abi: CLIENT_CONTRACT_ABI,
-    functionName: "getClientAllocationIdsPerDeal",
-    args: [onChainDealId],
-  });
+  do {
+    const [ids, total] = await rpcClient.readContract({
+      address:
+        SERVICE_CONFIG.DATACAP_EVIDENCE_ADAPTER_CONTRACT_ADDRESS as Address,
+      abi: DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI,
+      functionName: "getAllocationIdsPerDeal",
+      args: [onChainDealId, offset, ALLOCATION_IDS_PAGE_SIZE],
+    });
+
+    sumOfAllocations = total;
+    allocationIds.push(...ids);
+    offset += BigInt(ids.length);
+
+    childLogger.info(
+      `Fetched ${allocationIds.length}/${sumOfAllocations} allocation IDs for deal ${onChainDealId}`,
+    );
+
+    if (ids.length === 0) {
+      break;
+    }
+  } while (offset < sumOfAllocations);
 
   childLogger.info(
     `Fetched ${allocationIds.length} allocation IDs for deal ${onChainDealId}`,
@@ -62,8 +76,9 @@ export async function setClaimTerminatedEarlyOnClientContract(
   childLogger.info(`${functionName}: Simulating request...`);
 
   const { request } = await rpcClient.simulateContract({
-    address: SERVICE_CONFIG.CLIENT_CONTRACT_ADDRESS as Address,
-    abi: CLIENT_CONTRACT_ABI,
+    address:
+      SERVICE_CONFIG.DATACAP_EVIDENCE_ADAPTER_CONTRACT_ADDRESS as Address,
+    abi: DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI,
     functionName,
     args: [allocationIds],
     account: walletClient.account,
