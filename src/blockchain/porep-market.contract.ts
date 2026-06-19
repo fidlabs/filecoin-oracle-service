@@ -1,4 +1,5 @@
 import { Address } from "viem";
+import { ContractName } from "../../prisma/generated/client";
 import { SERVICE_CONFIG } from "../config/env";
 import { baseLogger } from "../utils/logger";
 import {
@@ -10,9 +11,8 @@ import {
   getRpcClient,
   getWalletClient,
   waitForTransactionReceiptWithRetry,
+  WalletAccountRole,
 } from "./blockchain-client";
-import { WalletAccountRole } from "./client-contract";
-import { ContractName } from "../../prisma/generated/client";
 
 const childLogger = baseLogger.child(
   { avengers: "assemble" },
