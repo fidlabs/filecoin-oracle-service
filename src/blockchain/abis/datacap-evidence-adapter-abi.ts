@@ -1,6 +1,6 @@
 import { Abi } from "viem";
 
-export const CLIENT_CONTRACT_ABI = [
+export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
   {
     type: "constructor",
     inputs: [],
@@ -86,19 +86,60 @@ export const CLIENT_CONTRACT_ABI = [
   },
   {
     type: "function",
-    name: "getClientAllocationIdsPerDeal",
+    name: "evidenceType",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint8",
+        internalType: "uint8",
+      },
+    ],
+    stateMutability: "pure",
+  },
+  {
+    type: "function",
+    name: "getAllocationIdsPerDeal",
     inputs: [
       {
         name: "dealId",
         type: "uint256",
         internalType: "uint256",
       },
+      {
+        name: "offset",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "limit",
+        type: "uint256",
+        internalType: "uint256",
+      },
     ],
     outputs: [
       {
-        name: "",
+        name: "ids",
         type: "uint64[]",
         internalType: "CommonTypes.FilActorId[]",
+      },
+      {
+        name: "sumOfAllocations",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getPoRepMarketAddress",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
@@ -374,45 +415,7 @@ export const CLIENT_CONTRACT_ABI = [
   },
   {
     type: "function",
-    name: "supportsInterface",
-    inputs: [
-      {
-        name: "interfaceId",
-        type: "bytes4",
-        internalType: "bytes4",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "terminatedClaims",
-    inputs: [
-      {
-        name: "claimId",
-        type: "uint64",
-        internalType: "uint64",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "transfer",
+    name: "submitDataCapBatch",
     inputs: [
       {
         name: "params",
@@ -463,6 +466,44 @@ export const CLIENT_CONTRACT_ABI = [
     ],
     outputs: [],
     stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "supportsInterface",
+    inputs: [
+      {
+        name: "interfaceId",
+        type: "bytes4",
+        internalType: "bytes4",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "terminatedClaims",
+    inputs: [
+      {
+        name: "claimId",
+        type: "uint64",
+        internalType: "uint64",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -666,6 +707,11 @@ export const CLIENT_CONTRACT_ABI = [
   },
   {
     type: "error",
+    name: "CallerIsNotPoRepMarket",
+    inputs: [],
+  },
+  {
+    type: "error",
     name: "ERC1967InvalidImplementation",
     inputs: [
       {
@@ -787,6 +833,11 @@ export const CLIENT_CONTRACT_ABI = [
   {
     type: "error",
     name: "InvalidInitialization",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidLimit",
     inputs: [],
   },
   {

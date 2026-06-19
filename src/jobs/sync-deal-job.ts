@@ -1,5 +1,5 @@
 import { getAllClaimsFromClaimInspectorContract } from "../blockchain/claim-inspector-contract";
-import { getClientAllocationIdsPerDeal } from "../blockchain/client-contract";
+import { getClientAllocationIdsPerDeal } from "../blockchain/datacap-evidence-adapter-contract";
 import { getDealsFromPoRepMarketContract } from "../blockchain/porep-market.contract";
 import {
   getChainStateToDomain,

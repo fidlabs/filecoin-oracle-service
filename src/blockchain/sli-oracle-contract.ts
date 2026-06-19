@@ -8,8 +8,8 @@ import {
   getRpcClient,
   getWalletClient,
   waitForTransactionReceiptWithRetry,
+  WalletAccountRole,
 } from "./blockchain-client";
-import { WalletAccountRole } from "./client-contract";
 
 const childLogger = baseLogger.child(
   { avengers: "assemble" },

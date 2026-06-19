@@ -5,8 +5,8 @@ import {
   getRpcClient,
   getWalletClient,
   waitForTransactionReceiptWithRetry,
+  WalletAccountRole,
 } from "./blockchain-client";
-import { WalletAccountRole } from "./client-contract";
 import { OnChainTransactionResult } from "../utils/types";
 import { ContractName } from "../../prisma/generated/client";
 
