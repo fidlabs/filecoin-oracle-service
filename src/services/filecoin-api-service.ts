@@ -35,7 +35,11 @@ export async function fetchStateSectorPartition(
   }
 
   const data = await response.json();
-  return data.result as FilecoinAPIStateSectorPartition;
+
+  return {
+    Partition: BigInt(data?.result.Partition),
+    Deadline: BigInt(data?.result.Deadline),
+  } as FilecoinAPIStateSectorPartition;
 }
 
 export async function fetchSectorInfo(

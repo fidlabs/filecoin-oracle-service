@@ -6,11 +6,75 @@ import {
 import { fetchStateSectorPartition } from "../services/filecoin-api-service";
 import { baseLogger } from "../utils/logger";
 import { ChainSectorStatus, SectorStatus } from "../utils/types";
+import { sleep } from "../utils/utils";
 
 const claimTrackingLogger = baseLogger.child(
   { avengers: "assemble" },
   { msgPrefix: "[Claims Terminated Early Job] " },
 );
+
+const FETCH_PARTITION_MAX_ATTEMPTS = 5;
+const FETCH_PARTITION_INITIAL_RETRY_DELAY_MS = 1_000;
+const FETCH_PARTITION_MAX_RETRY_DELAY_MS = 30_000;
+
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : String(error);
+
+async function fetchStateSectorPartitionWithRetry({
+  storageProviderId,
+  sector,
+  claimId,
+}: {
+  storageProviderId: string;
+  sector: bigint;
+  claimId: bigint;
+}) {
+  let retryDelayMs = FETCH_PARTITION_INITIAL_RETRY_DELAY_MS;
+
+  for (let attempt = 1; attempt <= FETCH_PARTITION_MAX_ATTEMPTS; attempt++) {
+    try {
+      const stateSectorInfo = await fetchStateSectorPartition(
+        storageProviderId,
+        Number(sector),
+      );
+
+      if (attempt > 1) {
+        claimTrackingLogger.info(
+          `Fetched sector partition for claim ${claimId.toString()} after ${attempt} attempts`,
+        );
+      }
+
+      return stateSectorInfo;
+    } catch (error) {
+      if (attempt === FETCH_PARTITION_MAX_ATTEMPTS) {
+        claimTrackingLogger.error(
+          {
+            err: error,
+            claimId: claimId.toString(),
+            sector: sector.toString(),
+            storageProviderId,
+            attempts: attempt,
+          },
+          "Failed to fetch sector partition after all retry attempts. Claim will be skipped.",
+        );
+        return null;
+      }
+
+      claimTrackingLogger.warn(
+        `Failed to fetch sector partition. Attempt ${attempt} of ${FETCH_PARTITION_MAX_ATTEMPTS}. Error: ${getErrorMessage(error)}`,
+      );
+
+      await sleep(retryDelayMs);
+
+      retryDelayMs = Math.min(
+        retryDelayMs * 2,
+        FETCH_PARTITION_MAX_RETRY_DELAY_MS,
+      );
+    }
+  }
+
+  return null;
+}
 
 export async function trackClaimsTerminatedEarlyJob() {
   try {
@@ -41,8 +105,15 @@ export async function trackClaimsTerminatedEarlyJob() {
     claimTrackingLogger.info("Start processing completed deals...");
 
     const CHUNK_SIZE = 30;
+    let checkedClaimsCount = 0;
+    let failedClaimChecksCount = 0;
 
-    const claimsToProcess = completedDeals.flatMap((deal) =>
+    const claimsToProcess: {
+      claimId: bigint;
+      onChainDealId: bigint;
+      provider: bigint;
+      sector: bigint;
+    }[] = completedDeals.flatMap((deal) =>
       deal.claims.map((claim) => ({
         claimId: claim.claimId,
         onChainDealId: deal.onChainDealId,
@@ -62,22 +133,37 @@ export async function trackClaimsTerminatedEarlyJob() {
         `Processing claims batch ${i / CHUNK_SIZE + 1} / ${Math.ceil(claimsToProcess.length / CHUNK_SIZE)}, chunk size: ${chunk.length}`,
       );
 
-      const sectorInfo = await Promise.all(
-        chunk.map(async (claim) => {
-          const storageProviderId = `f0${claim.provider.toString()}`;
+      const sectorInfo = (
+        await Promise.all(
+          chunk.map(async (claim) => {
+            const storageProviderId = `f0${claim.provider.toString()}`;
 
-          const stateSectorInfo = await fetchStateSectorPartition(
-            storageProviderId,
-            Number(claim.sector),
-          );
+            const stateSectorInfo = await fetchStateSectorPartitionWithRetry({
+              storageProviderId,
+              sector: claim.sector,
+              claimId: claim.claimId,
+            });
 
-          return {
-            ...claim,
-            deadline: stateSectorInfo.Deadline,
-            partition: stateSectorInfo.Partition,
-          };
-        }),
-      );
+            if (!stateSectorInfo) return null;
+
+            return {
+              ...claim,
+              deadline: stateSectorInfo.Deadline,
+              partition: stateSectorInfo.Partition,
+            };
+          }),
+        )
+      ).filter((claim) => claim !== null);
+
+      checkedClaimsCount += sectorInfo.length;
+      failedClaimChecksCount += chunk.length - sectorInfo.length;
+
+      if (sectorInfo.length === 0) {
+        claimTrackingLogger.warn(
+          `No sector partition data fetched for claims batch ${i / CHUNK_SIZE + 1}. Batch will be skipped.`,
+        );
+        continue;
+      }
 
       const validatedClaims = await batchValidateSectorStatus(
         sectorInfo.map((claim) => ({
@@ -102,7 +188,13 @@ export async function trackClaimsTerminatedEarlyJob() {
           status: SectorStatus.Dead,
         });
       });
+
+      await sleep(2000);
     }
+
+    claimTrackingLogger.info(
+      `Claims termination check summary: checked ${checkedClaimsCount} claims, failed to check ${failedClaimChecksCount} claims after ${FETCH_PARTITION_MAX_ATTEMPTS} fetch attempts.`,
+    );
 
     claimTrackingLogger.info(
       `Finished processing all completed deals. Total claims marked for early termination: ${terminatedClaims.length}`,
@@ -112,16 +204,8 @@ export async function trackClaimsTerminatedEarlyJob() {
       await updateClaimSectorStatusInDb(terminatedClaims);
 
       claimTrackingLogger.info(
-        `Updated ${terminatedClaims.length} claims in database with terminated status.`,
+        `Updated ${terminatedClaims.length} claims in database with DEAD sectors status.`,
       );
-
-      // claimTrackingLogger.info(
-      //   `Setting ${terminatedClaims.length} claims as terminated early on client contract.`,
-      // );
-
-      // await setClaimTerminatedEarlyOnClientContract(
-      //   terminatedClaims.map((claim) => claim.claimId),
-      // );
     }
   } catch (err) {
     claimTrackingLogger.error({ err }, "Job failed");

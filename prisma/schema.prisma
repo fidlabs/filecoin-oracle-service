@@ -89,6 +89,7 @@ model porep_market_deal_claim {
 
   deal porep_market_deal @relation(fields: [porepMarketDealId], references: [id])
 
+  @@unique([claimId, sector, provider])
   @@index([porepMarketDealId])
 }
 
