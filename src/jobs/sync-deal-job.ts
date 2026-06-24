@@ -33,10 +33,10 @@ const isDealEligibleForSyncClaims = async (
   if (
     dealExistInDb &&
     dealExistInDb.state === "Completed" &&
-    !dealExistInDb.allocationsMatchedCount
+    !dealExistInDb.isAllocationsMatched
   ) {
     syncDealLogger.info(
-      `Deal with ID ${porepMarketContractDealId} exists in database with Completed state, but allocationsMatchedCount is not set, will sync it`,
+      `Deal with ID ${porepMarketContractDealId} exists in database with Completed state, but isAllocationsMatched is not set, will sync it`,
     );
 
     return true;
@@ -53,7 +53,7 @@ const isDealEligibleForSyncClaims = async (
   if (
     dealExistInDb &&
     dealExistInDb.state === "Completed" &&
-    dealExistInDb.allocationsMatchedCount
+    dealExistInDb.isAllocationsMatched
   ) {
     syncDealLogger.info(
       `Deal with ID ${porepMarketContractDealId} exists in database and allocations are matched with claims, will not sync it`,
