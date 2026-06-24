@@ -217,6 +217,27 @@ export async function getDealsToSetSliFromDb(): Promise<PorepMarketDealDto[]> {
   });
 }
 
+export async function getDealsToSyncUrlFinderSliTargetsFromDb(): Promise<
+  PorepMarketDealDto[]
+> {
+  return await getDealsByWhereFromDb({
+    urlFinderSliTargetTriggeredAt: null,
+  });
+}
+
+export async function markUrlFinderSliTargetTriggeredInDb(
+  onChainDealId: bigint,
+) {
+  return prismaClient.porep_market_deal.update({
+    where: {
+      onChainDealId,
+    },
+    data: {
+      urlFinderSliTargetTriggeredAt: new Date(),
+    },
+  });
+}
+
 export async function syncPoRepMarketContractDealsWithDb(
   deals: PorepMarketDeal[],
 ) {

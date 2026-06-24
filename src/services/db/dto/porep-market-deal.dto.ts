@@ -18,6 +18,7 @@ export const porepMarkerDealSelect =
     allocationIds: true,
     isRailTerminated: true,
     manifestLocation: true,
+    urlFinderSliTargetTriggeredAt: true,
     createdAt: true,
     updatedAt: true,
     lastSyncedAt: true,
