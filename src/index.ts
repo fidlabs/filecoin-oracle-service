@@ -41,12 +41,19 @@ try {
   const terminateDealsInterval =
     SERVICE_CONFIG.TRIGGER_TERMINATE_DEAL_JOB_INTERVAL_CRON;
   const syncDealsInterval = SERVICE_CONFIG.TRIGGER_SYNC_DEALS_JOB_INTERVAL_CRON;
+  const syncUrlFinderSliTargetsInterval =
+    SERVICE_CONFIG.SYNC_URL_FINDER_SLI_TARGETS_JOB_INTERVAL_CRON;
   const trackDealEndEpochInterval =
     SERVICE_CONFIG.TRIGGER_END_EPOCH_DEAL_JOB_INTERVAL_CRON;
   const rejectExpiredDealInterval =
     SERVICE_CONFIG.TRIGGER_REJECT_EXPIRED_DEAL_INTERVAL_CRON;
 
   childLogger.info(`Scheduling sync deals cron job "${syncDealsInterval}"`);
+
+  childLogger.info(
+    `Scheduling Sync URL Finder SLI Targets cron job "${syncUrlFinderSliTargetsInterval}"`,
+  );
+
   childLogger.info(
     `Scheduling Track Deal End Epoch cron job "${trackDealEndEpochInterval}"`,
   );
@@ -66,6 +73,7 @@ try {
 
   // cron.schedule(rejectExpiredDealInterval, runRejectExpiredDealJob);
   // cron.schedule(syncDealsInterval, syncDealsJob);
+  // cron.schedule(syncUrlFinderSliTargetsInterval, syncUrlFinderSliTargetsJob);
   // cron.schedule(sliInterval, setSliOracleJob);
   // cron.schedule(trackDealEndEpochInterval, trackDealEndEpochJob);
   // cron.schedule(settlementBotInterval, runSettlementBotJob);

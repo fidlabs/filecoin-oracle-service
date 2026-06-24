@@ -10,6 +10,7 @@ import { runRejectExpiredDealJob } from "../../../jobs/reject-expired-deal-job";
 import { trackDealEndEpochJob } from "../../../jobs/set-deal-end-epoch-job";
 import { setSliOracleJob } from "../../../jobs/set-sli-job";
 import { runSettlementBotJob } from "../../../jobs/settlement-bot-job";
+import { syncUrlFinderSliTargetsJob } from "../../../jobs/sync-url-finder-sli-targets-job";
 import { syncDealsJob } from "../../../jobs/sync-deal-job";
 import { syncSettlementHistoryJob } from "../../../jobs/sync-settlement-history-job";
 import { trackTerminateDealJob } from "../../../jobs/terminate-deal-job";
@@ -54,6 +55,9 @@ export function debugRoutes(
       switch (req.query.job) {
         case "sync-deals":
           await syncDealsJob();
+          break;
+        case "sync-url-finder-sli-targets":
+          await syncUrlFinderSliTargetsJob();
           break;
         case "track-deal-end-epoch":
           await trackDealEndEpochJob();
