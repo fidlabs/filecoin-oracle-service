@@ -6,7 +6,11 @@ import {
   PorepMarketContractDealProposal,
 } from "../utils/types";
 import { POREP_MARKET_CONTRACT_ABI } from "./abis/porep-market-abi";
-import { getRpcClient, getWalletClient } from "./blockchain-client";
+import {
+  getRpcClient,
+  getWalletClient,
+  waitForTransactionReceiptWithRetry,
+} from "./blockchain-client";
 import { WalletAccountRole } from "./client-contract";
 import { ContractName } from "../../prisma/generated/client";
 
@@ -86,9 +90,7 @@ export async function rejectExpiredDealOnPoRepMarketContract(
     `${functionName}: Transaction sent: ${txHash}, waiting for confirmation...`,
   );
 
-  const receipt = await rpcClient.waitForTransactionReceipt({
-    hash: txHash,
-  });
+  const receipt = await waitForTransactionReceiptWithRetry(txHash);
 
   childLogger.info(
     `${functionName}: Transaction executed in block ${receipt.blockNumber}`,

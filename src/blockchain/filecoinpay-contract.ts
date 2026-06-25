@@ -4,7 +4,11 @@ import { SERVICE_CONFIG } from "../config/env";
 import { baseLogger } from "../utils/logger";
 import { OnChainTransactionResult } from "../utils/types";
 import { FILECOIN_PAY_CONTRACT_ABI } from "./abis/filecoinpay-abi";
-import { getRpcClient, getWalletClient } from "./blockchain-client";
+import {
+  getRpcClient,
+  getWalletClient,
+  waitForTransactionReceiptWithRetry,
+} from "./blockchain-client";
 import { WalletAccountRole } from "./client-contract";
 
 const childLogger = baseLogger.child(
@@ -43,9 +47,7 @@ export async function settleRailOnFilecoinPayContract(
     `${functionName}: Transaction sent: ${txHash}, waiting for confirmation...`,
   );
 
-  const receipt = await rpcClient.waitForTransactionReceipt({
-    hash: txHash,
-  });
+  const receipt = await waitForTransactionReceiptWithRetry(txHash);
 
   childLogger.info(
     `${functionName}: Transaction executed in block ${receipt.blockNumber}`,

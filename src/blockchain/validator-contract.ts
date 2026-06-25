@@ -1,7 +1,11 @@
 import { Address } from "viem";
 import { baseLogger } from "../utils/logger";
 import { VALIDATOR_CONTRACT_ABI } from "./abis/validator-abi";
-import { getRpcClient, getWalletClient } from "./blockchain-client";
+import {
+  getRpcClient,
+  getWalletClient,
+  waitForTransactionReceiptWithRetry,
+} from "./blockchain-client";
 import { WalletAccountRole } from "./client-contract";
 import { OnChainTransactionResult } from "../utils/types";
 import { ContractName } from "../../prisma/generated/client";
@@ -38,9 +42,7 @@ export async function terminateRailOnValidatorContract(
     `${functionName}: Transaction sent: ${txHash}, waiting for confirmation...`,
   );
 
-  const receipt = await rpcClient.waitForTransactionReceipt({
-    hash: txHash,
-  });
+  const receipt = await waitForTransactionReceiptWithRetry(txHash);
 
   childLogger.info(
     `${functionName}: Transaction executed in block ${receipt.blockNumber}`,
@@ -80,9 +82,7 @@ export async function setDealEndEpochOnValidatorContract(
     `${functionName}: Transaction sent: ${txHash}, waiting for confirmation...`,
   );
 
-  const receipt = await rpcClient.waitForTransactionReceipt({
-    hash: txHash,
-  });
+  const receipt = await waitForTransactionReceiptWithRetry(txHash);
 
   childLogger.info(
     `${functionName}: Transaction executed in block ${receipt.blockNumber}`,
@@ -121,9 +121,7 @@ export async function modifyRailPaymentOnValidatorContract(
     `modifyRailPayment: Transaction sent: ${txHash}, waiting for confirmation...`,
   );
 
-  const receipt = await rpcClient.waitForTransactionReceipt({
-    hash: txHash,
-  });
+  const receipt = await waitForTransactionReceiptWithRetry(txHash);
 
   childLogger.info(
     `${functionName}: Transaction executed in block ${receipt.blockNumber}`,
