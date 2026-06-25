@@ -14,6 +14,19 @@ import {
 
 const prismaClient = getPrismaClient();
 
+const hasMatchedAllocations = ({
+  allocationsRequiredCount,
+  allocationsMatchedCount,
+}: {
+  allocationsRequiredCount?: bigint;
+  allocationsMatchedCount?: bigint;
+}) =>
+  allocationsRequiredCount !== undefined &&
+  allocationsRequiredCount !== null &&
+  allocationsMatchedCount !== undefined &&
+  allocationsMatchedCount !== null &&
+  allocationsRequiredCount === allocationsMatchedCount;
+
 export const getChainStateToDomain = (state: number): DealState => {
   switch (state) {
     case PorepMarketContractDealState.Proposed:
@@ -194,8 +207,10 @@ export async function syncPoRepMarketContractDealsWithDb(
       );
 
       const upserted = await Promise.all(
-        deals.map((d) =>
-          tx.porep_market_deal.upsert({
+        deals.map((d) => {
+          const isClaimsAllocationsMatched = hasMatchedAllocations(d);
+
+          return tx.porep_market_deal.upsert({
             where: {
               onChainDealId: d.dealId,
             },
@@ -206,14 +221,12 @@ export async function syncPoRepMarketContractDealsWithDb(
               railId: d.railId,
               validatorContractAddress: d.validatorContractAddress,
               state: d.state,
-              dealStartEpoch:
-                d.allocationsRequiredCount === d.allocationsMatchedCount
-                  ? d.dealStartEpoch
-                  : undefined, // set deal start epoch only if all required allocations are matched
-              dealEndEpoch:
-                d.allocationsRequiredCount === d.allocationsMatchedCount
-                  ? d.dealEndEpoch
-                  : undefined, // set deal end epoch only if all required allocations are matched
+              dealStartEpoch: isClaimsAllocationsMatched
+                ? d.dealStartEpoch
+                : undefined, // set deal start epoch only if all required allocations are matched
+              dealEndEpoch: isClaimsAllocationsMatched
+                ? d.dealEndEpoch
+                : undefined, // set deal end epoch only if all required allocations are matched
               manifestLocation: d.manifestLocation,
               allocationsRequiredCount: d.allocationsRequiredCount,
               allocationsMatchedCount: d.allocationsMatchedCount,
@@ -226,33 +239,30 @@ export async function syncPoRepMarketContractDealsWithDb(
               isRailTerminated: d.isRailTerminated,
               proposedAtBlock: d.proposedAtBlock,
               isAllocationsMatched:
-                d.state === DealState.Completed &&
-                d.allocationsRequiredCount === d.allocationsMatchedCount, // consider allocations matched only if deal is completed and all required allocations are matched
+                d.state === DealState.Completed && isClaimsAllocationsMatched, // consider allocations matched only if deal is completed and all required allocations are matched
             },
             update: {
               state: d.state,
               railId: d.railId,
               validatorContractAddress: d.validatorContractAddress,
-              dealStartEpoch:
-                d.allocationsRequiredCount === d.allocationsMatchedCount
-                  ? d.dealStartEpoch
-                  : undefined, // update deal start epoch only if all required allocations are matched
-              dealEndEpoch:
-                d.allocationsRequiredCount === d.allocationsMatchedCount
-                  ? d.dealEndEpoch
-                  : undefined, // update deal end epoch only if all required allocations are matched
+              dealStartEpoch: isClaimsAllocationsMatched
+                ? d.dealStartEpoch
+                : undefined, // update deal start epoch only if all required allocations are matched
+              dealEndEpoch: isClaimsAllocationsMatched
+                ? d.dealEndEpoch
+                : undefined, // update deal end epoch only if all required allocations are matched
               allocationIds: d.allocationIds,
               manifestLocation: d.manifestLocation,
               allocationsRequiredCount: d.allocationsRequiredCount,
               allocationsMatchedCount: d.allocationsMatchedCount,
               isAllocationsMatched:
                 d.state === DealState.Completed
-                  ? d.allocationsRequiredCount === d.allocationsMatchedCount
+                  ? isClaimsAllocationsMatched
                   : undefined, // don't change if state is diffetent than Completed, e.g Compleated => Terminated, we want to keep the isAllocationsMatched value forever
               lastSyncedAt: new Date(),
             },
-          }),
-        ),
+          });
+        }),
       );
 
       const allUpsertedDealsMap = new Map(
