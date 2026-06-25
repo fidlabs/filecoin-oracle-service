@@ -3,7 +3,11 @@ import { SERVICE_CONFIG } from "../config/env";
 
 import { baseLogger } from "../utils/logger";
 import { CLIENT_CONTRACT_ABI } from "./abis/client-abi";
-import { getRpcClient, getWalletClient } from "./blockchain-client";
+import {
+  getRpcClient,
+  getWalletClient,
+  waitForTransactionReceiptWithRetry,
+} from "./blockchain-client";
 import { OnChainTransactionResult } from "../utils/types";
 import { ContractName } from "../../prisma/generated/client";
 
@@ -73,9 +77,7 @@ export async function setClaimTerminatedEarlyOnClientContract(
     `${functionName}: Transaction sent: ${txHash}, waiting for confirmation...`,
   );
 
-  const receipt = await rpcClient.waitForTransactionReceipt({
-    hash: txHash,
-  });
+  const receipt = await waitForTransactionReceiptWithRetry(txHash);
 
   childLogger.info(
     `${functionName}: Transaction executed in block ${receipt.blockNumber}`,

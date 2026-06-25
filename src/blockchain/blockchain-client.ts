@@ -3,8 +3,10 @@ import {
   createPublicClient,
   createWalletClient,
   defineChain,
+  Hash,
   http,
   PublicClient,
+  TransactionReceipt,
   WalletClient,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
@@ -82,6 +84,53 @@ export function getRpcClient() {
   }
 
   return rpcClient;
+}
+
+const sleep = (ms: number) =>
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+
+const isReceiptTemporarilyUnavailableError = (error: unknown) => {
+  if (!(error instanceof Error)) return false;
+
+  return (
+    error.name === "TransactionReceiptNotFoundError" ||
+    error.name === "TransactionNotFoundError" ||
+    error.name === "WaitForTransactionReceiptTimeoutError"
+  );
+};
+
+export async function waitForTransactionReceiptWithRetry(
+  hash: Hash,
+): Promise<TransactionReceipt> {
+  const client = getRpcClient();
+  const maxAttempts = 5;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await client.waitForTransactionReceipt({
+        hash,
+        timeout: 5 * 60 * 1000,
+        retryCount: 12,
+      });
+    } catch (error) {
+      if (attempt === maxAttempts) {
+        throw error;
+      }
+
+      const retryDelayMs = attempt * 15 * 1000;
+
+      baseLogger.warn(
+        { error, hash, attempt, maxAttempts, retryDelayMs },
+        "Transaction receipt not available yet, retrying",
+      );
+
+      await sleep(retryDelayMs);
+    }
+  }
+
+  throw new Error(`Transaction receipt with hash ${hash} could not be found`);
 }
 
 export function getWalletClient(role: WalletAccountRole) {
