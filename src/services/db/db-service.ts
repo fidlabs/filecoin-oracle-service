@@ -256,8 +256,8 @@ export async function syncPoRepMarketContractDealsWithDb(
               allocationsRequiredCount: d.allocationsRequiredCount,
               allocationsMatchedCount: d.allocationsMatchedCount,
               isAllocationsMatched:
-                d.state === DealState.Completed
-                  ? isClaimsAllocationsMatched
+                d.state === DealState.Completed && isClaimsAllocationsMatched
+                  ? true
                   : undefined, // don't change if state is diffetent than Completed, e.g Compleated => Terminated, we want to keep the isAllocationsMatched value forever
               lastSyncedAt: new Date(),
             },
