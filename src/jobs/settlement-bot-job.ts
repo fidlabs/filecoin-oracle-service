@@ -5,6 +5,7 @@ import {
   storeOnChainTransactionToDb,
 } from "../services/db/db-service";
 import { baseLogger } from "../utils/logger";
+import { syncSettlementHistoryJob } from "./sync-settlement-history-job";
 
 const settlementChildLogger = baseLogger.child(
   { avengers: "assemble" },
@@ -14,6 +15,8 @@ const settlementChildLogger = baseLogger.child(
 export async function runSettlementBotJob() {
   try {
     settlementChildLogger.info("Job started");
+
+    await syncSettlementHistoryJob();
 
     const completedDeals = await getCompletedDealsToSettleFromDb();
 
@@ -29,24 +32,31 @@ export async function runSettlementBotJob() {
     );
 
     for (const deal of completedDeals) {
-      settlementChildLogger.info(
-        `Processing completed deal with ID ${deal.onChainDealId} for provider ${deal.provider} and client ${deal.client}`,
-      );
+      try {
+        settlementChildLogger.info(
+          `Attempting to settle rail with ID ${deal.railId} for completed deal with ID ${deal.onChainDealId}`,
+        );
 
-      const transactionResult = await settleRailOnFilecoinPayContract(
-        deal.railId,
-      );
+        const transactionResult = await settleRailOnFilecoinPayContract(
+          deal.railId,
+        );
 
-      await storeLastSettlementToDb(
-        deal.id,
-        transactionResult.receipt.blockNumber,
-      );
+        await storeLastSettlementToDb(
+          deal.id,
+          transactionResult.receipt.blockNumber,
+        );
 
-      await storeOnChainTransactionToDb(deal.id, transactionResult);
+        await storeOnChainTransactionToDb(deal.id, transactionResult);
 
-      settlementChildLogger.info(
-        `Successfully settled rail with ID ${deal.railId} for completed deal with ID ${deal.onChainDealId}`,
-      );
+        settlementChildLogger.info(
+          `Successfully settled rail with ID ${deal.railId} for completed deal with ID ${deal.onChainDealId}`,
+        );
+      } catch (error) {
+        settlementChildLogger.error(
+          { err: error },
+          `Failed to settle rail with ID ${deal.railId} for completed deal with ID ${deal.onChainDealId}`,
+        );
+      }
     }
   } catch (err) {
     settlementChildLogger.error({ err }, "Failed");

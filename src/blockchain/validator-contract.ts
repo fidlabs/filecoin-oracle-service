@@ -45,7 +45,7 @@ export async function terminateRailOnValidatorContract(
   const receipt = await waitForTransactionReceiptWithRetry(txHash);
 
   childLogger.info(
-    `${functionName}: Transaction executed in block ${receipt.blockNumber}`,
+    `${functionName}: Transaction executed in block ${receipt?.blockNumber}`,
   );
 
   return {
@@ -85,7 +85,7 @@ export async function setDealEndEpochOnValidatorContract(
   const receipt = await waitForTransactionReceiptWithRetry(txHash);
 
   childLogger.info(
-    `${functionName}: Transaction executed in block ${receipt.blockNumber}`,
+    `${functionName}: Transaction executed in block ${receipt?.blockNumber}`,
   );
 
   return {
@@ -124,7 +124,7 @@ export async function modifyRailPaymentOnValidatorContract(
   const receipt = await waitForTransactionReceiptWithRetry(txHash);
 
   childLogger.info(
-    `${functionName}: Transaction executed in block ${receipt.blockNumber}`,
+    `${functionName}: Transaction executed in block ${receipt?.blockNumber}`,
   );
 
   return {

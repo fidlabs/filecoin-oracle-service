@@ -91,16 +91,6 @@ const sleep = (ms: number) =>
     setTimeout(resolve, ms);
   });
 
-const isReceiptTemporarilyUnavailableError = (error: unknown) => {
-  if (!(error instanceof Error)) return false;
-
-  return (
-    error.name === "TransactionReceiptNotFoundError" ||
-    error.name === "TransactionNotFoundError" ||
-    error.name === "WaitForTransactionReceiptTimeoutError"
-  );
-};
-
 export async function waitForTransactionReceiptWithRetry(
   hash: Hash,
 ): Promise<TransactionReceipt> {

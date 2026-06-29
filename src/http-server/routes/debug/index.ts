@@ -6,17 +6,18 @@ import {
 } from "fastify";
 import { SERVICE_CONFIG } from "../../../config/env";
 import { trackClaimsTerminatedEarlyJob } from "../../../jobs/claims-terminated-early-job";
+import { runRejectExpiredDealJob } from "../../../jobs/reject-expired-deal-job";
 import { trackDealEndEpochJob } from "../../../jobs/set-deal-end-epoch-job";
 import { setSliOracleJob } from "../../../jobs/set-sli-job";
 import { runSettlementBotJob } from "../../../jobs/settlement-bot-job";
 import { syncDealsJob } from "../../../jobs/sync-deal-job";
+import { syncSettlementHistoryJob } from "../../../jobs/sync-settlement-history-job";
 import { trackTerminateDealJob } from "../../../jobs/terminate-deal-job";
+import { httpLogger } from "../../server";
 import { AppError } from "../../utils/response-formatter-plugin/types";
 import { PostDebugJobRequest } from "./type";
-import { runRejectExpiredDealJob } from "../../../jobs/reject-expired-deal-job";
-import { httpLogger } from "../../server";
 
-function debugMiddleware(req: FastifyRequest) {
+export function apiAuthMiddleware(req: FastifyRequest) {
   const authHeader = req.headers["authorization"];
 
   const AUTH_TOKEN = SERVICE_CONFIG.JOB_TRIGGER_AUTH_TOKEN;
@@ -44,7 +45,7 @@ export function debugRoutes(
         hide: true,
       },
       preValidation: async (req: PostDebugJobRequest) => {
-        debugMiddleware(req);
+        apiAuthMiddleware(req);
       },
     },
     async (req: PostDebugJobRequest, replay: FastifyReply) => {
@@ -65,6 +66,9 @@ export function debugRoutes(
           break;
         case "run-settlement":
           await runSettlementBotJob();
+          break;
+        case "sync-settlement-history":
+          await syncSettlementHistoryJob();
           break;
         case "track-terminated-deals":
           await trackTerminateDealJob();

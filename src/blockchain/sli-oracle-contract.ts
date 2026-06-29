@@ -58,7 +58,7 @@ export async function setSliOnOracleContract(
   const receipt = await waitForTransactionReceiptWithRetry(txHash);
 
   childLogger.info(
-    `${functionName}: Transaction executed in block ${receipt.blockNumber}`,
+    `${functionName}: Transaction executed in block ${receipt?.blockNumber}`,
   );
 
   return {

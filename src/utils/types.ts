@@ -48,6 +48,28 @@ export interface FilecoinAPIStateSectorPartition {
   Deadline: bigint;
 }
 
+export interface CdpFilecoinPayRailResponse {
+  railId: string;
+  token: {
+    address: Address;
+    symbol: string;
+    decimals: number;
+  };
+  from: Address;
+  to: Address;
+  operator: Address;
+  validator: Address;
+  paymentRate: string;
+  lockupFixed: string;
+  lockupPeriod: string;
+  settledUpTo: string;
+  endEpoch: string;
+  commissionRateBps: number;
+  serviceFeeRecipient: Address;
+  finalized: boolean;
+  createdAtBlock: string;
+}
+
 export interface FilecoinAPIStateSectorGetInfo {
   SectorNumber: number;
   SealProof: number;
