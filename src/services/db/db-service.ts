@@ -118,12 +118,13 @@ export async function getCompletedDealsToSettleFromDb() {
 export async function storeLastSettlementToDb(
   porepMarketDealId: string,
   epoch: bigint,
+  settlementAt = new Date(),
 ) {
   return prismaClient.porep_market_deal_settlement_history.create({
     data: {
       porepMarketDealId,
       epoch,
-      settlementAt: new Date(),
+      settlementAt,
     },
   });
 }

@@ -7,6 +7,7 @@ export type DebugJob =
   | "set-sli"
   | "track-terminated-claims"
   | "run-settlement"
+  | "sync-settlement-history"
   | "track-terminated-deals"
   | "reject-expired-deal";
 

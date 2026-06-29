@@ -1,13 +1,13 @@
 import { SERVICE_CONFIG } from "../config/env";
 import { baseLogger } from "../utils/logger";
-import { CdpSliResponse } from "../utils/types";
+import { CdpFilecoinPayRailResponse, CdpSliResponse } from "../utils/types";
 
 const cdpServiceLogger = baseLogger.child(
   { avengers: "assemble" },
   { msgPrefix: "[CDP Service] " },
 );
 
-async function fetchDataFromCdp(endpoint: string): Promise<CdpSliResponse> {
+async function fetchDataFromCdp<T>(endpoint: string): Promise<T> {
   const url = `${SERVICE_CONFIG.CDP_SERVICE_URL}/${endpoint}`;
 
   cdpServiceLogger.info(`Calling CDP service at ${url}...`);
@@ -38,7 +38,7 @@ export async function getSliForStorageProviders(
 
   cdpServiceLogger.info(`Fetching SLI data from CDP service...`);
 
-  const response = await fetchDataFromCdp(endpoint);
+  const response = await fetchDataFromCdp<CdpSliResponse>(endpoint);
 
   const providersCount = Object.keys(response?.data || {}).length;
 
@@ -47,4 +47,14 @@ export async function getSliForStorageProviders(
   );
 
   return response;
+}
+
+export async function getFilecoinPayRailFromCdp(
+  railId: bigint,
+): Promise<CdpFilecoinPayRailResponse> {
+  cdpServiceLogger.info(`Fetching Filecoin Pay rail ${railId} from CDP...`);
+
+  return fetchDataFromCdp<CdpFilecoinPayRailResponse>(
+    `filecoin-pay/rails/${railId}`,
+  );
 }
