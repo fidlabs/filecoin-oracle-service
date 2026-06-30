@@ -129,6 +129,10 @@ export enum PorepMarketContractDealState {
   Terminated,
 }
 
+export interface PorepMarketContractDealSli extends SLIThresholds {
+  onChainDealId: bigint;
+}
+
 export interface PorepMarketContractDealProposal {
   dealId: bigint;
   client: Address;
