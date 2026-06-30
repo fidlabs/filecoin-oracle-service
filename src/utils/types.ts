@@ -134,12 +134,15 @@ export interface PorepMarketContractDealProposal {
   client: Address;
   provider: bigint;
   validator: Address;
-  railId: bigint;
-  manifestLocation: string;
-  proposedAtBlock: bigint;
+  offerId: bigint;
   state: PorepMarketContractDealState;
-  terms: DealTerms;
-  requirements: SLIThresholds;
+  evidenceAdapter: Address;
+  railId: bigint;
+
+  // manifestLocation: string;
+  // proposedAtBlock: bigint;
+  // terms: DealTerms;
+  // requirements: SLIThresholds;
 }
 
 export interface PorepMarketDealClaim {
@@ -168,7 +171,7 @@ export interface PorepMarketDeal {
   allocationsRequiredCount?: bigint;
   allocationsMatchedCount?: bigint;
   isAllocationsMatched?: boolean;
-  isDealEndEpochSetOnChain?: boolean;
+  activatePaymentAt?: Date | null;
   allocationIds?: bigint[];
   claims?: PorepMarketDealClaim[];
   isRailTerminated?: boolean;
