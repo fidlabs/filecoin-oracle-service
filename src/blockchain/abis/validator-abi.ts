@@ -190,7 +190,13 @@ export const VALIDATOR_CONTRACT_ABI = [
   {
     type: "function",
     name: "modifyRailPayment",
-    inputs: [],
+    inputs: [
+      {
+        name: "newRate",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     outputs: [],
     stateMutability: "nonpayable",
   },
@@ -248,19 +254,6 @@ export const VALIDATOR_CONTRACT_ABI = [
         name: "account",
         type: "address",
         internalType: "address",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "setDealEndEpoch",
-    inputs: [
-      {
-        name: "endEpoch",
-        type: "int64",
-        internalType: "CommonTypes.ChainEpoch",
       },
     ],
     outputs: [],
@@ -373,25 +366,6 @@ export const VALIDATOR_CONTRACT_ABI = [
       },
     ],
     stateMutability: "nonpayable",
-  },
-  {
-    type: "event",
-    name: "DealEndEpochUpdated",
-    inputs: [
-      {
-        name: "dealId",
-        type: "uint256",
-        indexed: true,
-        internalType: "uint256",
-      },
-      {
-        name: "endEpoch",
-        type: "int64",
-        indexed: false,
-        internalType: "CommonTypes.ChainEpoch",
-      },
-    ],
-    anonymous: false,
   },
   {
     type: "event",
@@ -614,6 +588,11 @@ export const VALIDATOR_CONTRACT_ABI = [
   },
   {
     type: "error",
+    name: "CallerIsNotPoRepMarket",
+    inputs: [],
+  },
+  {
+    type: "error",
     name: "DealNotCompleted",
     inputs: [
       {
@@ -622,11 +601,6 @@ export const VALIDATOR_CONTRACT_ABI = [
         internalType: "uint256",
       },
     ],
-  },
-  {
-    type: "error",
-    name: "EndEpochInThePast",
-    inputs: [],
   },
   {
     type: "error",
@@ -706,11 +680,6 @@ export const VALIDATOR_CONTRACT_ABI = [
   },
   {
     type: "error",
-    name: "InvalidSectorCount",
-    inputs: [],
-  },
-  {
-    type: "error",
     name: "InvalidZeroAmount",
     inputs: [],
   },
@@ -722,11 +691,6 @@ export const VALIDATOR_CONTRACT_ABI = [
   {
     type: "error",
     name: "MinEpochsBetweenSettlementsExceeded",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "NegativeEndEpoch",
     inputs: [],
   },
   {

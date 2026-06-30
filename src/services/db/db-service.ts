@@ -105,7 +105,7 @@ export async function getCompletedDealsToSettleFromDb() {
               },
             },
             {
-              modifyRailPaymentAt: {
+              activatePaymentAt: {
                 not: null,
                 lte: thirtyDaysAgo,
               },
@@ -175,9 +175,7 @@ export async function getCompletedDealsToTerminateFromDb(blockNumber: bigint) {
   return deals ? deals : [];
 }
 
-export async function getCompletedDealsToSetEndEpochFromDb(
-  blockNumber: bigint,
-) {
+export async function getCompletedDealsToActivatePayment(blockNumber: bigint) {
   const deals = await prismaClient.porep_market_deal.findMany({
     where: {
       dealEndEpoch: {
@@ -186,7 +184,7 @@ export async function getCompletedDealsToSetEndEpochFromDb(
       },
       state: DealState.Completed,
       isRailTerminated: false,
-      isDealEndEpochSetOnChain: false,
+      activatePaymentAt: null,
       isAllocationsMatched: true, // IMPORTANT: only consider deals with matching allocation count between expected and actual to avoid setting wrong deal end epoch
     },
   });
@@ -213,7 +211,9 @@ export async function getDealsToSetSliFromDb(): Promise<PorepMarketDealDto[]> {
     state: DealState.Completed,
     isAllocationsMatched: true,
     isRailTerminated: false,
-    isDealEndEpochSetOnChain: true,
+    activatePaymentAt: {
+      not: null,
+    },
   });
 }
 
