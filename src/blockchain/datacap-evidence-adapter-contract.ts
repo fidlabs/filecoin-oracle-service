@@ -14,48 +14,77 @@ import {
 
 const childLogger = baseLogger.child(
   { avengers: "assemble" },
-  { msgPrefix: "[Client Contract] " },
+  { msgPrefix: "[Datacap Evidence Contract] " },
 );
 
-const ALLOCATION_IDS_PAGE_SIZE = 500n;
+const IDS_PAGE_SIZE = 500n;
+
+type PaginatedIdsFunctionName = "getAllocationIdsPerDeal" | "getClaimIds";
+
+async function getPaginatedIdsPerDeal({
+  onChainDealId,
+  functionName,
+  itemLabel,
+}: {
+  onChainDealId: bigint;
+  functionName: PaginatedIdsFunctionName;
+  itemLabel: string;
+}): Promise<bigint[]> {
+  childLogger.info(`Fetching ${itemLabel} for deal ${onChainDealId}...`);
+
+  const rpcClient = getRpcClient();
+  const ids: bigint[] = [];
+  let offset = 0n;
+  let totalItems: bigint | undefined;
+
+  do {
+    const [pageIds, total] = await rpcClient.readContract({
+      address:
+        SERVICE_CONFIG.DATACAP_EVIDENCE_ADAPTER_CONTRACT_ADDRESS as Address,
+      abi: DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI,
+      functionName,
+      args: [onChainDealId, offset, IDS_PAGE_SIZE],
+    });
+
+    totalItems = total;
+    ids.push(...pageIds);
+    offset += BigInt(pageIds.length);
+
+    childLogger.info(
+      `Fetched ${ids.length}/${totalItems} ${itemLabel} for deal ${onChainDealId}`,
+    );
+
+    if (pageIds.length === 0) {
+      break;
+    }
+  } while (offset < totalItems);
+
+  childLogger.info(
+    `Fetched ${ids.length} ${itemLabel} for deal ${onChainDealId}`,
+  );
+
+  return ids;
+}
 
 export async function getClientAllocationIdsPerDeal(
   onChainDealId: bigint,
 ): Promise<bigint[]> {
-  childLogger.info(`Fetching allocation IDs for deal ${onChainDealId}...`);
+  return getPaginatedIdsPerDeal({
+    onChainDealId,
+    functionName: "getAllocationIdsPerDeal",
+    itemLabel: "allocation IDs",
+  });
+}
 
-  const rpcClient = getRpcClient();
-  const allocationIds: bigint[] = [];
-  let offset = 0n;
-  let sumOfAllocations: bigint | undefined;
-
-  do {
-    const [ids, total] = await rpcClient.readContract({
-      address:
-        SERVICE_CONFIG.DATACAP_EVIDENCE_ADAPTER_CONTRACT_ADDRESS as Address,
-      abi: DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI,
-      functionName: "getAllocationIdsPerDeal",
-      args: [onChainDealId, offset, ALLOCATION_IDS_PAGE_SIZE],
-    });
-
-    sumOfAllocations = total;
-    allocationIds.push(...ids);
-    offset += BigInt(ids.length);
-
-    childLogger.info(
-      `Fetched ${allocationIds.length}/${sumOfAllocations} allocation IDs for deal ${onChainDealId}`,
-    );
-
-    if (ids.length === 0) {
-      break;
-    }
-  } while (offset < sumOfAllocations);
-
-  childLogger.info(
-    `Fetched ${allocationIds.length} allocation IDs for deal ${onChainDealId}`,
-  );
-
-  return allocationIds as bigint[];
+// not used for now - we can use this to fetch claim IDs for a deal if needed in the future
+export async function getClaimIdsPerDeal(
+  onChainDealId: bigint,
+): Promise<bigint[]> {
+  return getPaginatedIdsPerDeal({
+    onChainDealId,
+    functionName: "getClaimIds",
+    itemLabel: "claim IDs",
+  });
 }
 
 export async function setClaimTerminatedEarlyOnClientContract(
