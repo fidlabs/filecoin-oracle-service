@@ -5,6 +5,7 @@ import { baseLogger } from "../utils/logger";
 import {
   OnChainTransactionResult,
   PorepMarketContractDealProposal,
+  PorepMarketContractDealSli,
 } from "../utils/types";
 import { POREP_MARKET_CONTRACT_ABI } from "./abis/porep-market-abi";
 import {
@@ -38,6 +39,30 @@ export async function getDealsFromPoRepMarketContract(): Promise<
   childLogger.info(`Fetched ${existingDeals.length} deals from contract`);
 
   return existingDeals as PorepMarketContractDealProposal[];
+}
+
+export async function getDealSLIsFromPoRepMarketContract(
+  onChainDealId: bigint,
+): Promise<PorepMarketContractDealSli> {
+  childLogger.info(`Fetching SLI thresholds for deal ${onChainDealId}...`);
+
+  const rpcClient = getRpcClient();
+
+  const dealSlis = await rpcClient.readContract({
+    address: SERVICE_CONFIG.POREP_MARKET_CONTRACT_ADDRESS as Address,
+    abi: POREP_MARKET_CONTRACT_ABI,
+    functionName: "getDealSLIs",
+    args: [onChainDealId],
+  });
+
+  childLogger.info(
+    `Fetched SLI thresholds for deal ${onChainDealId} from contract`,
+  );
+
+  return {
+    onChainDealId,
+    ...dealSlis,
+  } as PorepMarketContractDealSli;
 }
 
 export async function rejectExpiredDealOnPoRepMarketContract(

@@ -7,7 +7,6 @@ import {
 import { SERVICE_CONFIG } from "../../../config/env";
 import { trackClaimsTerminatedEarlyJob } from "../../../jobs/claims-terminated-early-job";
 import { runRejectExpiredDealJob } from "../../../jobs/reject-expired-deal-job";
-import { trackDealEndEpochJob } from "../../../jobs/set-deal-end-epoch-job";
 import { setSliOracleJob } from "../../../jobs/set-sli-job";
 import { runSettlementBotJob } from "../../../jobs/settlement-bot-job";
 import { syncUrlFinderSliTargetsJob } from "../../../jobs/sync-url-finder-sli-targets-job";
@@ -17,6 +16,7 @@ import { trackTerminateDealJob } from "../../../jobs/terminate-deal-job";
 import { httpLogger } from "../../server";
 import { AppError } from "../../utils/response-formatter-plugin/types";
 import { PostDebugJobRequest } from "./type";
+import { activatePaymentJob } from "../../../jobs/activate-payment-job";
 
 export function apiAuthMiddleware(req: FastifyRequest) {
   const authHeader = req.headers["authorization"];
@@ -59,8 +59,8 @@ export function debugRoutes(
         case "sync-url-finder-sli-targets":
           await syncUrlFinderSliTargetsJob();
           break;
-        case "track-deal-end-epoch":
-          await trackDealEndEpochJob();
+        case "activate-payment":
+          await activatePaymentJob();
           break;
         case "set-sli":
           await setSliOracleJob();

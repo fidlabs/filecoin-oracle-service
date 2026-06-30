@@ -185,7 +185,7 @@ export const SP_REGISTRY_CONTRACT_ABI = [
       {
         name: "requirements",
         type: "tuple",
-        internalType: "struct SLITypes.SLIThresholds",
+        internalType: "struct SharedTypes.SLIThresholds",
         components: [
           {
             name: "retrievabilityBps",
@@ -193,9 +193,9 @@ export const SP_REGISTRY_CONTRACT_ABI = [
             internalType: "uint16",
           },
           {
-            name: "bandwidthMbps",
-            type: "uint16",
-            internalType: "uint16",
+            name: "bandwidthBytesPerSecond",
+            type: "uint64",
+            internalType: "uint64",
           },
           {
             name: "latencyMs",
@@ -290,7 +290,7 @@ export const SP_REGISTRY_CONTRACT_ABI = [
           {
             name: "capabilities",
             type: "tuple",
-            internalType: "struct SLITypes.SLIThresholds",
+            internalType: "struct SharedTypes.SLIThresholds",
             components: [
               {
                 name: "retrievabilityBps",
@@ -298,9 +298,9 @@ export const SP_REGISTRY_CONTRACT_ABI = [
                 internalType: "uint16",
               },
               {
-                name: "bandwidthMbps",
-                type: "uint16",
-                internalType: "uint16",
+                name: "bandwidthBytesPerSecond",
+                type: "uint64",
+                internalType: "uint64",
               },
               {
                 name: "latencyMs",
@@ -567,7 +567,7 @@ export const SP_REGISTRY_CONTRACT_ABI = [
       {
         name: "capabilities",
         type: "tuple",
-        internalType: "struct SLITypes.SLIThresholds",
+        internalType: "struct SharedTypes.SLIThresholds",
         components: [
           {
             name: "retrievabilityBps",
@@ -575,9 +575,9 @@ export const SP_REGISTRY_CONTRACT_ABI = [
             internalType: "uint16",
           },
           {
-            name: "bandwidthMbps",
-            type: "uint16",
-            internalType: "uint16",
+            name: "bandwidthBytesPerSecond",
+            type: "uint64",
+            internalType: "uint64",
           },
           {
             name: "latencyMs",
@@ -704,7 +704,7 @@ export const SP_REGISTRY_CONTRACT_ABI = [
       {
         name: "capabilities",
         type: "tuple",
-        internalType: "struct SLITypes.SLIThresholds",
+        internalType: "struct SharedTypes.SLIThresholds",
         components: [
           {
             name: "retrievabilityBps",
@@ -712,9 +712,9 @@ export const SP_REGISTRY_CONTRACT_ABI = [
             internalType: "uint16",
           },
           {
-            name: "bandwidthMbps",
-            type: "uint16",
-            internalType: "uint16",
+            name: "bandwidthBytesPerSecond",
+            type: "uint64",
+            internalType: "uint64",
           },
           {
             name: "latencyMs",
@@ -918,7 +918,7 @@ export const SP_REGISTRY_CONTRACT_ABI = [
         name: "capabilities",
         type: "tuple",
         indexed: false,
-        internalType: "struct SLITypes.SLIThresholds",
+        internalType: "struct SharedTypes.SLIThresholds",
         components: [
           {
             name: "retrievabilityBps",
@@ -926,9 +926,9 @@ export const SP_REGISTRY_CONTRACT_ABI = [
             internalType: "uint16",
           },
           {
-            name: "bandwidthMbps",
-            type: "uint16",
-            internalType: "uint16",
+            name: "bandwidthBytesPerSecond",
+            type: "uint64",
+            internalType: "uint64",
           },
           {
             name: "latencyMs",
