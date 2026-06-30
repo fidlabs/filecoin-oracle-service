@@ -110,7 +110,6 @@ model porep_market_deal {
   isRailTerminated              Boolean
   dealStartEpoch                BigInt?
   dealEndEpoch                  BigInt?
-  isDealEndEpochSetOnChain      Boolean                                  @default(false)
   allocationIds                 BigInt[]
   claims                        porep_market_deal_claim[]
   history                       porep_market_deal_history[]
@@ -118,7 +117,7 @@ model porep_market_deal {
   transactions                  porep_market_deal_on_chain_transaction[]
   score                         porep_market_deal_score[]
   proposedAtBlock               BigInt
-  modifyRailPaymentAt           DateTime?
+  activatePaymentAt             DateTime?
   urlFinderSliTargetTriggeredAt DateTime?
   lastSyncedAt                  DateTime                                 @updatedAt
   createdAt                     DateTime                                 @default(now())

@@ -26,17 +26,18 @@ export async function getDealsFromPoRepMarketContract(): Promise<
 
   const rpcClient = getRpcClient();
 
-  const completedDeals = await rpcClient.readContract({
+  const existingDeals = await rpcClient.readContract({
     address: SERVICE_CONFIG.POREP_MARKET_CONTRACT_ADDRESS as Address,
     abi: POREP_MARKET_CONTRACT_ABI,
     functionName: "getDeals",
   });
 
-  childLogger.info(
-    `Fetched ${completedDeals.length} completed deals from contract`,
-  );
+  // TODO: getDealSLIs for SLI
+  // TODO: getDealData for manifest and deal data
 
-  return completedDeals as PorepMarketContractDealProposal[];
+  childLogger.info(`Fetched ${existingDeals.length} deals from contract`);
+
+  return existingDeals as PorepMarketContractDealProposal[];
 }
 
 export async function rejectExpiredDealOnPoRepMarketContract(
@@ -79,6 +80,45 @@ export async function rejectExpiredDealOnPoRepMarketContract(
   return {
     success: true,
     contractName: ContractName.PoRepMarket,
+    functionName,
+    receipt,
+  };
+}
+
+export async function activatePaymentOnPoRepMarketContract(
+  onChainDealId: bigint,
+): Promise<OnChainTransactionResult> {
+  const rpcClient = getRpcClient();
+  const walletClient = getWalletClient(WalletAccountRole.POREP_SERVICE_ROLE);
+  const functionName = "activatePayment";
+
+  childLogger.info(`${functionName}: Simulating request...`);
+
+  const { request } = await rpcClient.simulateContract({
+    address: SERVICE_CONFIG.POREP_MARKET_CONTRACT_ADDRESS as Address,
+    abi: POREP_MARKET_CONTRACT_ABI,
+    functionName,
+    args: [onChainDealId],
+    account: walletClient.account,
+  });
+
+  childLogger.info(`${functionName}: Sending transaction...`);
+
+  const txHash = await walletClient.writeContract(request);
+
+  childLogger.info(
+    `activatePayment: Transaction sent: ${txHash}, waiting for confirmation...`,
+  );
+
+  const receipt = await waitForTransactionReceiptWithRetry(txHash);
+
+  childLogger.info(
+    `${functionName}: Transaction executed in block ${receipt?.blockNumber}`,
+  );
+
+  return {
+    success: true,
+    contractName: ContractName.Validator,
     functionName,
     receipt,
   };

@@ -66,7 +66,7 @@ export async function syncSettlementHistoryFromCdp() {
 
       const lastSettlementAt = deal.settlement_history[0]?.settlementAt
         ? deal.settlement_history[0].settlementAt
-        : deal.modifyRailPaymentAt;
+        : deal.activatePaymentAt;
 
       const was30DaysAgoFromDb = isAtLeastThirtyDaysAgo(lastSettlementAt);
       const was30DaysAgoFromCdp = isAtLeastThirtyDaysAgo(
