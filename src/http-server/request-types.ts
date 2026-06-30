@@ -10,7 +10,7 @@ export type PorepMarketDealResponse = {
   allocationsRequiredCount: bigint | null;
   allocationsMatchedCount: bigint | null;
   isAllocationsMatched: boolean;
-  isDealEndEpochSetOnChain: boolean;
+  activatePaymentAt: Date | null;
   allocationIds: bigint[];
   isRailTerminated: boolean;
   terms: PorepMarketDealTermResponse | null;
