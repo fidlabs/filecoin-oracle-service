@@ -14,13 +14,13 @@ export type PorepMarketDealResponse = {
   allocationIds: bigint[];
   isRailTerminated: boolean;
   terms: PorepMarketDealTermResponse | null;
-  requirements: PorepMarketDeaSliThresholdResponse | null;
+  requiredSLIs: PorepMarketDeaSliThresholdResponse | null;
 };
 
 export type PorepMarketDealTermResponse = {
-  dealSizeBytes: bigint;
-  pricePerSectorPerMonth: bigint;
-  durationDays: number;
+  requestedSizeBytes: bigint;
+  pricePer32GiBPerMonth: bigint;
+  durationEpochs: bigint;
 };
 
 export type PorepMarketDeaSliThresholdResponse = {
