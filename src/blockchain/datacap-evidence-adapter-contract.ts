@@ -66,7 +66,7 @@ async function getPaginatedIdsPerDeal({
   return ids;
 }
 
-export async function getClientAllocationIdsPerDeal(
+export async function getClientAllocationIdsPerDealFromDCEvidenceContract(
   onChainDealId: bigint,
 ): Promise<bigint[]> {
   return getPaginatedIdsPerDeal({
@@ -87,7 +87,7 @@ export async function getClaimIdsPerDeal(
   });
 }
 
-export async function setClaimTerminatedEarlyOnClientContract(
+export async function setClaimTerminatedEarlyOnDCEvidenceContract(
   allocationIds: bigint[],
 ): Promise<OnChainTransactionResult> {
   childLogger.info(

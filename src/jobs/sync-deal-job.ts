@@ -1,5 +1,5 @@
 import { getAllClaimsFromClaimInspectorContract } from "../blockchain/claim-inspector-contract";
-import { getClientAllocationIdsPerDeal } from "../blockchain/datacap-evidence-adapter-contract";
+import { getClientAllocationIdsPerDealFromDCEvidenceContract } from "../blockchain/datacap-evidence-adapter-contract";
 import { getDealsFromPoRepMarketContract } from "../blockchain/porep-market.contract";
 import {
   getChainStateToDomain,
@@ -7,7 +7,11 @@ import {
   syncPoRepMarketContractDealsWithDb,
 } from "../services/db/db-service";
 import { baseLogger } from "../utils/logger";
-import { PorepMarketDeal, PorepMarketDealClaim } from "../utils/types";
+import {
+  PorepMarketContractDealView,
+  PorepMarketDeal,
+  PorepMarketDealClaim,
+} from "../utils/types";
 
 const syncDealLogger = baseLogger.child(
   { avengers: "assemble" },
@@ -66,7 +70,8 @@ export async function syncDealsJob() {
   try {
     syncDealLogger.info("Job started");
 
-    const contractAllDeals = await getDealsFromPoRepMarketContract();
+    const contractAllDeals: PorepMarketContractDealView[] =
+      await getDealsFromPoRepMarketContract();
 
     syncDealLogger.info(
       `Fetched ${contractAllDeals.length} deals from PoRep Market contract`,
@@ -90,7 +95,8 @@ export async function syncDealsJob() {
       };
     } = {};
 
-    for (const deal of contractAllDeals) {
+    for (const dealView of contractAllDeals) {
+      const deal = dealView.deal;
       const porepMarketContractDealId = deal.dealId;
 
       const shouldSyncClaims = await isDealEligibleForSyncClaims(
@@ -107,9 +113,10 @@ export async function syncDealsJob() {
         let requiredAllocationsCount: bigint | undefined;
         let requiredDealAllocations: bigint[] = [];
 
-        requiredDealAllocations = await getClientAllocationIdsPerDeal(
-          deal.dealId,
-        );
+        requiredDealAllocations =
+          await getClientAllocationIdsPerDealFromDCEvidenceContract(
+            deal.dealId,
+          );
 
         syncDealLogger.info(
           `Fetched ${requiredDealAllocations?.length || 0} required allocations for deal ${deal.dealId} from client contract`,
@@ -195,14 +202,22 @@ export async function syncDealsJob() {
     }
 
     const completedDealsWithAllocationInfo: PorepMarketDeal[] =
-      contractAllDeals.map((deal) => {
+      contractAllDeals.map((dealView) => {
+        const { deal } = dealView;
         const allocationInfo = dealIdAllocationInfoMap[deal.dealId.toString()];
 
         return {
           ...deal,
-          proposedAtBlock: deal.proposedAtBlock,
+          manifestLocation: dealView.data.manifestLocation,
+          proposedAtBlock: dealView.timing.proposedAtEpoch,
           validatorContractAddress: deal.validator,
           state: getChainStateToDomain(deal.state),
+          terms: {
+            requestedSizeBytes: dealView.terms.requestedSizeBytes,
+            pricePer32GiBPerMonth: dealView.payment.pricePer32GiBPerMonth,
+            durationEpochs: dealView.terms.durationEpochs,
+          },
+          requiredSLIs: dealView.requiredSLIs,
           dealStartEpoch: allocationInfo?.dealStartEpoch,
           dealEndEpoch: allocationInfo?.dealEndEpoch,
           allocationsRequiredCount:

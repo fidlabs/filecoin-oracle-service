@@ -16,9 +16,9 @@ function bandwidthBytesPerSecondToMbps(
 export async function createOrUpdatePoRepDealSliTargetInUrlFinder(
   deal: PorepMarketDealDto,
 ) {
-  if (!deal.terms || !deal.requirements) {
+  if (!deal.terms || !deal.requiredSLIs) {
     throw new Error(
-      `Deal ${deal.onChainDealId.toString()} has no terms or requirements`,
+      `Deal ${deal.onChainDealId.toString()} has no terms or required SLIs`,
     );
   }
 
@@ -41,17 +41,17 @@ export async function createOrUpdatePoRepDealSliTargetInUrlFinder(
     },
     body: JSON.stringify({
       client: deal.client,
-      deal_size_bytes: deal.terms.dealSizeBytes.toString(),
+      deal_size_bytes: deal.terms.requestedSizeBytes.toString(),
       deal_version: "v2",
       manifest_location: deal.manifestLocation,
       //manifest_hash: deal.manifestHash, TODO: Add field from new version of porep market contract
       provider_id: `f0${deal.provider.toString()}`,
       requirements: {
         bandwidth_mbps: bandwidthBytesPerSecondToMbps(
-          deal.requirements.bandwidthBytesPerSecond,
+          deal.requiredSLIs.bandwidthBytesPerSecond,
         ),
-        latency_ms: Number(deal.requirements.latencyMs),
-        retrievability_bps: Number(deal.requirements.retrievabilityBps),
+        latency_ms: Number(deal.requiredSLIs.latencyMs),
+        retrievability_bps: Number(deal.requiredSLIs.retrievabilityBps),
       },
     }),
   });

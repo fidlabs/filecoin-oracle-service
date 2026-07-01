@@ -4,8 +4,8 @@ import { SERVICE_CONFIG } from "../config/env";
 import { baseLogger } from "../utils/logger";
 import {
   OnChainTransactionResult,
-  PorepMarketContractDealProposal,
   PorepMarketContractDealSli,
+  PorepMarketContractDealView,
 } from "../utils/types";
 import { POREP_MARKET_CONTRACT_ABI } from "./abis/porep-market-abi";
 import {
@@ -20,25 +20,41 @@ const childLogger = baseLogger.child(
   { msgPrefix: "[PoRep Market Contract] " },
 );
 
+const DEAL_VIEWS_PAGE_SIZE = 500n;
+
 export async function getDealsFromPoRepMarketContract(): Promise<
-  PorepMarketContractDealProposal[]
+  PorepMarketContractDealView[]
 > {
-  childLogger.info("Fetching completed deals...");
+  childLogger.info("Fetching deal views...");
 
   const rpcClient = getRpcClient();
+  const dealViews: PorepMarketContractDealView[] = [];
 
-  const existingDeals = await rpcClient.readContract({
-    address: SERVICE_CONFIG.POREP_MARKET_CONTRACT_ADDRESS as Address,
-    abi: POREP_MARKET_CONTRACT_ABI,
-    functionName: "getDeals",
-  });
+  let offset = 0n;
+  let totalDeals: bigint | undefined;
 
-  // TODO: getDealSLIs for SLI
-  // TODO: getDealData for manifest and deal data
+  do {
+    const [pageDealViews, total] = await rpcClient.readContract({
+      address: SERVICE_CONFIG.POREP_MARKET_CONTRACT_ADDRESS as Address,
+      abi: POREP_MARKET_CONTRACT_ABI,
+      functionName: "getDealViews",
+      args: [offset, DEAL_VIEWS_PAGE_SIZE],
+    });
 
-  childLogger.info(`Fetched ${existingDeals.length} deals from contract`);
+    totalDeals = total;
+    dealViews.push(...pageDealViews);
+    offset += BigInt(pageDealViews.length);
 
-  return existingDeals as PorepMarketContractDealProposal[];
+    childLogger.info(`Fetched ${dealViews.length}/${totalDeals} deal views`);
+
+    if (pageDealViews.length === 0) {
+      break;
+    }
+  } while (offset < totalDeals);
+
+  childLogger.info(`Fetched ${dealViews.length} deal views from contract`);
+
+  return dealViews;
 }
 
 export async function getDealSLIsFromPoRepMarketContract(

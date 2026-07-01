@@ -113,9 +113,9 @@ export enum DealState {
 }
 
 export interface DealTerms {
-  dealSizeBytes: bigint;
-  pricePerSectorPerMonth: bigint;
-  durationDays: number;
+  requestedSizeBytes: bigint;
+  pricePer32GiBPerMonth: bigint;
+  durationEpochs: bigint;
 }
 
 export enum PorepMarketContractDealState {
@@ -130,20 +130,51 @@ export interface PorepMarketContractDealSli extends SLIThresholds {
   onChainDealId: bigint;
 }
 
-export interface PorepMarketContractDealProposal {
-  dealId: bigint;
-  client: Address;
-  provider: bigint;
-  validator: Address;
-  offerId: bigint;
-  state: PorepMarketContractDealState;
-  evidenceAdapter: Address;
-  railId: bigint;
-
-  // manifestLocation: string;
-  // proposedAtBlock: bigint;
-  // terms: DealTerms;
-  // requirements: SLIThresholds;
+export interface PorepMarketContractDealView {
+  deal: {
+    dealId: bigint;
+    client: Address;
+    provider: bigint;
+    offerId: bigint;
+    state: PorepMarketContractDealState;
+    evidenceAdapter: Address;
+    validator: Address;
+    railId: bigint;
+  };
+  data: {
+    manifestHash: Address;
+    manifestLocation: string;
+  };
+  requiredSLIs: SLIThresholds;
+  terms: {
+    requestedSizeBytes: bigint;
+    durationEpochs: bigint;
+  };
+  timing: {
+    proposedAtEpoch: bigint;
+    expiresAtEpoch: bigint;
+  };
+  service: {
+    serviceStartEpoch: bigint;
+    serviceEndEpoch: bigint;
+  };
+  capacity: {
+    reservedBytes: bigint;
+    committedBytes: bigint;
+  };
+  payment: {
+    paymentToken: Address;
+    pricePer32GiBPerMonth: bigint;
+    billed32GiBUnits: bigint;
+    railMaxRatePerEpoch: bigint;
+  };
+  providerOrganization: Address;
+  evidenceStatus: {
+    activeCoveredBytes: bigint;
+    lastEvidenceRefreshEpoch: bigint;
+    reasonCode: number;
+    result: number;
+  };
 }
 
 export interface PorepMarketDealClaim {
@@ -177,7 +208,7 @@ export interface PorepMarketDeal {
   claims?: PorepMarketDealClaim[];
   isRailTerminated?: boolean;
   terms: DealTerms;
-  requirements: SLIThresholds;
+  requiredSLIs: SLIThresholds;
   proposedAtBlock: bigint;
 }
 
