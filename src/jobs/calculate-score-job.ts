@@ -44,9 +44,9 @@ export async function calculateScoreJob() {
       await getLastSliForDealsFromSliOracleContract(uniqueDeals);
 
     for (const deal of dealsToCalculateScore) {
-      if (!deal.requirements) {
+      if (!deal.requiredSLIs) {
         sliChildLogger.warn(
-          `Deal ${deal.onChainDealId} does not have requirements data, skipping score calculation for this deal`,
+          `Deal ${deal.onChainDealId} does not have required SLIs data, skipping score calculation for this deal`,
         );
         continue;
       }
@@ -65,12 +65,12 @@ export async function calculateScoreJob() {
       const scoreResult = await calculateScoreOnSliScorerContract(
         deal.provider,
         {
-          retrievabilityBps: Number(deal.requirements?.retrievabilityBps),
+          retrievabilityBps: Number(deal.requiredSLIs?.retrievabilityBps),
           bandwidthBytesPerSecond: BigInt(
-            deal.requirements?.bandwidthBytesPerSecond,
+            deal.requiredSLIs?.bandwidthBytesPerSecond,
           ),
-          latencyMs: Number(deal.requirements?.latencyMs),
-          indexingPct: Number(deal.requirements?.indexingPct),
+          latencyMs: Number(deal.requiredSLIs?.latencyMs),
+          indexingPct: Number(deal.requiredSLIs?.indexingPct),
         },
       );
 

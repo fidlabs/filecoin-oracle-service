@@ -90,7 +90,8 @@ export async function syncDealsJob() {
       };
     } = {};
 
-    for (const deal of contractAllDeals) {
+    for (const dealView of contractAllDeals) {
+      const deal = dealView.deal;
       const porepMarketContractDealId = deal.dealId;
 
       const shouldSyncClaims = await isDealEligibleForSyncClaims(
@@ -195,14 +196,22 @@ export async function syncDealsJob() {
     }
 
     const completedDealsWithAllocationInfo: PorepMarketDeal[] =
-      contractAllDeals.map((deal) => {
+      contractAllDeals.map((dealView) => {
+        const { deal } = dealView;
         const allocationInfo = dealIdAllocationInfoMap[deal.dealId.toString()];
 
         return {
           ...deal,
-          proposedAtBlock: deal.proposedAtBlock,
+          manifestLocation: dealView.data.manifestLocation,
+          proposedAtBlock: dealView.timing.proposedAtEpoch,
           validatorContractAddress: deal.validator,
           state: getChainStateToDomain(deal.state),
+          terms: {
+            requestedSizeBytes: dealView.terms.requestedSizeBytes,
+            pricePer32GiBPerMonth: dealView.payment.pricePer32GiBPerMonth,
+            durationEpochs: dealView.terms.durationEpochs,
+          },
+          requiredSLIs: dealView.requiredSLIs,
           dealStartEpoch: allocationInfo?.dealStartEpoch,
           dealEndEpoch: allocationInfo?.dealEndEpoch,
           allocationsRequiredCount:
