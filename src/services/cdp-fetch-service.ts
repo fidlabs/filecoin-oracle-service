@@ -1,6 +1,6 @@
 import { SERVICE_CONFIG } from "../config/env";
 import { baseLogger } from "../utils/logger";
-import { CdpFilecoinPayRailResponse, CdpSliResponse } from "../utils/types";
+import { CdpDealSliResponse, CdpFilecoinPayRailResponse } from "../utils/types";
 
 const cdpServiceLogger = baseLogger.child(
   { avengers: "assemble" },
@@ -26,49 +26,24 @@ async function fetchDataFromCdp<T>(endpoint: string): Promise<T> {
 
 export async function getSliForDeals(
   dealIds: bigint[],
-): Promise<CdpSliResponse | null> {
+): Promise<CdpDealSliResponse | null> {
   if (dealIds.length === 0) {
     cdpServiceLogger.info("No deal IDs provided for SLI fetch");
     return null;
   }
 
-  const endpoint = `deals/average-sli-data?${dealIds
+  const endpoint = `po-rep/average-sli-data?${dealIds
     .map((id) => `dealIds=${id.toString()}`)
-    .join("&")}`; //TODO: adjust to the new endpoint to track sli per deal instead of per provider
+    .join("&")}`;
 
   cdpServiceLogger.info(`Fetching SLI data for deals from CDP service...`);
 
-  const response = await fetchDataFromCdp(endpoint);
+  const response = await fetchDataFromCdp<CdpDealSliResponse>(endpoint);
 
-  const dealsCount = Object.keys(response?.data || {}).length;
+  const dealsCount = Object.keys(response || {}).length;
 
   cdpServiceLogger.info(
     `Fetched SLI data for ${dealsCount} deals from CDP service`,
-  );
-
-  return response;
-}
-
-export async function getSliForStorageProviders(
-  storageProviders: string[],
-): Promise<CdpSliResponse | null> {
-  if (storageProviders.length === 0) {
-    cdpServiceLogger.info("No storage providers provided for SLI fetch");
-    return null;
-  }
-
-  const endpoint = `storage-providers/average-sli-data?${storageProviders
-    .map((id) => `storageProvidersIds=${id}`)
-    .join("&")}`;
-
-  cdpServiceLogger.info(`Fetching SLI data from CDP service...`);
-
-  const response = await fetchDataFromCdp<CdpSliResponse>(endpoint);
-
-  const providersCount = Object.keys(response?.data || {}).length;
-
-  cdpServiceLogger.info(
-    `Fetched SLI data for ${providersCount} providers from CDP service`,
   );
 
   return response;

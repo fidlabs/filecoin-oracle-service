@@ -17,30 +17,27 @@ export interface SliAttestation {
   slis: SLIThresholds;
 }
 
-export enum StorageProvidersSliMetricType {
-  RPA_RETRIEVABILITY = "RPA_RETRIEVABILITY",
-  IPNI_REPORTING = "IPNI_REPORTING",
-  TTFB = "TTFB",
-  BANDWIDTH = "BANDWIDTH",
+export enum DealSliMetricType {
+  RETRIEVABILITY_BPS = "RETRIEVABILITY_BPS",
+  INDEXING_PCT = "INDEXING_PCT",
+  LATENCY_MS = "LATENCY_MS",
+  BANDWIDTH_MBPS = "BANDWIDTH_MBPS",
 }
 
-export interface StorageProviderSliMetadata {
-  sliMetricType: StorageProvidersSliMetricType;
-  sliMetricName: string;
-  sliMetricDescription: string;
-  sliMetricUnit: string;
+export interface DealSliMetadata {
+  name: string;
+  description: string;
+  unit: string;
 }
 
-export interface StorageProvidersSliData {
-  sliMetricType: StorageProvidersSliMetricType;
-  sliMetricValue: string;
+export interface DealSliData {
+  name: DealSliMetricType;
+  value: string;
 }
 
-export interface CdpSliResponse {
-  sliMetadata: {
-    [code: string]: StorageProviderSliMetadata;
-  };
-  data: { [storageProviderId: string]: StorageProvidersSliData[] };
+export interface CdpDealSliResponse {
+  sliMetadata: { [K in DealSliMetricType]: DealSliMetadata };
+  data: { [dealId: string]: DealSliData[] };
 }
 
 export interface FilecoinAPIStateSectorPartition {
