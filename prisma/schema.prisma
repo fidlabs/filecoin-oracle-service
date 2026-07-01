@@ -62,15 +62,44 @@ model porep_market_deal_requirement {
 }
 
 model porep_market_deal_terms {
+  id                 String            @id @default(uuid()) @db.Uuid
+  porepMarketDealId  String            @unique @db.Uuid
+  onChainDealId      BigInt            @unique // external deal ID - from chain
+  requestedSizeBytes BigInt
+  durationEpochs     BigInt
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  deal               porep_market_deal @relation(fields: [porepMarketDealId], references: [id])
+}
+
+model porep_market_deal_payment {
   id                     String            @id @default(uuid()) @db.Uuid
   porepMarketDealId      String            @unique @db.Uuid
   onChainDealId          BigInt            @unique // external deal ID - from chain
-  dealSizeBytes          BigInt
-  pricePerSectorPerMonth BigInt
-  durationDays           Int
+  paymentToken           String
+  pricePer32GiBPerMonth  BigInt
+  billed32GiBUnits       BigInt
+  railMaxRatePerEpoch    BigInt
   createdAt              DateTime          @default(now())
   updatedAt              DateTime          @updatedAt
   deal                   porep_market_deal @relation(fields: [porepMarketDealId], references: [id])
+
+  @@index([porepMarketDealId])
+}
+
+model porep_market_deal_evidence_status {
+  id                       String            @id @default(uuid()) @db.Uuid
+  porepMarketDealId        String            @unique @db.Uuid
+  onChainDealId            BigInt            @unique // external deal ID - from chain
+  activeCoveredBytes       BigInt
+  lastEvidenceRefreshEpoch BigInt
+  reasonCode               BigInt
+  result                   BigInt
+  createdAt                DateTime          @default(now())
+  updatedAt                DateTime          @updatedAt
+  deal                     porep_market_deal @relation(fields: [porepMarketDealId], references: [id])
+
+  @@index([porepMarketDealId])
 }
 
 model porep_market_deal_claim {
@@ -98,12 +127,23 @@ model porep_market_deal {
   onChainDealId                 BigInt                                   @unique // external deal ID - from chain
   client                        String
   provider                      BigInt
+  offerId                       BigInt?
   railId                        BigInt
+  evidenceAdapter               String?
   validatorContractAddress      String
+  providerOrganization          String?
   state                         DealState
   terms                         porep_market_deal_terms?
-  requirements                  porep_market_deal_requirement?
+  payment                       porep_market_deal_payment?
+  requiredSLIs                  porep_market_deal_requirement?
+  evidenceStatus                porep_market_deal_evidence_status?
+  manifestHash                  String?
   manifestLocation              String?
+  expiresAtEpoch                BigInt?
+  serviceStartEpoch             BigInt?
+  serviceEndEpoch               BigInt?
+  reservedBytes                 BigInt?
+  committedBytes                BigInt?
   allocationsRequiredCount      BigInt?
   allocationsMatchedCount       BigInt?
   isAllocationsMatched          Boolean

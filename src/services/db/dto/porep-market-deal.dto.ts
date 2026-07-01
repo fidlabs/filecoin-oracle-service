@@ -24,12 +24,12 @@ export const porepMarkerDealSelect =
     proposedAtBlock: true,
     terms: {
       select: {
-        dealSizeBytes: true,
-        pricePerSectorPerMonth: true,
-        durationDays: true,
+        requestedSizeBytes: true,
+        pricePer32GiBPerMonth: true,
+        durationEpochs: true,
       },
     },
-    requirements: {
+    requiredSLIs: {
       select: {
         retrievabilityBps: true,
         bandwidthBytesPerSecond: true,
