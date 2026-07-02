@@ -1,11 +1,11 @@
-import { SectorStatus } from "../../../prisma/generated/client";
+import { Prisma, SectorStatus } from "../../../prisma/generated/client";
 import {
+  DealScore,
   DealState,
   GasUsageByFunction,
   OnChainTransactionResult,
   PorepMarketContractDealState,
   PorepMarketDeal,
-  ProviderScore,
 } from "../../utils/types";
 import { getPrismaClient } from "../prisma-service";
 import {
@@ -58,6 +58,18 @@ export const getChainSectorStatusToDomain = (status: number) => {
   }
 };
 
+async function getDealsByWhereFromDb(
+  where: Prisma.porep_market_dealWhereInput,
+): Promise<PorepMarketDealDto[]> {
+  const deals: PorepMarketDealDto[] =
+    await prismaClient.porep_market_deal.findMany({
+      where,
+      select: porepMarkerDealSelect,
+    });
+
+  return deals;
+}
+
 export async function getCompletedDealsToSettleFromDb() {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
@@ -93,7 +105,7 @@ export async function getCompletedDealsToSettleFromDb() {
               },
             },
             {
-              modifyRailPaymentAt: {
+              activatePaymentAt: {
                 not: null,
                 lte: thirtyDaysAgo,
               },
@@ -163,9 +175,7 @@ export async function getCompletedDealsToTerminateFromDb(blockNumber: bigint) {
   return deals ? deals : [];
 }
 
-export async function getCompletedDealsToSetEndEpochFromDb(
-  blockNumber: bigint,
-) {
+export async function getCompletedDealsToActivatePayment(blockNumber: bigint) {
   const deals = await prismaClient.porep_market_deal.findMany({
     where: {
       dealEndEpoch: {
@@ -174,7 +184,7 @@ export async function getCompletedDealsToSetEndEpochFromDb(
       },
       state: DealState.Completed,
       isRailTerminated: false,
-      isDealEndEpochSetOnChain: false,
+      activatePaymentAt: null,
       isAllocationsMatched: true, // IMPORTANT: only consider deals with matching allocation count between expected and actual to avoid setting wrong deal end epoch
     },
   });
@@ -194,6 +204,38 @@ export async function getDealByOnChainIdFromDb(
     });
 
   return deal;
+}
+
+export async function getDealsToSetSliFromDb(): Promise<PorepMarketDealDto[]> {
+  return await getDealsByWhereFromDb({
+    state: DealState.Completed,
+    isAllocationsMatched: true,
+    isRailTerminated: false,
+    activatePaymentAt: {
+      not: null,
+    },
+  });
+}
+
+export async function getDealsToSyncUrlFinderSliTargetsFromDb(): Promise<
+  PorepMarketDealDto[]
+> {
+  return await getDealsByWhereFromDb({
+    urlFinderSliTargetTriggeredAt: null,
+  });
+}
+
+export async function markUrlFinderSliTargetTriggeredInDb(
+  onChainDealId: bigint,
+) {
+  return prismaClient.porep_market_deal.update({
+    where: {
+      onChainDealId,
+    },
+    data: {
+      urlFinderSliTargetTriggeredAt: new Date(),
+    },
+  });
 }
 
 export async function syncPoRepMarketContractDealsWithDb(
@@ -299,14 +341,14 @@ export async function syncPoRepMarketContractDealsWithDb(
             create: {
               porepMarketDealId: allDBDealsMap.get(d.dealId.toString())!.id,
               onChainDealId: d.dealId,
-              dealSizeBytes: d.terms.dealSizeBytes,
-              pricePerSectorPerMonth: d.terms.pricePerSectorPerMonth,
-              durationDays: d.terms.durationDays,
+              requestedSizeBytes: d.terms.requestedSizeBytes,
+              pricePer32GiBPerMonth: d.terms.pricePer32GiBPerMonth,
+              durationEpochs: d.terms.durationEpochs,
             },
             update: {
-              dealSizeBytes: d.terms.dealSizeBytes,
-              pricePerSectorPerMonth: d.terms.pricePerSectorPerMonth,
-              durationDays: d.terms.durationDays,
+              requestedSizeBytes: d.terms.requestedSizeBytes,
+              pricePer32GiBPerMonth: d.terms.pricePer32GiBPerMonth,
+              durationEpochs: d.terms.durationEpochs,
             },
           }),
         ),
@@ -322,16 +364,16 @@ export async function syncPoRepMarketContractDealsWithDb(
             create: {
               porepMarketDealId: allDBDealsMap.get(d.dealId.toString())!.id,
               onChainDealId: d.dealId,
-              retrievabilityBps: d.requirements.retrievabilityBps,
-              bandwidthMbps: d.requirements.bandwidthMbps,
-              latencyMs: d.requirements.latencyMs,
-              indexingPct: d.requirements.indexingPct,
+              retrievabilityBps: d.requiredSLIs.retrievabilityBps,
+              bandwidthBytesPerSecond: d.requiredSLIs.bandwidthBytesPerSecond,
+              latencyMs: d.requiredSLIs.latencyMs,
+              indexingPct: d.requiredSLIs.indexingPct,
             },
             update: {
-              retrievabilityBps: d.requirements.retrievabilityBps,
-              bandwidthMbps: d.requirements.bandwidthMbps,
-              latencyMs: d.requirements.latencyMs,
-              indexingPct: d.requirements.indexingPct,
+              retrievabilityBps: d.requiredSLIs.retrievabilityBps,
+              bandwidthBytesPerSecond: d.requiredSLIs.bandwidthBytesPerSecond,
+              latencyMs: d.requiredSLIs.latencyMs,
+              indexingPct: d.requiredSLIs.indexingPct,
             },
           }),
         ),
@@ -438,23 +480,20 @@ export async function getPaginatedDealsByStateFromDb({
   return { filteredDeals, totalDeals };
 }
 
-export function storeProviderScoreToDb(data: ProviderScore[]) {
-  return prismaClient.porep_market_deal_provider_score.createMany({
+export function storeDealsScoreToDb(data: DealScore[]) {
+  return prismaClient.porep_market_deal_score.createMany({
     data,
   });
 }
 
-export async function getProviderScoreByOnChainDealIdFromDb(
-  onChainDealId: bigint,
-) {
+export async function getDealScoreByOnChainDealIdFromDb(onChainDealId: bigint) {
   const deal = await prismaClient.porep_market_deal.findFirst({
     where: {
       onChainDealId,
     },
     include: {
-      provider_score: {
+      score: {
         select: {
-          providerId: true,
           calculatedScore: true,
           averageBandwidthMbps: true,
           averageRetrievabilityBps: true,
@@ -469,7 +508,7 @@ export async function getProviderScoreByOnChainDealIdFromDb(
     },
   });
 
-  return deal?.provider_score?.[0] ?? null;
+  return deal?.score?.[0] ?? null;
 }
 
 export async function getDealsToCalculateScoreFromDb() {
@@ -483,10 +522,10 @@ export async function getDealsToCalculateScoreFromDb() {
       id: true,
       onChainDealId: true,
       provider: true,
-      requirements: {
+      requiredSLIs: {
         select: {
           retrievabilityBps: true,
-          bandwidthMbps: true,
+          bandwidthBytesPerSecond: true,
           latencyMs: true,
           indexingPct: true,
         },

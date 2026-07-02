@@ -7,40 +7,37 @@ export interface BigInt {
 
 export interface SLIThresholds {
   retrievabilityBps: number;
-  bandwidthMbps: number;
+  bandwidthBytesPerSecond: bigint;
   latencyMs: number;
   indexingPct: number;
 }
 
 export interface SliAttestation {
-  provider: bigint;
+  onChainDealId: bigint;
   slis: SLIThresholds;
 }
 
-export enum StorageProvidersSliMetricType {
-  RPA_RETRIEVABILITY = "RPA_RETRIEVABILITY",
-  IPNI_REPORTING = "IPNI_REPORTING",
-  TTFB = "TTFB",
-  BANDWIDTH = "BANDWIDTH",
+export enum DealSliMetricType {
+  RETRIEVABILITY_BPS = "RETRIEVABILITY_BPS",
+  INDEXING_PCT = "INDEXING_PCT",
+  LATENCY_MS = "LATENCY_MS",
+  BANDWIDTH_MBPS = "BANDWIDTH_MBPS",
 }
 
-export interface StorageProviderSliMetadata {
-  sliMetricType: StorageProvidersSliMetricType;
-  sliMetricName: string;
-  sliMetricDescription: string;
-  sliMetricUnit: string;
+export interface DealSliMetadata {
+  name: string;
+  description: string;
+  unit: string;
 }
 
-export interface StorageProvidersSliData {
-  sliMetricType: StorageProvidersSliMetricType;
-  sliMetricValue: string;
+export interface DealSliData {
+  name: DealSliMetricType;
+  value: string;
 }
 
-export interface CdpSliResponse {
-  sliMetadata: {
-    [code: string]: StorageProviderSliMetadata;
-  };
-  data: { [storageProviderId: string]: StorageProvidersSliData[] };
+export interface CdpDealSliResponse {
+  sliMetadata: { [K in DealSliMetricType]: DealSliMetadata };
+  data: { [dealId: string]: DealSliData[] };
 }
 
 export interface FilecoinAPIStateSectorPartition {
@@ -116,9 +113,9 @@ export enum DealState {
 }
 
 export interface DealTerms {
-  dealSizeBytes: bigint;
-  pricePerSectorPerMonth: bigint;
-  durationDays: number;
+  requestedSizeBytes: bigint;
+  pricePer32GiBPerMonth: bigint;
+  durationEpochs: bigint;
 }
 
 export enum PorepMarketContractDealState {
@@ -129,17 +126,35 @@ export enum PorepMarketContractDealState {
   Terminated,
 }
 
-export interface PorepMarketContractDealProposal {
-  dealId: bigint;
-  client: Address;
-  provider: bigint;
-  validator: Address;
-  railId: bigint;
-  manifestLocation: string;
-  proposedAtBlock: bigint;
-  state: PorepMarketContractDealState;
-  terms: DealTerms;
-  requirements: SLIThresholds;
+export interface PorepMarketContractDealSli extends SLIThresholds {
+  onChainDealId: bigint;
+}
+
+export interface PorepMarketContractDealView {
+  deal: {
+    dealId: bigint;
+    client: Address;
+    provider: bigint;
+    validator: Address;
+    offerId: bigint;
+    state: PorepMarketContractDealState;
+    evidenceAdapter: Address;
+    railId: bigint;
+  };
+  data: {
+    manifestLocation: string;
+  };
+  requiredSLIs: SLIThresholds;
+  terms: {
+    requestedSizeBytes: bigint;
+    durationEpochs: bigint;
+  };
+  timing: {
+    proposedAtEpoch: bigint;
+  };
+  payment: {
+    pricePer32GiBPerMonth: bigint;
+  };
 }
 
 export interface PorepMarketDealClaim {
@@ -168,16 +183,16 @@ export interface PorepMarketDeal {
   allocationsRequiredCount?: bigint;
   allocationsMatchedCount?: bigint;
   isAllocationsMatched?: boolean;
-  isDealEndEpochSetOnChain?: boolean;
+  activatePaymentAt?: Date | null;
   allocationIds?: bigint[];
   claims?: PorepMarketDealClaim[];
   isRailTerminated?: boolean;
   terms: DealTerms;
-  requirements: SLIThresholds;
+  requiredSLIs: SLIThresholds;
   proposedAtBlock: bigint;
 }
 
-export interface ProviderScore {
+export interface DealScore {
   providerId: bigint;
   calculatedScore: bigint;
   porepMarketDealId: string;

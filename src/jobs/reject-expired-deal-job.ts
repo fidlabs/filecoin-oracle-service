@@ -21,7 +21,8 @@ export async function runRejectExpiredDealJob() {
     const onChainDeals = await getDealsFromPoRepMarketContract();
 
     const proposedDeals = onChainDeals.filter(
-      (deal) => deal.state === PorepMarketContractDealState.Proposed,
+      (dealView) =>
+        dealView.deal.state === PorepMarketContractDealState.Proposed,
     );
 
     if (proposedDeals.length === 0) {
@@ -35,22 +36,24 @@ export async function runRejectExpiredDealJob() {
       `Found ${proposedDeals.length} potentially expired deals in Proposed state on chain, checking if any of them have expired...`,
     );
 
-    const proposedDealIds = proposedDeals.map((deal) => deal.dealId);
+    const proposedDealIds = proposedDeals.map(
+      (dealView) => dealView.deal.dealId,
+    );
 
     const dbDeals = await getDealsFromDb(proposedDealIds);
 
     for (const onChainDeal of proposedDeals) {
       rejectExpiredDealChildLogger.info(
-        `Processing potentially expired deal with ID ${onChainDeal.dealId}`,
+        `Processing potentially expired deal with ID ${onChainDeal.deal.dealId}`,
       );
 
       const dbDeal = dbDeals.find(
-        (deal) => deal.onChainDealId === onChainDeal.dealId,
+        (deal) => deal.onChainDealId === onChainDeal.deal.dealId,
       );
 
       if (!dbDeal) {
         rejectExpiredDealChildLogger.info(
-          `No corresponding deal found in database for on-chain deal with ID ${onChainDeal.dealId}, skipping storing transaction result to database`,
+          `No corresponding deal found in database for on-chain deal with ID ${onChainDeal.deal.dealId}, skipping storing transaction result to database`,
         );
         continue;
 
@@ -58,13 +61,13 @@ export async function runRejectExpiredDealJob() {
       }
 
       const transactionResult = await rejectExpiredDealOnPoRepMarketContract(
-        onChainDeal.dealId,
+        onChainDeal.deal.dealId,
       );
 
       await storeOnChainTransactionToDb(dbDeal.id, transactionResult);
 
       rejectExpiredDealChildLogger.info(
-        `Successfully processed potentially expired deal with ID ${onChainDeal.dealId}`,
+        `Successfully processed potentially expired deal with ID ${onChainDeal.deal.dealId}`,
       );
     }
   } catch (error) {

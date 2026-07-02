@@ -47,16 +47,16 @@ model porep_market_deal_history {
 }
 
 model porep_market_deal_requirement {
-  id                String            @id @default(uuid()) @db.Uuid
-  porepMarketDealId String            @unique @db.Uuid
-  onChainDealId     BigInt            @unique // external deal ID - from chain
-  retrievabilityBps BigInt
-  bandwidthMbps     BigInt
-  latencyMs         BigInt
-  indexingPct       BigInt
-  deal              porep_market_deal @relation(fields: [porepMarketDealId], references: [id])
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  id                      String            @id @default(uuid()) @db.Uuid
+  porepMarketDealId       String            @unique @db.Uuid
+  onChainDealId           BigInt            @unique // external deal ID - from chain
+  retrievabilityBps       BigInt
+  bandwidthBytesPerSecond BigInt
+  latencyMs               BigInt
+  indexingPct             BigInt
+  deal                    porep_market_deal @relation(fields: [porepMarketDealId], references: [id])
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
 
   @@index([porepMarketDealId])
 }
@@ -65,9 +65,9 @@ model porep_market_deal_terms {
   id                     String            @id @default(uuid()) @db.Uuid
   porepMarketDealId      String            @unique @db.Uuid
   onChainDealId          BigInt            @unique // external deal ID - from chain
-  dealSizeBytes          BigInt
-  pricePerSectorPerMonth BigInt
-  durationDays           Int
+  requestedSizeBytes     BigInt
+  pricePer32GiBPerMonth  BigInt
+  durationEpochs         BigInt
   createdAt              DateTime          @default(now())
   updatedAt              DateTime          @updatedAt
   deal                   porep_market_deal @relation(fields: [porepMarketDealId], references: [id])
@@ -94,34 +94,34 @@ model porep_market_deal_claim {
 }
 
 model porep_market_deal {
-  id                       String                                   @id @default(uuid()) @db.Uuid
-  onChainDealId            BigInt                                   @unique // external deal ID - from chain
-  client                   String
-  provider                 BigInt
-  railId                   BigInt
-  validatorContractAddress String
-  state                    DealState
-  terms                    porep_market_deal_terms?
-  requirements             porep_market_deal_requirement?
-  manifestLocation         String?
-  allocationsRequiredCount BigInt?
-  allocationsMatchedCount  BigInt?
-  isAllocationsMatched     Boolean
-  isRailTerminated         Boolean
-  dealStartEpoch           BigInt?
-  dealEndEpoch             BigInt?
-  isDealEndEpochSetOnChain Boolean                                  @default(false)
-  allocationIds            BigInt[]
-  claims                   porep_market_deal_claim[]
-  history                  porep_market_deal_history[]
-  settlement_history       porep_market_deal_settlement_history[]
-  provider_score           porep_market_deal_provider_score[]
-  transactions             porep_market_deal_on_chain_transaction[]
-  proposedAtBlock          BigInt
-  modifyRailPaymentAt      DateTime?
-  lastSyncedAt             DateTime                                 @updatedAt
-  createdAt                DateTime                                 @default(now())
-  updatedAt                DateTime                                 @updatedAt
+  id                            String                                   @id @default(uuid()) @db.Uuid
+  onChainDealId                 BigInt                                   @unique // external deal ID - from chain
+  client                        String
+  provider                      BigInt
+  railId                        BigInt
+  validatorContractAddress      String
+  state                         DealState
+  terms                         porep_market_deal_terms?
+  requiredSLIs                  porep_market_deal_requirement?
+  manifestLocation              String?
+  allocationsRequiredCount      BigInt?
+  allocationsMatchedCount       BigInt?
+  isAllocationsMatched          Boolean
+  isRailTerminated              Boolean
+  dealStartEpoch                BigInt?
+  dealEndEpoch                  BigInt?
+  allocationIds                 BigInt[]
+  claims                        porep_market_deal_claim[]
+  history                       porep_market_deal_history[]
+  settlement_history            porep_market_deal_settlement_history[]
+  transactions                  porep_market_deal_on_chain_transaction[]
+  score                         porep_market_deal_score[]
+  proposedAtBlock               BigInt
+  activatePaymentAt             DateTime?
+  urlFinderSliTargetTriggeredAt DateTime?
+  lastSyncedAt                  DateTime                                 @updatedAt
+  createdAt                     DateTime                                 @default(now())
+  updatedAt                     DateTime                                 @updatedAt
 
   @@index([onChainDealId])
   @@index([state])
@@ -138,10 +138,9 @@ model porep_market_deal_settlement_history {
   @@index([porepMarketDealId])
 }
 
-model porep_market_deal_provider_score {
+model porep_market_deal_score {
   id                       String            @id @default(uuid()) @db.Uuid
   porepMarketDealId        String            @db.Uuid
-  providerId               BigInt
   calculatedScore          BigInt
   averageRetrievabilityBps BigInt
   averageBandwidthMbps     BigInt
@@ -149,34 +148,32 @@ model porep_market_deal_provider_score {
   averageIndexingPct       BigInt
   deal                     porep_market_deal @relation(fields: [porepMarketDealId], references: [id])
   createdAt                DateTime          @default(now())
-
-  @@index([providerId])
 }
 
 model porep_market_deal_on_chain_transaction {
-  id                String                                          @id @default(uuid()) @db.Uuid
-  porepMarketDealId String                                          @db.Uuid
+  id                String                                         @id @default(uuid()) @db.Uuid
+  porepMarketDealId String                                         @db.Uuid
   contractName      ContractName
   functionName      String
-  createdAt         DateTime                                        @default(now())
-  deal              porep_market_deal                               @relation(fields: [porepMarketDealId], references: [id])
+  createdAt         DateTime                                       @default(now())
+  deal              porep_market_deal                              @relation(fields: [porepMarketDealId], references: [id])
   detail            porep_market_deal_on_chain_transaction_detail?
 
   @@index([porepMarketDealId])
 }
 
 model porep_market_deal_on_chain_transaction_detail {
-  id            String                                 @id @default(uuid()) @db.Uuid
-  transactionId String                                 @unique @db.Uuid
-  transactionHash   String
-  blockNumber   BigInt
-  gasUsed       BigInt?
-  gasPrice      BigInt?
-  nonce         BigInt?
-  fromAddress   String?
-  toAddress     String?
-  value         BigInt?
-  inputData     String?
-  createdAt     DateTime                               @default(now())
-  transaction   porep_market_deal_on_chain_transaction @relation(fields: [transactionId], references: [id])
+  id              String                                 @id @default(uuid()) @db.Uuid
+  transactionId   String                                 @unique @db.Uuid
+  transactionHash String
+  blockNumber     BigInt
+  gasUsed         BigInt?
+  gasPrice        BigInt?
+  nonce           BigInt?
+  fromAddress     String?
+  toAddress       String?
+  value           BigInt?
+  inputData       String?
+  createdAt       DateTime                               @default(now())
+  transaction     porep_market_deal_on_chain_transaction @relation(fields: [transactionId], references: [id])
 }

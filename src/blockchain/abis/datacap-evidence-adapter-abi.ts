@@ -1,6 +1,6 @@
 import { Abi } from "viem";
 
-export const CLIENT_CONTRACT_ABI = [
+export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
   {
     type: "constructor",
     inputs: [],
@@ -73,6 +73,79 @@ export const CLIENT_CONTRACT_ABI = [
   },
   {
     type: "function",
+    name: "activateEvidence",
+    inputs: [
+      {
+        name: "context",
+        type: "tuple",
+        internalType: "struct SharedTypes.ActivationContext",
+        components: [
+          {
+            name: "dealId",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "requestedSizeBytes",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "client",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "durationEpochs",
+            type: "uint64",
+            internalType: "uint64",
+          },
+          {
+            name: "activationToleranceBps",
+            type: "uint16",
+            internalType: "uint16",
+          },
+          {
+            name: "provider",
+            type: "uint64",
+            internalType: "CommonTypes.FilActorId",
+          },
+        ],
+      },
+      {
+        name: "evidenceData",
+        type: "bytes",
+        internalType: "bytes",
+      },
+    ],
+    outputs: [
+      {
+        name: "decision",
+        type: "tuple",
+        internalType: "struct SharedTypes.ActivationDecision",
+        components: [
+          {
+            name: "coveredBytes",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "reasonCode",
+            type: "uint16",
+            internalType: "uint16",
+          },
+          {
+            name: "result",
+            type: "uint8",
+            internalType: "uint8",
+          },
+        ],
+      },
+    ],
+    stateMutability: "pure",
+  },
+  {
+    type: "function",
     name: "claimsTerminatedEarly",
     inputs: [
       {
@@ -86,19 +159,174 @@ export const CLIENT_CONTRACT_ABI = [
   },
   {
     type: "function",
-    name: "getClientAllocationIdsPerDeal",
+    name: "currentEvidenceStatus",
+    inputs: [
+      {
+        name: "context",
+        type: "tuple",
+        internalType: "struct SharedTypes.ActivationContext",
+        components: [
+          {
+            name: "dealId",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "requestedSizeBytes",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "client",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "durationEpochs",
+            type: "uint64",
+            internalType: "uint64",
+          },
+          {
+            name: "activationToleranceBps",
+            type: "uint16",
+            internalType: "uint16",
+          },
+          {
+            name: "provider",
+            type: "uint64",
+            internalType: "CommonTypes.FilActorId",
+          },
+        ],
+      },
+    ],
+    outputs: [
+      {
+        name: "status",
+        type: "tuple",
+        internalType: "struct SharedTypes.EvidenceStatus",
+        components: [
+          {
+            name: "activeCoveredBytes",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "lastEvidenceRefreshEpoch",
+            type: "int64",
+            internalType: "CommonTypes.ChainEpoch",
+          },
+          {
+            name: "reasonCode",
+            type: "uint16",
+            internalType: "uint16",
+          },
+          {
+            name: "result",
+            type: "uint8",
+            internalType: "uint8",
+          },
+        ],
+      },
+    ],
+    stateMutability: "pure",
+  },
+  {
+    type: "function",
+    name: "disableAdapter",
+    inputs: [],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "evidenceType",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint8",
+        internalType: "uint8",
+      },
+    ],
+    stateMutability: "pure",
+  },
+  {
+    type: "function",
+    name: "getAllocationIdsPerDeal",
     inputs: [
       {
         name: "dealId",
         type: "uint256",
         internalType: "uint256",
       },
+      {
+        name: "offset",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "limit",
+        type: "uint256",
+        internalType: "uint256",
+      },
     ],
     outputs: [
       {
-        name: "",
+        name: "ids",
         type: "uint64[]",
         internalType: "CommonTypes.FilActorId[]",
+      },
+      {
+        name: "sumOfAllocations",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getClaimIds",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "offset",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "limit",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "ids",
+        type: "uint64[]",
+        internalType: "CommonTypes.FilActorId[]",
+      },
+      {
+        name: "sumOfClaims",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getPoRepMarketAddress",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
@@ -271,6 +499,19 @@ export const CLIENT_CONTRACT_ABI = [
   },
   {
     type: "function",
+    name: "isOperational",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "proxiableUUID",
     inputs: [],
     outputs: [
@@ -281,6 +522,84 @@ export const CLIENT_CONTRACT_ABI = [
       },
     ],
     stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "refreshEvidenceStatus",
+    inputs: [
+      {
+        name: "context",
+        type: "tuple",
+        internalType: "struct SharedTypes.ActivationContext",
+        components: [
+          {
+            name: "dealId",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "requestedSizeBytes",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "client",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "durationEpochs",
+            type: "uint64",
+            internalType: "uint64",
+          },
+          {
+            name: "activationToleranceBps",
+            type: "uint16",
+            internalType: "uint16",
+          },
+          {
+            name: "provider",
+            type: "uint64",
+            internalType: "CommonTypes.FilActorId",
+          },
+        ],
+      },
+      {
+        name: "evidenceData",
+        type: "bytes",
+        internalType: "bytes",
+      },
+    ],
+    outputs: [
+      {
+        name: "status",
+        type: "tuple",
+        internalType: "struct SharedTypes.EvidenceStatus",
+        components: [
+          {
+            name: "activeCoveredBytes",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "lastEvidenceRefreshEpoch",
+            type: "int64",
+            internalType: "CommonTypes.ChainEpoch",
+          },
+          {
+            name: "reasonCode",
+            type: "uint16",
+            internalType: "uint16",
+          },
+          {
+            name: "result",
+            type: "uint8",
+            internalType: "uint8",
+          },
+        ],
+      },
+    ],
+    stateMutability: "pure",
   },
   {
     type: "function",
@@ -374,45 +693,7 @@ export const CLIENT_CONTRACT_ABI = [
   },
   {
     type: "function",
-    name: "supportsInterface",
-    inputs: [
-      {
-        name: "interfaceId",
-        type: "bytes4",
-        internalType: "bytes4",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "terminatedClaims",
-    inputs: [
-      {
-        name: "claimId",
-        type: "uint64",
-        internalType: "uint64",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "transfer",
+    name: "submitDataCapBatch",
     inputs: [
       {
         name: "params",
@@ -466,6 +747,117 @@ export const CLIENT_CONTRACT_ABI = [
   },
   {
     type: "function",
+    name: "submitEvidenceBatch",
+    inputs: [
+      {
+        name: "context",
+        type: "tuple",
+        internalType: "struct SharedTypes.ActivationContext",
+        components: [
+          {
+            name: "dealId",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "requestedSizeBytes",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "client",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "durationEpochs",
+            type: "uint64",
+            internalType: "uint64",
+          },
+          {
+            name: "activationToleranceBps",
+            type: "uint16",
+            internalType: "uint16",
+          },
+          {
+            name: "provider",
+            type: "uint64",
+            internalType: "CommonTypes.FilActorId",
+          },
+        ],
+      },
+      {
+        name: "evidenceData",
+        type: "bytes",
+        internalType: "bytes",
+      },
+    ],
+    outputs: [
+      {
+        name: "decision",
+        type: "tuple",
+        internalType: "struct SharedTypes.ActivationDecision",
+        components: [
+          {
+            name: "coveredBytes",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "reasonCode",
+            type: "uint16",
+            internalType: "uint16",
+          },
+          {
+            name: "result",
+            type: "uint8",
+            internalType: "uint8",
+          },
+        ],
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "supportsInterface",
+    inputs: [
+      {
+        name: "interfaceId",
+        type: "bytes4",
+        internalType: "bytes4",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "terminatedClaims",
+    inputs: [
+      {
+        name: "claimId",
+        type: "uint64",
+        internalType: "uint64",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "upgradeToAndCall",
     inputs: [
       {
@@ -481,6 +873,25 @@ export const CLIENT_CONTRACT_ABI = [
     ],
     outputs: [],
     stateMutability: "payable",
+  },
+  {
+    type: "event",
+    name: "AdapterNonOperational",
+    inputs: [
+      {
+        name: "account",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "setAtBlock",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
   },
   {
     type: "event",
@@ -655,6 +1066,16 @@ export const CLIENT_CONTRACT_ABI = [
   },
   {
     type: "error",
+    name: "AdapterAlreadyNonOperational",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "AdapterNotOperational",
+    inputs: [],
+  },
+  {
+    type: "error",
     name: "AddressEmptyCode",
     inputs: [
       {
@@ -663,6 +1084,11 @@ export const CLIENT_CONTRACT_ABI = [
         internalType: "address",
       },
     ],
+  },
+  {
+    type: "error",
+    name: "CallerIsNotPoRepMarket",
+    inputs: [],
   },
   {
     type: "error",
@@ -708,6 +1134,11 @@ export const CLIENT_CONTRACT_ABI = [
   {
     type: "error",
     name: "InvalidAllocationSize",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidBatchSize",
     inputs: [],
   },
   {
@@ -776,6 +1207,11 @@ export const CLIENT_CONTRACT_ABI = [
   },
   {
     type: "error",
+    name: "InvalidDealId",
+    inputs: [],
+  },
+  {
+    type: "error",
     name: "InvalidDealStateForTransfer",
     inputs: [],
   },
@@ -787,6 +1223,11 @@ export const CLIENT_CONTRACT_ABI = [
   {
     type: "error",
     name: "InvalidInitialization",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidLimit",
     inputs: [],
   },
   {

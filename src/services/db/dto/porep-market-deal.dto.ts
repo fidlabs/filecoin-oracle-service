@@ -13,31 +13,31 @@ export const porepMarkerDealSelect =
     allocationsRequiredCount: true,
     allocationsMatchedCount: true,
     isAllocationsMatched: true,
-    isDealEndEpochSetOnChain: true,
-    modifyRailPaymentAt: true,
+    activatePaymentAt: true,
     allocationIds: true,
     isRailTerminated: true,
     manifestLocation: true,
+    urlFinderSliTargetTriggeredAt: true,
     createdAt: true,
     updatedAt: true,
     lastSyncedAt: true,
     proposedAtBlock: true,
     terms: {
       select: {
-        dealSizeBytes: true,
-        pricePerSectorPerMonth: true,
-        durationDays: true,
+        requestedSizeBytes: true,
+        pricePer32GiBPerMonth: true,
+        durationEpochs: true,
       },
     },
-    requirements: {
+    requiredSLIs: {
       select: {
         retrievabilityBps: true,
-        bandwidthMbps: true,
+        bandwidthBytesPerSecond: true,
         latencyMs: true,
         indexingPct: true,
       },
     },
-    provider_score: {
+    score: {
       select: {
         calculatedScore: true,
         averageBandwidthMbps: true,

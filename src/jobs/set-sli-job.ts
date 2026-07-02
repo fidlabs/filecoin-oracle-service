@@ -1,8 +1,8 @@
 import { setSliOnOracleContract } from "../blockchain/sli-oracle-contract";
-import { getProvidersFromSPRegistryContract } from "../blockchain/sp-registry-contract";
-import { getSliForStorageProviders } from "../services/cdp-fetch-service";
+import { getSliForDeals } from "../services/cdp-fetch-service";
+import { getDealsToSetSliFromDb } from "../services/db/db-service";
 import { baseLogger } from "../utils/logger";
-import { SliAttestation } from "../utils/types";
+import { DealSliData, DealSliMetricType, SliAttestation } from "../utils/types";
 import { calculateScoreJob } from "./calculate-score-job";
 
 const sliChildLogger = baseLogger.child(
@@ -10,90 +10,90 @@ const sliChildLogger = baseLogger.child(
   { msgPrefix: "[SLI Job] " },
 );
 
+function convertMbpsToBytesPerSecond(bandwidthMbps?: string): bigint {
+  const parsedBandwidthMbps = Number(bandwidthMbps);
+
+  if (!Number.isFinite(parsedBandwidthMbps)) {
+    return 0n;
+  }
+
+  return BigInt(Math.floor((parsedBandwidthMbps * 1_000_000) / 8));
+}
+
 export async function setSliOracleJob() {
   try {
     sliChildLogger.info("Job started");
 
-    const storageProviders = await getProvidersFromSPRegistryContract();
+    const dealsToSetSli = await getDealsToSetSliFromDb();
 
-    const uniqueStorageProviders = [...new Set(storageProviders)];
+    const uniqueDealIds = [
+      ...new Set(dealsToSetSli.map((deal) => deal.onChainDealId)),
+    ];
 
-    if (uniqueStorageProviders.length === 0) {
-      sliChildLogger.info(
-        "No storage providers found in SP Registry contract, skipping SLI update on oracle contract",
-      );
+    if (uniqueDealIds.length === 0) {
+      sliChildLogger.info("No deals found to set SLI, skipping SLI update");
 
       return;
     }
 
     sliChildLogger.info(
-      `Extracted ${uniqueStorageProviders.length} unique of ${storageProviders.length} all storage providers`,
+      `Extracted ${uniqueDealIds.length} unique of ${dealsToSetSli.length} all deals`,
     );
 
-    const sps = uniqueStorageProviders.map((sp) => `f0${sp.toString()}`);
+    const sliDataForDeals = await getSliForDeals(uniqueDealIds);
 
-    const sliDataForProviders = await getSliForStorageProviders(sps);
-    const providersSlis = Object.values(sliDataForProviders?.data || {});
+    const dealsSlis = Object.values(sliDataForDeals?.data || {});
 
-    if (providersSlis.length === 0 || !sliDataForProviders) {
+    if (dealsSlis.length === 0 || !sliDataForDeals) {
       sliChildLogger.info(
-        "No SLI data fetched for any provider from CDP, skipping SLI update on oracle contract",
+        "No SLI data fetched for any deals from CDP, skipping SLI update",
       );
       return;
     }
 
     sliChildLogger.info(
-      `Fetched SLI data for ${providersSlis.length} providers from CDP`,
+      `Fetched SLI data for ${dealsSlis.length} providers from CDP`,
     );
 
     sliChildLogger.info(`Preparing SLI data for providers...`);
 
     const buildedSliData: SliAttestation[] = Object.entries(
-      sliDataForProviders.data,
-    ).map(([storageProviderId]) => {
-      // const retrievability =
-      //   Number(
-      //     data.find(
-      //       (d: StorageProvidersSliData) =>
-      //         d.sliMetricType ===
-      //         StorageProvidersSliMetricType.RPA_RETRIEVABILITY,
-      //     )?.sliMetricValue,
-      //   ) || 0;
-      // const indexingMetric =
-      //   Number(
-      //     data.find(
-      //       (d: StorageProvidersSliData) =>
-      //         d.sliMetricType === StorageProvidersSliMetricType.IPNI_REPORTING,
-      //     )?.sliMetricValue,
-      //   ) || 0;
+      sliDataForDeals.data,
+    ).map(([onChainDealId, sliData]) => {
+      const retrievability =
+        Number(
+          sliData.find(
+            (d: DealSliData) => d.name === DealSliMetricType.RETRIEVABILITY_BPS,
+          )?.value,
+        ) || 0;
+      const indexingMetric =
+        Number(
+          sliData.find(
+            (d: DealSliData) => d.name === DealSliMetricType.INDEXING_PCT,
+          )?.value,
+        ) || 0;
 
-      // const latencyMetric =
-      //   Number(
-      //     data.find(
-      //       (d: StorageProvidersSliData) =>
-      //         d.sliMetricType === StorageProvidersSliMetricType.TTFB,
-      //     )?.sliMetricValue,
-      //   ) || 0;
+      const latencyMetric =
+        Number(
+          sliData.find(
+            (d: DealSliData) => d.name === DealSliMetricType.LATENCY_MS,
+          )?.value,
+        ) || 0;
 
-      // const bandwidthMetric =
-      //   Number(
-      //     data
-      //       .find(
-      //         (d: StorageProvidersSliData) =>
-      //           d.sliMetricType === StorageProvidersSliMetricType.BANDWIDTH,
-      //       )
-      //       ?.sliMetricValue?.split(".")[0],
-      //   ) || 0;
+      const bandwidthBytesPerSecond = convertMbpsToBytesPerSecond(
+        sliData.find(
+          (d: DealSliData) => d.name === DealSliMetricType.BANDWIDTH_MBPS,
+        )?.value,
+      );
 
       const sliAttestation: SliAttestation = {
-        provider: storageProviderId.startsWith("f0")
-          ? BigInt(storageProviderId.slice(2))
-          : BigInt(storageProviderId),
+        onChainDealId: BigInt(onChainDealId),
         slis: {
-          retrievabilityBps: 5000,
-          bandwidthMbps: 100,
-          latencyMs: 30000,
-          indexingPct: 0,
+          retrievabilityBps:
+            retrievability !== null ? Math.floor(retrievability * 10000) : 0,
+          bandwidthBytesPerSecond,
+          indexingPct: Math.floor(indexingMetric * 100),
+          latencyMs: latencyMetric,
         },
       };
 

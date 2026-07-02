@@ -10,17 +10,17 @@ export type PorepMarketDealResponse = {
   allocationsRequiredCount: bigint | null;
   allocationsMatchedCount: bigint | null;
   isAllocationsMatched: boolean;
-  isDealEndEpochSetOnChain: boolean;
+  activatePaymentAt: Date | null;
   allocationIds: bigint[];
   isRailTerminated: boolean;
   terms: PorepMarketDealTermResponse | null;
-  requirements: PorepMarketDeaSliThresholdResponse | null;
+  requiredSLIs: PorepMarketDeaSliThresholdResponse | null;
 };
 
 export type PorepMarketDealTermResponse = {
-  dealSizeBytes: bigint;
-  pricePerSectorPerMonth: bigint;
-  durationDays: number;
+  requestedSizeBytes: bigint;
+  pricePer32GiBPerMonth: bigint;
+  durationEpochs: bigint;
 };
 
 export type PorepMarketDeaSliThresholdResponse = {

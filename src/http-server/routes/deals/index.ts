@@ -2,8 +2,8 @@ import { FastifyPluginOptions } from "fastify";
 import {
   getCountOfCompletedDealsFromDb,
   getDealByOnChainIdFromDb,
+  getDealScoreByOnChainDealIdFromDb,
   getPaginatedDealsByStateFromDb,
-  getProviderScoreByOnChainDealIdFromDb,
 } from "../../../services/db/db-service";
 import { DealState } from "../../../utils/types";
 import { FastifyTypedInstance } from "../../server";
@@ -89,7 +89,7 @@ export function dealRoutes(
   );
 
   fastify.get(
-    "/:onChainDealId/provider-score",
+    "/:onChainDealId/score",
     {
       preParsing: async (request) => {
         const { onChainDealId } = request.params as {
@@ -101,18 +101,18 @@ export function dealRoutes(
         }
       },
       schema: {
-        description: "Get deal details by on-chain deal ID",
+        description: "Get deal score by on-chain deal ID",
         params: GetDealByIdRequestSchema,
       },
     },
     async (request, reply) => {
       const { onChainDealId } = request.params;
 
-      const provider_score = await getProviderScoreByOnChainDealIdFromDb(
+      const dealScore = await getDealScoreByOnChainDealIdFromDb(
         BigInt(onChainDealId),
       );
 
-      return reply.success(provider_score);
+      return reply.success(dealScore);
     },
   );
 

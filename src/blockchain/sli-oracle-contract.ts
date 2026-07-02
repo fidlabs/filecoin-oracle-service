@@ -8,8 +8,8 @@ import {
   getRpcClient,
   getWalletClient,
   waitForTransactionReceiptWithRetry,
+  WalletAccountRole,
 } from "./blockchain-client";
-import { WalletAccountRole } from "./client-contract";
 
 const childLogger = baseLogger.child(
   { avengers: "assemble" },
@@ -29,8 +29,8 @@ export async function setSliOnOracleContract(
   const encodedCalls = sliData.map((req) =>
     encodeFunctionData({
       abi: SLI_ORACLE_CONTRACT_ABI,
-      functionName,
-      args: [req.provider, req.slis],
+      functionName: "setSLI",
+      args: [req.onChainDealId, req.slis],
     }),
   );
 
@@ -69,8 +69,8 @@ export async function setSliOnOracleContract(
   };
 }
 
-export async function getLastSliForProviderFromSliOracleContract(
-  providerIds: bigint[],
+export async function getLastSliForDealsFromSliOracleContract(
+  onChainDealIds: bigint[],
 ) {
   const oracleContractAddress =
     SERVICE_CONFIG.SLI_ORACLE_CONTRACT_ADDRESS as Address;
@@ -79,11 +79,11 @@ export async function getLastSliForProviderFromSliOracleContract(
 
   const rpcClient = getRpcClient();
 
-  const encodedCalls = providerIds.map((providerId) =>
+  const encodedCalls = onChainDealIds.map((onChainDealId) =>
     encodeFunctionData({
       abi: SLI_ORACLE_CONTRACT_ABI,
       functionName: "getAttestation",
-      args: [providerId],
+      args: [onChainDealId],
     }),
   );
 
@@ -95,7 +95,7 @@ export async function getLastSliForProviderFromSliOracleContract(
   });
 
   childLogger.info(
-    `getAttestation: Fetched attestation for providers from oracle contract`,
+    `getAttestation: Fetched attestation for deals from oracle contract`,
   );
 
   const decoded = result.map((res) =>
@@ -107,7 +107,7 @@ export async function getLastSliForProviderFromSliOracleContract(
   );
 
   const providerAttestations = decoded.map((res, index) => ({
-    providerId: providerIds[index],
+    onChainDealIds: onChainDealIds[index],
     sliAttestation: res.slis,
   }));
 
