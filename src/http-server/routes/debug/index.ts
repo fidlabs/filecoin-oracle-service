@@ -7,6 +7,7 @@ import {
 import { SERVICE_CONFIG } from "../../../config/env";
 import { trackClaimsTerminatedEarlyJob } from "../../../jobs/claims-terminated-early-job";
 import { dataCapPostingFinishedJob } from "../../../jobs/datacap-posting-finished-job";
+import { refreshEvidenceStatusJob } from "../../../jobs/refresh-evidence-status-job";
 import { runRejectExpiredDealJob } from "../../../jobs/reject-expired-deal-job";
 import { setSliOracleJob } from "../../../jobs/set-sli-job";
 import { runSettlementBotJob } from "../../../jobs/settlement-bot-job";
@@ -73,6 +74,9 @@ export function debugRoutes(
           break;
         case "sync-settlement-history":
           await syncSettlementHistoryJob();
+          break;
+        case "refresh-evidence-status":
+          await refreshEvidenceStatusJob();
           break;
         case "track-terminated-deals":
           await trackTerminateDealJob();
