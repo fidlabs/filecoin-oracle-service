@@ -142,7 +142,7 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
         ],
       },
     ],
-    stateMutability: "pure",
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -252,6 +252,38 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
   },
   {
     type: "function",
+    name: "finishDataCapPosting",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "getAllocatedBytes",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "getAllocationIdsPerDeal",
     inputs: [
       {
@@ -320,6 +352,25 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
   },
   {
     type: "function",
+    name: "getDealAllocationStatus",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "status",
+        type: "uint8",
+        internalType: "uint8",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "getPoRepMarketAddress",
     inputs: [],
     outputs: [
@@ -346,25 +397,6 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
         name: "",
         type: "bytes32",
         internalType: "bytes32",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getSizeOfAllocations",
-    inputs: [
-      {
-        name: "dealId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
       },
     ],
     stateMutability: "view",
@@ -477,6 +509,25 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
     ],
     outputs: [],
     stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "isDataCapPostingFinished",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -895,6 +946,44 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
   },
   {
     type: "event",
+    name: "DataCapBatchSubmitted",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "allocatedBytes",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "DataCapPostingFinished",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "allocatedBytes",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
     name: "DatacapSpent",
     inputs: [
       {
@@ -933,6 +1022,25 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
         type: "uint256",
         indexed: false,
         internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "DealEvidenceReady",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "evidenceAdapter",
+        type: "address",
+        indexed: true,
+        internalType: "address",
       },
     ],
     anonymous: false,
@@ -1128,6 +1236,11 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
   },
   {
     type: "error",
+    name: "InvalidAllocatedBytes",
+    inputs: [],
+  },
+  {
+    type: "error",
     name: "InvalidAllocationRequest",
     inputs: [],
   },
@@ -1310,6 +1423,16 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
   {
     type: "error",
     name: "NotInitializing",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "PostingAlreadyFinished",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "PostingNotFinished",
     inputs: [],
   },
   {

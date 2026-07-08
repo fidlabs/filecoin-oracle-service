@@ -105,29 +105,61 @@ export interface FilecoinAPIStateGetClaim {
 }
 
 export enum DealState {
+  None = "None",
   Proposed = "Proposed",
   Accepted = "Accepted",
-  Completed = "Completed",
+  Active = "Active",
+  Finalized = "Finalized",
   Rejected = "Rejected",
+  Expired = "Expired",
   Terminated = "Terminated",
 }
 
 export interface DealTerms {
   requestedSizeBytes: bigint;
-  pricePer32GiBPerMonth: bigint;
   durationEpochs: bigint;
 }
 
+export interface DealPayment {
+  paymentToken: Address;
+  pricePer32GiBPerMonth: bigint;
+  billed32GiBUnits: bigint;
+  railMaxRatePerEpoch: bigint;
+}
+
+export interface DealEvidenceStatus {
+  activeCoveredBytes: bigint;
+  lastEvidenceRefreshEpoch: bigint;
+  reasonCode: bigint;
+  result: bigint;
+}
+
 export enum PorepMarketContractDealState {
-  Proposed,
-  Accepted,
-  Completed,
-  Rejected,
-  Terminated,
+  None = 0,
+  Proposed = 10,
+  Accepted = 20,
+  Active = 30,
+  Finalized = 40,
+  Rejected = 50,
+  Expired = 60,
+  Terminated = 70,
 }
 
 export interface PorepMarketContractDealSli extends SLIThresholds {
   onChainDealId: bigint;
+}
+
+export enum EvidenceResult {
+  None = 0,
+  Partial = 10,
+  Accepted = 20,
+  Rejected = 30,
+}
+
+export interface EvidenceActivationDecision {
+  coveredBytes: bigint;
+  reasonCode: number;
+  result: EvidenceResult;
 }
 
 export interface PorepMarketContractDealView {
@@ -194,11 +226,20 @@ export interface PorepMarketDeal {
   dealId: bigint;
   client: Address;
   provider: bigint;
+  offerId?: bigint;
   validatorContractAddress: Address;
+  evidenceAdapterContractAddress: Address;
   railId: bigint;
+  providerOrganization?: Address;
   dealStartEpoch?: bigint;
   dealEndEpoch?: bigint;
-  manifestLocation: string;
+  manifestHash?: `0x${string}`;
+  manifestLocation?: string;
+  expiresAtEpoch?: bigint;
+  serviceStartEpoch?: bigint;
+  serviceEndEpoch?: bigint;
+  reservedBytes?: bigint;
+  committedBytes?: bigint;
   state: DealState;
   allocationsRequiredCount?: bigint;
   allocationsMatchedCount?: bigint;
@@ -208,8 +249,10 @@ export interface PorepMarketDeal {
   claims?: PorepMarketDealClaim[];
   isRailTerminated?: boolean;
   terms: DealTerms;
+  payment: DealPayment;
   requiredSLIs: SLIThresholds;
-  proposedAtBlock: bigint;
+  evidenceStatus?: DealEvidenceStatus;
+  proposedAtEpoch: bigint;
 }
 
 export interface DealScore {

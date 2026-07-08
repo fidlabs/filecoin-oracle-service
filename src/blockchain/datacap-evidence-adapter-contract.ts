@@ -1,6 +1,4 @@
 import { Address } from "viem";
-import { SERVICE_CONFIG } from "../config/env";
-
 import { ContractName } from "../../prisma/generated/client";
 import { baseLogger } from "../utils/logger";
 import { OnChainTransactionResult } from "../utils/types";
@@ -23,10 +21,12 @@ type PaginatedIdsFunctionName = "getAllocationIdsPerDeal" | "getClaimIds";
 
 async function getPaginatedIdsPerDeal({
   onChainDealId,
+  datacapEvidenceContractAddress,
   functionName,
   itemLabel,
 }: {
   onChainDealId: bigint;
+  datacapEvidenceContractAddress: Address;
   functionName: PaginatedIdsFunctionName;
   itemLabel: string;
 }): Promise<bigint[]> {
@@ -39,8 +39,7 @@ async function getPaginatedIdsPerDeal({
 
   do {
     const [pageIds, total] = await rpcClient.readContract({
-      address:
-        SERVICE_CONFIG.DATACAP_EVIDENCE_ADAPTER_CONTRACT_ADDRESS as Address,
+      address: datacapEvidenceContractAddress,
       abi: DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI,
       functionName,
       args: [onChainDealId, offset, IDS_PAGE_SIZE],
@@ -68,9 +67,11 @@ async function getPaginatedIdsPerDeal({
 
 export async function getClientAllocationIdsPerDealFromDCEvidenceContract(
   onChainDealId: bigint,
+  datacapEvidenceContractAddress: Address,
 ): Promise<bigint[]> {
   return getPaginatedIdsPerDeal({
     onChainDealId,
+    datacapEvidenceContractAddress,
     functionName: "getAllocationIdsPerDeal",
     itemLabel: "allocation IDs",
   });
@@ -79,16 +80,43 @@ export async function getClientAllocationIdsPerDealFromDCEvidenceContract(
 // not used for now - we can use this to fetch claim IDs for a deal if needed in the future
 export async function getClaimIdsPerDeal(
   onChainDealId: bigint,
+  datacapEvidenceContractAddress: Address,
 ): Promise<bigint[]> {
   return getPaginatedIdsPerDeal({
     onChainDealId,
+    datacapEvidenceContractAddress,
     functionName: "getClaimIds",
     itemLabel: "claim IDs",
   });
 }
 
+export async function isDataCapPostingFinishedOnDCEvidenceContract(
+  onChainDealId: bigint,
+  datacapEvidenceContractAddress: Address,
+): Promise<boolean> {
+  childLogger.info(
+    `Checking if DataCap posting is finished for deal ${onChainDealId}...`,
+  );
+
+  const rpcClient = getRpcClient();
+
+  const isFinished = await rpcClient.readContract({
+    address: datacapEvidenceContractAddress,
+    abi: DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI,
+    functionName: "isDataCapPostingFinished",
+    args: [onChainDealId],
+  });
+
+  childLogger.info(
+    `DataCap posting finished for deal ${onChainDealId}: ${isFinished}`,
+  );
+
+  return isFinished;
+}
+
 export async function setClaimTerminatedEarlyOnDCEvidenceContract(
   allocationIds: bigint[],
+  datacapEvidenceContractAddress: Address,
 ): Promise<OnChainTransactionResult> {
   childLogger.info(
     `Setting claimTerminatedEarly for allocation IDs ${allocationIds.join(
@@ -105,8 +133,7 @@ export async function setClaimTerminatedEarlyOnDCEvidenceContract(
   childLogger.info(`${functionName}: Simulating request...`);
 
   const { request } = await rpcClient.simulateContract({
-    address:
-      SERVICE_CONFIG.DATACAP_EVIDENCE_ADAPTER_CONTRACT_ADDRESS as Address,
+    address: datacapEvidenceContractAddress,
     abi: DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI,
     functionName,
     args: [allocationIds],

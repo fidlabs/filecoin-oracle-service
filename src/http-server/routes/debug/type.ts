@@ -5,6 +5,7 @@ export type DebugJob =
   | "sync-url-finder-sli-targets"
   | "sync-porep-ids"
   | "activate-payment"
+  | "datacap-posting-finished"
   | "set-sli"
   | "track-terminated-claims"
   | "run-settlement"

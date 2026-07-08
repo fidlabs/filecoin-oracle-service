@@ -588,6 +588,21 @@ export const POREP_MARKET_CONTRACT_ABI = [
             type: "int64",
             internalType: "CommonTypes.ChainEpoch",
           },
+          {
+            name: "earlyTerminationEpoch",
+            type: "int64",
+            internalType: "CommonTypes.ChainEpoch",
+          },
+          {
+            name: "minTimeBetweenSettlementsInEpochs",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "lastSettledEpoch",
+            type: "int64",
+            internalType: "CommonTypes.ChainEpoch",
+          },
         ],
       },
     ],
@@ -808,6 +823,21 @@ export const POREP_MARKET_CONTRACT_ABI = [
               },
               {
                 name: "serviceEndEpoch",
+                type: "int64",
+                internalType: "CommonTypes.ChainEpoch",
+              },
+              {
+                name: "earlyTerminationEpoch",
+                type: "int64",
+                internalType: "CommonTypes.ChainEpoch",
+              },
+              {
+                name: "minTimeBetweenSettlementsInEpochs",
+                type: "uint256",
+                internalType: "uint256",
+              },
+              {
+                name: "lastSettledEpoch",
                 type: "int64",
                 internalType: "CommonTypes.ChainEpoch",
               },
@@ -1052,6 +1082,21 @@ export const POREP_MARKET_CONTRACT_ABI = [
               },
               {
                 name: "serviceEndEpoch",
+                type: "int64",
+                internalType: "CommonTypes.ChainEpoch",
+              },
+              {
+                name: "earlyTerminationEpoch",
+                type: "int64",
+                internalType: "CommonTypes.ChainEpoch",
+              },
+              {
+                name: "minTimeBetweenSettlementsInEpochs",
+                type: "uint256",
+                internalType: "uint256",
+              },
+              {
+                name: "lastSettledEpoch",
                 type: "int64",
                 internalType: "CommonTypes.ChainEpoch",
               },
@@ -1407,6 +1452,11 @@ export const POREP_MARKET_CONTRACT_ABI = [
         type: "address",
         internalType: "address",
       },
+      {
+        name: "_SLIScorer",
+        type: "address",
+        internalType: "address",
+      },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -1645,6 +1695,24 @@ export const POREP_MARKET_CONTRACT_ABI = [
   },
   {
     type: "function",
+    name: "setMinEpochsBetweenSettlements",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "minEpochs",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "setNewDealExpiration",
     inputs: [
       {
@@ -1726,9 +1794,9 @@ export const POREP_MARKET_CONTRACT_ABI = [
         internalType: "uint256",
       },
       {
-        name: "endEpoch",
-        type: "uint256",
-        internalType: "uint256",
+        name: "earlyTerminationEpoch",
+        type: "int64",
+        internalType: "CommonTypes.ChainEpoch",
       },
     ],
     outputs: [],
@@ -1800,6 +1868,62 @@ export const POREP_MARKET_CONTRACT_ABI = [
     ],
     outputs: [],
     stateMutability: "payable",
+  },
+  {
+    type: "function",
+    name: "validateDealSettlement",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "fromEpoch",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "toEpoch",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "decision",
+        type: "tuple",
+        internalType: "struct SharedTypes.SettlementDecision",
+        components: [
+          {
+            name: "settlementAmount",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "settleUpto",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "reasonCode",
+            type: "uint16",
+            internalType: "uint16",
+          },
+          {
+            name: "result",
+            type: "uint8",
+            internalType: "uint8",
+          },
+          {
+            name: "note",
+            type: "string",
+            internalType: "string",
+          },
+        ],
+      },
+    ],
+    stateMutability: "nonpayable",
   },
   {
     type: "event",
@@ -1894,6 +2018,12 @@ export const POREP_MARKET_CONTRACT_ABI = [
             internalType: "uint8",
           },
         ],
+      },
+      {
+        name: "manifestHash",
+        type: "bytes32",
+        indexed: false,
+        internalType: "bytes32",
       },
       {
         name: "manifestLocation",
@@ -1998,9 +2128,9 @@ export const POREP_MARKET_CONTRACT_ABI = [
       },
       {
         name: "endEpoch",
-        type: "uint256",
+        type: "int64",
         indexed: true,
-        internalType: "uint256",
+        internalType: "CommonTypes.ChainEpoch",
       },
     ],
     anonymous: false,
@@ -2052,6 +2182,25 @@ export const POREP_MARKET_CONTRACT_ABI = [
         type: "string",
         indexed: false,
         internalType: "string",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "MinEpochsBetweenSettlementsUpdated",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "minTimeBetweenSettlementsInEpochs",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
       },
     ],
     anonymous: false,
@@ -2337,6 +2486,17 @@ export const POREP_MARKET_CONTRACT_ABI = [
   },
   {
     type: "error",
+    name: "DealServiceNotStarted",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+  },
+  {
+    type: "error",
     name: "ERC1967InvalidImplementation",
     inputs: [
       {
@@ -2425,6 +2585,16 @@ export const POREP_MARKET_CONTRACT_ABI = [
   },
   {
     type: "error",
+    name: "InvalidManifestHash",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidMinEpochsBetweenSettlements",
+    inputs: [],
+  },
+  {
+    type: "error",
     name: "InvalidOrganizationAddress",
     inputs: [],
   },
@@ -2457,12 +2627,17 @@ export const POREP_MARKET_CONTRACT_ABI = [
   },
   {
     type: "error",
+    name: "InvalidSLIScorerAddress",
+    inputs: [],
+  },
+  {
+    type: "error",
     name: "InvalidZeroAmount",
     inputs: [],
   },
   {
     type: "error",
-    name: "NoProviderFoundForDeal",
+    name: "MinEpochsBetweenSettlementsExceeded",
     inputs: [],
   },
   {

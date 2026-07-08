@@ -8,6 +8,7 @@ import {
 } from "../services/db/db-service";
 import { baseLogger } from "../utils/logger";
 import {
+  DealState,
   PorepMarketContractDealView,
   PorepMarketDeal,
   PorepMarketDealClaim,
@@ -33,19 +34,21 @@ const isDealEligibleForSyncClaims = async (
     return true;
   }
 
+  const dealState = dealExistInDb.state as DealState;
+
   if (
     dealExistInDb &&
-    dealExistInDb.state === "Completed" &&
+    dealState === DealState.Active &&
     !dealExistInDb.isAllocationsMatched
   ) {
     syncDealLogger.info(
-      `Deal with ID ${porepMarketContractDealId} exists in database with Completed state, but isAllocationsMatched is not set, will sync it`,
+      `Deal with ID ${porepMarketContractDealId} exists in database with Active state, but isAllocationsMatched is not set, will sync it`,
     );
 
     return true;
   }
 
-  if (dealExistInDb && dealExistInDb.state !== "Completed") {
+  if (dealExistInDb && dealState !== DealState.Active) {
     syncDealLogger.info(
       `Deal with ID ${porepMarketContractDealId} exists in database with state ${dealExistInDb.state}, will not sync it`,
     );
@@ -55,7 +58,7 @@ const isDealEligibleForSyncClaims = async (
 
   if (
     dealExistInDb &&
-    dealExistInDb.state === "Completed" &&
+    dealState === DealState.Active &&
     dealExistInDb.isAllocationsMatched
   ) {
     syncDealLogger.info(
@@ -84,12 +87,8 @@ export async function syncDealsJob() {
       return;
     }
 
-    const dealIdAllocationInfoMap: {
+    const dealIdAllocationsMap: {
       [dealId: string]: {
-        dealStartEpoch?: bigint;
-        dealEndEpoch?: bigint;
-        allocationsMatchedCount?: bigint;
-        requiredDealAllocationsCount?: bigint;
         allocationIds?: bigint[];
         claims?: PorepMarketDealClaim[];
       };
@@ -104,18 +103,13 @@ export async function syncDealsJob() {
       );
 
       if (shouldSyncClaims) {
-        let claimsInfo: {
-          minTermStart?: bigint;
-          maxTermMin?: bigint;
-          matchedClaims?: PorepMarketDealClaim[];
-        } = {};
-
-        let requiredAllocationsCount: bigint | undefined;
+        let matchedClaims: PorepMarketDealClaim[] | undefined;
         let requiredDealAllocations: bigint[] = [];
 
         requiredDealAllocations =
           await getClientAllocationIdsPerDealFromDCEvidenceContract(
             deal.dealId,
+            deal.evidenceAdapter,
           );
 
         syncDealLogger.info(
@@ -134,68 +128,23 @@ export async function syncDealsJob() {
             `Fetched claims info for deal ${deal.dealId} from Deal Inspector contract, total success claims count: ${claimsInfoFromDealInspectorContract[1].length}`,
           );
 
-          requiredAllocationsCount = BigInt(requiredDealAllocations?.length);
-
-          const claimsCountFromContract = claimsInfoFromDealInspectorContract[1]
-            .length
-            ? BigInt(claimsInfoFromDealInspectorContract[1].length)
-            : BigInt(0);
-
-          // If the count of successful claims from the contract matches the count of required allocations,
-          // it means all required allocations have been successfully claimed.
-          if (
-            claimsCountFromContract &&
-            claimsCountFromContract === requiredAllocationsCount
-          ) {
-            // Get the min term start and max term min across all claims for the deal
-            // to calculate the deal start and end epoch
-            const termStart = claimsInfoFromDealInspectorContract[1]
-              .map((claim) => claim.term_start)
-              .reduce((a, b) => (a < b ? a : b));
-
-            const termMin = claimsInfoFromDealInspectorContract[1]
-              .map((claim) => claim.term_min)
-              .reduce((a, b) => (a > b ? a : b));
-
-            claimsInfo = {
-              minTermStart: termStart,
-              maxTermMin: termMin,
-            };
-          }
-
           const claimIds = claimsInfoFromDealInspectorContract[0];
 
           // get the matched claims from the helper contract
-          claimsInfo.matchedClaims = claimsInfoFromDealInspectorContract[1].map(
+          matchedClaims = claimsInfoFromDealInspectorContract[1].map(
             (claim, index) => ({
-              provider: claim.provider,
-              client: claim.client,
-              data: claim.data,
-              size: claim.size,
-              term_min: claim.term_min,
-              term_max: claim.term_max,
-              term_start: claim.term_start,
-              sector: claim.sector,
+              ...claim,
               claimId: claimIds[index],
             }),
           );
 
-          dealIdAllocationInfoMap[porepMarketContractDealId.toString()] = {
-            dealStartEpoch: claimsInfo?.minTermStart,
-            dealEndEpoch:
-              claimsInfo?.minTermStart &&
-              claimsInfo?.maxTermMin &&
-              claimsInfo?.minTermStart + claimsInfo?.maxTermMin,
-            allocationsMatchedCount: BigInt(
-              claimsInfo?.matchedClaims?.length || 0,
-            ),
-            claims: claimsInfo?.matchedClaims,
+          dealIdAllocationsMap[porepMarketContractDealId.toString()] = {
+            claims: matchedClaims,
           };
         }
 
-        dealIdAllocationInfoMap[porepMarketContractDealId.toString()] = {
-          ...dealIdAllocationInfoMap[porepMarketContractDealId.toString()],
-          requiredDealAllocationsCount: requiredAllocationsCount,
+        dealIdAllocationsMap[porepMarketContractDealId.toString()] = {
+          ...dealIdAllocationsMap[porepMarketContractDealId.toString()],
           allocationIds: requiredDealAllocations,
         };
       }
@@ -204,25 +153,36 @@ export async function syncDealsJob() {
     const completedDealsWithAllocationInfo: PorepMarketDeal[] =
       contractAllDeals.map((dealView) => {
         const { deal } = dealView;
-        const allocationInfo = dealIdAllocationInfoMap[deal.dealId.toString()];
+        const allocationInfo = dealIdAllocationsMap[deal.dealId.toString()];
 
         return {
           ...deal,
-          manifestLocation: dealView.data.manifestLocation,
-          proposedAtBlock: dealView.timing.proposedAtEpoch,
+          ...dealView.data,
+          ...dealView.timing,
+          ...dealView.service,
+          ...dealView.capacity,
           validatorContractAddress: deal.validator,
+          evidenceAdapterContractAddress: deal.evidenceAdapter,
           state: getChainStateToDomain(deal.state),
           terms: {
             requestedSizeBytes: dealView.terms.requestedSizeBytes,
-            pricePer32GiBPerMonth: dealView.payment.pricePer32GiBPerMonth,
             durationEpochs: dealView.terms.durationEpochs,
           },
+          payment: dealView.payment,
           requiredSLIs: dealView.requiredSLIs,
-          dealStartEpoch: allocationInfo?.dealStartEpoch,
-          dealEndEpoch: allocationInfo?.dealEndEpoch,
-          allocationsRequiredCount:
-            allocationInfo?.requiredDealAllocationsCount,
-          allocationsMatchedCount: allocationInfo?.allocationsMatchedCount,
+          evidenceStatus: {
+            activeCoveredBytes: dealView.evidenceStatus.activeCoveredBytes,
+            lastEvidenceRefreshEpoch:
+              dealView.evidenceStatus.lastEvidenceRefreshEpoch,
+            reasonCode: BigInt(dealView.evidenceStatus.reasonCode),
+            result: BigInt(dealView.evidenceStatus.result),
+          },
+          allocationsRequiredCount: allocationInfo?.allocationIds?.length
+            ? BigInt(allocationInfo.allocationIds.length)
+            : undefined,
+          allocationsMatchedCount: allocationInfo?.claims
+            ? BigInt(allocationInfo.claims.length)
+            : undefined,
           allocationIds: allocationInfo?.allocationIds,
           claims: allocationInfo?.claims,
         };

@@ -6,17 +6,17 @@ import {
 } from "fastify";
 import { SERVICE_CONFIG } from "../../../config/env";
 import { trackClaimsTerminatedEarlyJob } from "../../../jobs/claims-terminated-early-job";
+import { dataCapPostingFinishedJob } from "../../../jobs/datacap-posting-finished-job";
 import { runRejectExpiredDealJob } from "../../../jobs/reject-expired-deal-job";
 import { setSliOracleJob } from "../../../jobs/set-sli-job";
 import { runSettlementBotJob } from "../../../jobs/settlement-bot-job";
-import { syncUrlFinderSliTargetsJob } from "../../../jobs/sync-url-finder-sli-targets-job";
 import { syncDealsJob } from "../../../jobs/sync-deal-job";
 import { syncSettlementHistoryJob } from "../../../jobs/sync-settlement-history-job";
+import { syncUrlFinderSliTargetsJob } from "../../../jobs/sync-url-finder-sli-targets-job";
 import { trackTerminateDealJob } from "../../../jobs/terminate-deal-job";
 import { httpLogger } from "../../server";
 import { AppError } from "../../utils/response-formatter-plugin/types";
 import { PostDebugJobRequest } from "./type";
-import { activatePaymentJob } from "../../../jobs/activate-payment-job";
 
 export function apiAuthMiddleware(req: FastifyRequest) {
   const authHeader = req.headers["authorization"];
@@ -59,8 +59,8 @@ export function debugRoutes(
         case "sync-url-finder-sli-targets":
           await syncUrlFinderSliTargetsJob();
           break;
-        case "activate-payment":
-          await activatePaymentJob();
+        case "datacap-posting-finished":
+          await dataCapPostingFinishedJob();
           break;
         case "set-sli":
           await setSliOracleJob();
