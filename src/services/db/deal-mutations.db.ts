@@ -1,3 +1,4 @@
+import { DealEvidenceStatus } from "../../utils/types";
 import { prismaClient } from "./db-client";
 
 export async function storeLastSettlementToDb(
@@ -35,5 +36,27 @@ export async function setActivatePaymentAtInDb(onChainDealId: bigint) {
     data: {
       activatePaymentAt: new Date(),
     },
+  });
+}
+
+export async function upsertEvidenceStatusInDb({
+  onChainDealId,
+  porepMarketDealId,
+  evidenceStatus,
+}: {
+  onChainDealId: bigint;
+  porepMarketDealId: string;
+  evidenceStatus: DealEvidenceStatus;
+}) {
+  return prismaClient.porep_market_deal_evidence_status.upsert({
+    where: {
+      porepMarketDealId,
+    },
+    create: {
+      porepMarketDealId,
+      onChainDealId,
+      ...evidenceStatus,
+    },
+    update: evidenceStatus,
   });
 }

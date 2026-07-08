@@ -26,7 +26,8 @@ try {
     !SERVICE_CONFIG.TRIGGER_TERMINATE_DEAL_JOB_INTERVAL_CRON ||
     !SERVICE_CONFIG.TRIGGER_SYNC_DEALS_JOB_INTERVAL_CRON ||
     !SERVICE_CONFIG.TRIGGER_END_EPOCH_DEAL_JOB_INTERVAL_CRON ||
-    !SERVICE_CONFIG.TRIGGER_REJECT_EXPIRED_DEAL_INTERVAL_CRON
+    !SERVICE_CONFIG.TRIGGER_REJECT_EXPIRED_DEAL_INTERVAL_CRON ||
+    !SERVICE_CONFIG.TRIGGER_REFRESH_EVIDENCE_STATUS_INTERVAL_CRON
   ) {
     throw new Error(
       `Missing one or more required cron job intervals in environment variables. Please check the configuration.`,
@@ -47,6 +48,8 @@ try {
     SERVICE_CONFIG.TRIGGER_END_EPOCH_DEAL_JOB_INTERVAL_CRON;
   const rejectExpiredDealInterval =
     SERVICE_CONFIG.TRIGGER_REJECT_EXPIRED_DEAL_INTERVAL_CRON;
+  const refreshEvidenceStatusInterval =
+    SERVICE_CONFIG.TRIGGER_REFRESH_EVIDENCE_STATUS_INTERVAL_CRON;
 
   childLogger.info(`Scheduling sync deals cron job "${syncDealsInterval}"`);
 
@@ -70,7 +73,11 @@ try {
   childLogger.info(
     `Scheduling Reject Expired Deal cron job "${rejectExpiredDealInterval}"`,
   );
+  childLogger.info(
+    `Scheduling Refresh Evidence Status cron job "${refreshEvidenceStatusInterval}"`,
+  );
 
+  // cron.schedule(refreshEvidenceStatusInterval, refreshEvidenceStatusJob);
   // cron.schedule(rejectExpiredDealInterval, runRejectExpiredDealJob);
   // cron.schedule(syncDealsInterval, syncDealsJob);
   // cron.schedule(syncUrlFinderSliTargetsInterval, syncUrlFinderSliTargetsJob);

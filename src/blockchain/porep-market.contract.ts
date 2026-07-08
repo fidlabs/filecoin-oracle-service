@@ -3,6 +3,7 @@ import { ContractName } from "../../prisma/generated/client";
 import { SERVICE_CONFIG } from "../config/env";
 import { baseLogger } from "../utils/logger";
 import {
+  DealEvidenceStatus,
   EvidenceActivationDecision,
   OnChainTransactionResult,
   PorepMarketContractDealSli,
@@ -29,6 +30,11 @@ type EvidenceTransactionFunctionName =
 
 export interface PorepMarketEvidenceTransactionResult {
   decision: EvidenceActivationDecision;
+  transactionResult: OnChainTransactionResult;
+}
+
+export interface PorepMarketEvidenceStatusTransactionResult {
+  status: DealEvidenceStatus;
   transactionResult: OnChainTransactionResult;
 }
 
@@ -165,6 +171,63 @@ export async function activateEvidenceOnPoRepMarketContract(
     onChainDealId,
     evidenceData,
   });
+}
+
+export async function refreshEvidenceStatusOnPoRepMarketContract(
+  onChainDealId: bigint,
+  evidenceData: `0x${string}`,
+): Promise<PorepMarketEvidenceStatusTransactionResult> {
+  const rpcClient = getRpcClient();
+  const walletClient = getWalletClient(WalletAccountRole.POREP_SERVICE_ROLE);
+  const functionName = "refreshEvidenceStatus";
+
+  childLogger.info(
+    `${functionName}: Simulating request for deal ${onChainDealId}...`,
+  );
+
+  const { request, result } = await rpcClient.simulateContract({
+    address: SERVICE_CONFIG.POREP_MARKET_CONTRACT_ADDRESS as Address,
+    abi: POREP_MARKET_CONTRACT_ABI,
+    functionName,
+    args: [onChainDealId, evidenceData],
+    account: walletClient.account,
+  });
+
+  const status = {
+    activeCoveredBytes: result.activeCoveredBytes,
+    lastEvidenceRefreshEpoch: result.lastEvidenceRefreshEpoch,
+    reasonCode: BigInt(result.reasonCode),
+    result: BigInt(result.result),
+  };
+
+  childLogger.info(
+    { status },
+    `${functionName}: Simulation result for deal ${onChainDealId}`,
+  );
+
+  childLogger.info(`${functionName}: Sending transaction...`);
+
+  const txHash = await walletClient.writeContract(request);
+
+  childLogger.info(
+    `${functionName}: Transaction sent: ${txHash}, waiting for confirmation...`,
+  );
+
+  const receipt = await waitForTransactionReceiptWithRetry(txHash);
+
+  childLogger.info(
+    `${functionName}: Transaction executed in block ${receipt?.blockNumber}`,
+  );
+
+  return {
+    status,
+    transactionResult: {
+      success: true,
+      contractName: ContractName.PoRepMarket,
+      functionName,
+      receipt,
+    },
+  };
 }
 
 export async function rejectExpiredDealOnPoRepMarketContract(

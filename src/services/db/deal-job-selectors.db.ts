@@ -120,6 +120,19 @@ export async function getDealsToSetSliFromDb(): Promise<PorepMarketDealDto[]> {
   });
 }
 
+export async function getDealsToRefreshEvidenceStatusFromDb(): Promise<
+  PorepMarketDealDto[]
+> {
+  return await getDealsByWhereFromDb({
+    state: toPrismaDealState(DealState.Active),
+    isAllocationsMatched: true,
+    isRailTerminated: false,
+    activatePaymentAt: {
+      not: null,
+    },
+  });
+}
+
 export async function getDealsToSyncUrlFinderSliTargetsFromDb(): Promise<
   PorepMarketDealDto[]
 > {
