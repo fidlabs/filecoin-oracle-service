@@ -1,11 +1,5 @@
-import { Address } from "viem";
 import { getRpcClient } from "../blockchain/blockchain-client";
-import { terminateRailOnValidatorContract } from "../blockchain/validator-contract";
-import {
-  getCompletedDealsToTerminateFromDb,
-  storeOnChainTransactionToDb,
-} from "../services/db/db-service";
-import { getPrismaClient } from "../services/prisma-service";
+import { getCompletedDealsToTerminateFromDb } from "../services/db/db-service";
 import { baseLogger } from "../utils/logger";
 
 const claimTrackingLogger = baseLogger.child(
@@ -17,7 +11,6 @@ export async function trackTerminateDealJob() {
   try {
     claimTrackingLogger.info("Job started");
 
-    const prismaClient = getPrismaClient();
     const rpcClient = getRpcClient();
 
     const currentBlock = await rpcClient.getBlockNumber();
@@ -41,20 +34,20 @@ export async function trackTerminateDealJob() {
         `Terminating railId ${deal.railId} for deal ${deal.onChainDealId}...`,
       );
 
-      const transactionResult = await terminateRailOnValidatorContract(
-        deal.validatorContractAddress as Address,
-      );
+      // const transactionResult = await terminateRailOnValidatorContract(
+      //   deal.validatorContractAddress as Address,
+      // );
 
-      await storeOnChainTransactionToDb(deal.id, transactionResult);
+      // await storeOnChainTransactionToDb(deal.id, transactionResult);
 
-      await prismaClient.porep_market_deal.update({
-        where: {
-          onChainDealId: deal.onChainDealId,
-        },
-        data: {
-          isRailTerminated: true,
-        },
-      });
+      // await prismaClient.porep_market_deal.update({
+      //   where: {
+      //     onChainDealId: deal.onChainDealId,
+      //   },
+      //   data: {
+      //     isRailTerminated: true,
+      //   },
+      // });
 
       claimTrackingLogger.info(
         `Successfully terminated railId ${deal.railId} for deal ${deal.onChainDealId} and updated database record`,

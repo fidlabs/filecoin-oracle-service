@@ -37,7 +37,7 @@ export function dealRoutes(
     {
       schema: {
         description:
-          "Get a paginated list of deals, optionally filtered by state. Supported states: Proposed, Accepted, Completed, Rejected, Terminated.",
+          "Get a paginated list of deals, optionally filtered by state. Supported states: None, Proposed, Accepted, Active, Finalized, Rejected, Expired, Terminated.",
         querystring: GetFilteredDealsQuerySchema,
       },
     },

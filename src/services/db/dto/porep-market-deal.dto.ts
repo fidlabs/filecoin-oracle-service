@@ -2,6 +2,7 @@ import { Prisma } from "../../../../prisma/generated/client";
 
 export const porepMarkerDealSelect =
   Prisma.validator<Prisma.porep_market_dealSelect>()({
+    id: true,
     onChainDealId: true,
     client: true,
     provider: true,
@@ -13,7 +14,6 @@ export const porepMarkerDealSelect =
     allocationsRequiredCount: true,
     allocationsMatchedCount: true,
     isAllocationsMatched: true,
-    activatePaymentAt: true,
     allocationIds: true,
     isRailTerminated: true,
     manifestLocation: true,
@@ -21,11 +21,19 @@ export const porepMarkerDealSelect =
     createdAt: true,
     updatedAt: true,
     lastSyncedAt: true,
-    proposedAtBlock: true,
+    proposedAtEpoch: true,
+    evidenceAdapterContractAddress: true,
+    manifestHash: true,
+    expiresAtEpoch: true,
+    serviceStartEpoch: true,
+    serviceEndEpoch: true,
+    reservedBytes: true,
+    committedBytes: true,
+    offerId: true,
+    providerOrganization: true,
     terms: {
       select: {
         requestedSizeBytes: true,
-        pricePer32GiBPerMonth: true,
         durationEpochs: true,
       },
     },
@@ -79,6 +87,14 @@ export const porepMarkerDealSelect =
         term_min: true,
         term_max: true,
         term_start: true,
+      },
+    },
+    payment: {
+      select: {
+        paymentToken: true,
+        pricePer32GiBPerMonth: true,
+        billed32GiBUnits: true,
+        railMaxRatePerEpoch: true,
       },
     },
   });

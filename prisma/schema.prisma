@@ -19,10 +19,13 @@ enum SectorStatus {
 }
 
 enum DealState {
+  None
   Proposed
   Accepted
-  Completed
+  Active
+  Finalized
   Rejected
+  Expired
   Terminated
 }
 
@@ -73,16 +76,16 @@ model porep_market_deal_terms {
 }
 
 model porep_market_deal_payment {
-  id                     String            @id @default(uuid()) @db.Uuid
-  porepMarketDealId      String            @unique @db.Uuid
-  onChainDealId          BigInt            @unique // external deal ID - from chain
-  paymentToken           String
-  pricePer32GiBPerMonth  BigInt
-  billed32GiBUnits       BigInt
-  railMaxRatePerEpoch    BigInt
-  createdAt              DateTime          @default(now())
-  updatedAt              DateTime          @updatedAt
-  deal                   porep_market_deal @relation(fields: [porepMarketDealId], references: [id])
+  id                    String            @id @default(uuid()) @db.Uuid
+  porepMarketDealId     String            @unique @db.Uuid
+  onChainDealId         BigInt            @unique // external deal ID - from chain
+  paymentToken          String
+  pricePer32GiBPerMonth BigInt
+  billed32GiBUnits      BigInt
+  railMaxRatePerEpoch   BigInt
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  deal                  porep_market_deal @relation(fields: [porepMarketDealId], references: [id])
 
   @@index([porepMarketDealId])
 }
@@ -123,45 +126,45 @@ model porep_market_deal_claim {
 }
 
 model porep_market_deal {
-  id                            String                                   @id @default(uuid()) @db.Uuid
-  onChainDealId                 BigInt                                   @unique // external deal ID - from chain
-  client                        String
-  provider                      BigInt
-  offerId                       BigInt?
-  railId                        BigInt
-  evidenceAdapter               String?
-  validatorContractAddress      String
-  providerOrganization          String?
-  state                         DealState
-  terms                         porep_market_deal_terms?
-  payment                       porep_market_deal_payment?
-  requiredSLIs                  porep_market_deal_requirement?
-  evidenceStatus                porep_market_deal_evidence_status?
-  manifestHash                  String?
-  manifestLocation              String?
-  expiresAtEpoch                BigInt?
-  serviceStartEpoch             BigInt?
-  serviceEndEpoch               BigInt?
-  reservedBytes                 BigInt?
-  committedBytes                BigInt?
-  allocationsRequiredCount      BigInt?
-  allocationsMatchedCount       BigInt?
-  isAllocationsMatched          Boolean
-  isRailTerminated              Boolean
-  dealStartEpoch                BigInt?
-  dealEndEpoch                  BigInt?
-  allocationIds                 BigInt[]
-  claims                        porep_market_deal_claim[]
-  history                       porep_market_deal_history[]
-  settlement_history            porep_market_deal_settlement_history[]
-  transactions                  porep_market_deal_on_chain_transaction[]
-  score                         porep_market_deal_score[]
-  proposedAtBlock               BigInt
-  activatePaymentAt             DateTime?
-  urlFinderSliTargetTriggeredAt DateTime?
-  lastSyncedAt                  DateTime                                 @updatedAt
-  createdAt                     DateTime                                 @default(now())
-  updatedAt                     DateTime                                 @updatedAt
+  id                             String                                   @id @default(uuid()) @db.Uuid
+  onChainDealId                  BigInt                                   @unique // external deal ID - from chain
+  client                         String
+  provider                       BigInt
+  offerId                        BigInt?
+  railId                         BigInt
+  evidenceAdapterContractAddress String
+  validatorContractAddress       String
+  providerOrganization           String?
+  state                          DealState
+  terms                          porep_market_deal_terms?
+  payment                        porep_market_deal_payment?
+  requiredSLIs                   porep_market_deal_requirement?
+  evidenceStatus                 porep_market_deal_evidence_status?
+  manifestHash                   String?
+  manifestLocation               String?
+  expiresAtEpoch                 BigInt?
+  serviceStartEpoch              BigInt?
+  serviceEndEpoch                BigInt?
+  reservedBytes                  BigInt?
+  committedBytes                 BigInt?
+  allocationsRequiredCount       BigInt?
+  allocationsMatchedCount        BigInt?
+  isAllocationsMatched           Boolean
+  isRailTerminated               Boolean
+  dealStartEpoch                 BigInt?
+  dealEndEpoch                   BigInt?
+  allocationIds                  BigInt[]
+  claims                         porep_market_deal_claim[]
+  history                        porep_market_deal_history[]
+  settlement_history             porep_market_deal_settlement_history[]
+  transactions                   porep_market_deal_on_chain_transaction[]
+  score                          porep_market_deal_score[]
+  proposedAtEpoch                BigInt
+  activatePaymentAt              DateTime?
+  urlFinderSliTargetTriggeredAt  DateTime?
+  lastSyncedAt                   DateTime                                 @updatedAt
+  createdAt                      DateTime                                 @default(now())
+  updatedAt                      DateTime                                 @updatedAt
 
   @@index([onChainDealId])
   @@index([state])

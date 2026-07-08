@@ -44,7 +44,7 @@ export async function createOrUpdatePoRepDealSliTargetInUrlFinder(
       deal_size_bytes: deal.terms.requestedSizeBytes.toString(),
       deal_version: "v2",
       manifest_location: deal.manifestLocation,
-      //manifest_hash: deal.manifestHash, TODO: Add field from new version of porep market contract
+      manifest_hash: deal.manifestHash,
       provider_id: `f0${deal.provider.toString()}`,
       requirements: {
         bandwidth_mbps: bandwidthBytesPerSecondToMbps(
