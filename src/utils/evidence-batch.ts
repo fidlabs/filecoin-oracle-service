@@ -2,7 +2,7 @@ import { encodeAbiParameters } from "viem";
 
 export const NO_ADDITIONAL_EVIDENCE_DATA = "0x";
 
-const EVIDENCE_BATCH_SIZE = 1000n;
+const EVIDENCE_BATCH_SIZE = BigInt(process.env.EVIDENCE_BATCH_SIZE || 1000);
 
 export function getEvidenceBatchSizes(
   allocationsRequiredCount: bigint | null,
