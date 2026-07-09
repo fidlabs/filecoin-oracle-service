@@ -14,6 +14,7 @@ export const porepMarkerDealSelect =
     allocationsRequiredCount: true,
     allocationsMatchedCount: true,
     isAllocationsMatched: true,
+    dataCapAllocationStatus: true,
     allocationIds: true,
     isRailTerminated: true,
     manifestLocation: true,

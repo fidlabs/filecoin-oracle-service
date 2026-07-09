@@ -29,6 +29,23 @@ enum DealState {
   Terminated
 }
 
+enum DataCapAllocationStatus {
+  None
+  Allocated
+  Claimed
+  Inactive
+}
+
+enum EvidenceResult {
+  None
+  Partial
+  Accepted
+  Rejected
+  Active
+  Inactive
+  CoveredBytesMismatch
+}
+
 enum ContractName {
   PoRepMarket
   Client
@@ -97,7 +114,7 @@ model porep_market_deal_evidence_status {
   activeCoveredBytes       BigInt
   lastEvidenceRefreshEpoch BigInt
   reasonCode               BigInt
-  result                   BigInt
+  result                   EvidenceResult
   createdAt                DateTime          @default(now())
   updatedAt                DateTime          @updatedAt
   deal                     porep_market_deal @relation(fields: [porepMarketDealId], references: [id])
@@ -150,6 +167,7 @@ model porep_market_deal {
   allocationsRequiredCount       BigInt?
   allocationsMatchedCount        BigInt?
   isAllocationsMatched           Boolean
+  dataCapAllocationStatus        DataCapAllocationStatus                  @default(None)
   isRailTerminated               Boolean
   dealStartEpoch                 BigInt?
   dealEndEpoch                   BigInt?

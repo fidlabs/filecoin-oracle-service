@@ -4,5 +4,6 @@ export * from "./deal-job-selectors.db";
 export * from "./deal-mutations.db";
 export * from "./deal-queries.db";
 export * from "./deal-score.db";
+export * from "./deal-status.db";
 export * from "./deal-sync.db";
 export * from "./transaction-log.db";

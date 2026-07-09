@@ -1,6 +1,7 @@
 import { Address } from "viem";
 import { ContractName } from "../../prisma/generated/client";
 import { SERVICE_CONFIG } from "../config/env";
+import { toPrismaEvidenceResult } from "../services/db/deal-status.db";
 import { baseLogger } from "../utils/logger";
 import {
   DealEvidenceStatus,
@@ -197,7 +198,7 @@ export async function refreshEvidenceStatusOnPoRepMarketContract(
     activeCoveredBytes: result.activeCoveredBytes,
     lastEvidenceRefreshEpoch: result.lastEvidenceRefreshEpoch,
     reasonCode: BigInt(result.reasonCode),
-    result: BigInt(result.result),
+    result: toPrismaEvidenceResult(result.result),
   };
 
   childLogger.info(

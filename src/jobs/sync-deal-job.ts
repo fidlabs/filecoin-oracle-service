@@ -1,10 +1,15 @@
 import { getAllClaimsFromClaimInspectorContract } from "../blockchain/claim-inspector-contract";
-import { getClientAllocationIdsPerDealFromDCEvidenceContract } from "../blockchain/datacap-evidence-adapter-contract";
+import {
+  getClientAllocationIdsPerDealFromDCEvidenceContract,
+  getDealAllocationStatusFromDCEvidenceContract,
+} from "../blockchain/datacap-evidence-adapter-contract";
 import { getDealsFromPoRepMarketContract } from "../blockchain/porep-market.contract";
 import {
+  DataCapAllocationStatus,
   getChainStateToDomain,
   getDealByOnChainIdFromDb,
   syncPoRepMarketContractDealsWithDb,
+  toPrismaEvidenceResult,
 } from "../services/db/db-service";
 import { baseLogger } from "../utils/logger";
 import {
@@ -91,12 +96,23 @@ export async function syncDealsJob() {
       [dealId: string]: {
         allocationIds?: bigint[];
         claims?: PorepMarketDealClaim[];
+        dataCapAllocationStatus: DataCapAllocationStatus;
       };
     } = {};
 
     for (const dealView of contractAllDeals) {
       const deal = dealView.deal;
       const porepMarketContractDealId = deal.dealId;
+
+      const dataCapAllocationStatus =
+        await getDealAllocationStatusFromDCEvidenceContract(
+          deal.dealId,
+          deal.evidenceAdapter,
+        );
+
+      dealIdAllocationsMap[porepMarketContractDealId.toString()] = {
+        dataCapAllocationStatus,
+      };
 
       const shouldSyncClaims = await isDealEligibleForSyncClaims(
         porepMarketContractDealId,
@@ -139,6 +155,7 @@ export async function syncDealsJob() {
           );
 
           dealIdAllocationsMap[porepMarketContractDealId.toString()] = {
+            ...dealIdAllocationsMap[porepMarketContractDealId.toString()],
             claims: matchedClaims,
           };
         }
@@ -175,7 +192,7 @@ export async function syncDealsJob() {
             lastEvidenceRefreshEpoch:
               dealView.evidenceStatus.lastEvidenceRefreshEpoch,
             reasonCode: BigInt(dealView.evidenceStatus.reasonCode),
-            result: BigInt(dealView.evidenceStatus.result),
+            result: toPrismaEvidenceResult(dealView.evidenceStatus.result),
           },
           allocationsRequiredCount: allocationInfo?.allocationIds?.length
             ? BigInt(allocationInfo.allocationIds.length)
@@ -183,6 +200,7 @@ export async function syncDealsJob() {
           allocationsMatchedCount: allocationInfo?.claims
             ? BigInt(allocationInfo.claims.length)
             : undefined,
+          dataCapAllocationStatus: allocationInfo?.dataCapAllocationStatus,
           allocationIds: allocationInfo?.allocationIds,
           claims: allocationInfo?.claims,
         };
