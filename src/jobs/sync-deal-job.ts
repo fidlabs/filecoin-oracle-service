@@ -1,6 +1,7 @@
 import { getAllClaimsFromClaimInspectorContract } from "../blockchain/claim-inspector-contract";
 import {
-  getClientAllocationIdsPerDealFromDCEvidenceContract,
+  getAllocationIdsPerDealFromDCEvidenceContract,
+  getClaimIdsPerDealFromDCEvidenceContract,
   getDealAllocationStatusFromDCEvidenceContract,
 } from "../blockchain/datacap-evidence-adapter-contract";
 import { getDealsFromPoRepMarketContract } from "../blockchain/porep-market.contract";
@@ -122,11 +123,18 @@ export async function syncDealsJob() {
         let matchedClaims: PorepMarketDealClaim[] | undefined;
         let requiredDealAllocations: bigint[] = [];
 
-        requiredDealAllocations =
-          await getClientAllocationIdsPerDealFromDCEvidenceContract(
+        const [allocationIds, claimIds] = await Promise.all([
+          getAllocationIdsPerDealFromDCEvidenceContract(
             deal.dealId,
             deal.evidenceAdapter,
-          );
+          ),
+          getClaimIdsPerDealFromDCEvidenceContract(
+            deal.dealId,
+            deal.evidenceAdapter,
+          ),
+        ]);
+
+        requiredDealAllocations = [...allocationIds, ...claimIds];
 
         syncDealLogger.info(
           `Fetched ${requiredDealAllocations?.length || 0} required allocations for deal ${deal.dealId} from client contract`,
