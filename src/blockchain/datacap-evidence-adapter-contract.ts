@@ -69,7 +69,7 @@ async function getPaginatedIdsPerDeal({
   return ids;
 }
 
-export async function getClientAllocationIdsPerDealFromDCEvidenceContract(
+export async function getAllocationIdsPerDealFromDCEvidenceContract(
   onChainDealId: bigint,
   datacapEvidenceContractAddress: Address,
 ): Promise<bigint[]> {
@@ -78,6 +78,18 @@ export async function getClientAllocationIdsPerDealFromDCEvidenceContract(
     datacapEvidenceContractAddress,
     functionName: "getAllocationIdsPerDeal",
     itemLabel: "allocation IDs",
+  });
+}
+
+export async function getClaimIdsPerDealFromDCEvidenceContract(
+  onChainDealId: bigint,
+  datacapEvidenceContractAddress: Address,
+): Promise<bigint[]> {
+  return getPaginatedIdsPerDeal({
+    onChainDealId,
+    datacapEvidenceContractAddress,
+    functionName: "getClaimIds",
+    itemLabel: "claim IDs",
   });
 }
 
@@ -105,19 +117,6 @@ export async function getDealAllocationStatusFromDCEvidenceContract(
   );
 
   return status;
-}
-
-// not used for now - we can use this to fetch claim IDs for a deal if needed in the future
-export async function getClaimIdsPerDeal(
-  onChainDealId: bigint,
-  datacapEvidenceContractAddress: Address,
-): Promise<bigint[]> {
-  return getPaginatedIdsPerDeal({
-    onChainDealId,
-    datacapEvidenceContractAddress,
-    functionName: "getClaimIds",
-    itemLabel: "claim IDs",
-  });
 }
 
 export async function isDataCapPostingFinishedOnDCEvidenceContract(
