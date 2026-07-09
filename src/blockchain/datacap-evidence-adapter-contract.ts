@@ -1,5 +1,9 @@
 import { Address } from "viem";
 import { ContractName } from "../../prisma/generated/client";
+import {
+  DataCapAllocationStatus,
+  toPrismaDataCapAllocationStatus,
+} from "../services/db/deal-status.db";
 import { baseLogger } from "../utils/logger";
 import { OnChainTransactionResult } from "../utils/types";
 import { DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI } from "./abis/datacap-evidence-adapter-abi";
@@ -75,6 +79,32 @@ export async function getClientAllocationIdsPerDealFromDCEvidenceContract(
     functionName: "getAllocationIdsPerDeal",
     itemLabel: "allocation IDs",
   });
+}
+
+export async function getDealAllocationStatusFromDCEvidenceContract(
+  onChainDealId: bigint,
+  datacapEvidenceContractAddress: Address,
+): Promise<DataCapAllocationStatus> {
+  childLogger.info(
+    `Fetching DataCap allocation status for deal ${onChainDealId}...`,
+  );
+
+  const rpcClient = getRpcClient();
+
+  const contractStatus = await rpcClient.readContract({
+    address: datacapEvidenceContractAddress,
+    abi: DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI,
+    functionName: "getDealAllocationStatus",
+    args: [onChainDealId],
+  });
+
+  const status = toPrismaDataCapAllocationStatus(Number(contractStatus));
+
+  childLogger.info(
+    `Fetched DataCap allocation status for deal ${onChainDealId}: ${status}`,
+  );
+
+  return status;
 }
 
 // not used for now - we can use this to fetch claim IDs for a deal if needed in the future

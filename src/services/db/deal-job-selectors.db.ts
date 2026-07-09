@@ -2,6 +2,7 @@ import { Prisma } from "../../../prisma/generated/client";
 import { DealState } from "../../utils/types";
 import { prismaClient } from "./db-client";
 import { toPrismaDealState } from "./deal-state.db";
+import { DataCapAllocationStatus } from "./deal-status.db";
 import {
   porepMarkerDealSelect,
   PorepMarketDealDto,
@@ -141,11 +142,11 @@ export async function getDealsToSyncUrlFinderSliTargetsFromDb(): Promise<
   });
 }
 
-export async function getAcceptedDealsToActivateDatacapEvidenceFromDb(): Promise<
+export async function getDealsToActivateDCEvidenceFromDb(): Promise<
   PorepMarketDealDto[]
 > {
   return await getDealsByWhereFromDb({
-    state: toPrismaDealState(DealState.Accepted),
+    dataCapAllocationStatus: DataCapAllocationStatus.Allocated,
     isRailTerminated: false,
   });
 }

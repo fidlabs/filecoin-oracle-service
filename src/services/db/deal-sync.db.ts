@@ -35,11 +35,6 @@ const hasMatchedAllocations = ({
   allocationsMatchedCount !== null &&
   allocationsRequiredCount === allocationsMatchedCount;
 
-// const getDealDbId = (
-//   dealsMap: Map<string, { id: string }>,
-//   onChainDealId: bigint,
-// ) => dealsMap.get(onChainDealId.toString())!.id;
-
 const buildDealPersistenceData = (deal: PorepMarketDeal) => ({
   onChainDealId: deal.dealId,
   client: deal.client,
@@ -60,6 +55,7 @@ const buildDealPersistenceData = (deal: PorepMarketDeal) => ({
   allocationsRequiredCount: deal.allocationsRequiredCount,
   allocationsMatchedCount: deal.allocationsMatchedCount,
   isAllocationsMatched: hasMatchedAllocations(deal),
+  dataCapAllocationStatus: deal.dataCapAllocationStatus,
   dealStartEpoch: deal.dealStartEpoch,
   dealEndEpoch: deal.dealEndEpoch,
   allocationIds: deal.allocationIds,
@@ -140,10 +136,8 @@ async function upsertDealEvidenceStatus({
   tx: Prisma.TransactionClient;
   onChainDealId: bigint;
   porepMarketDealId: string;
-  evidenceStatus?: DealEvidenceStatus;
+  evidenceStatus: DealEvidenceStatus;
 }) {
-  if (!evidenceStatus) return;
-
   return tx.porep_market_deal_evidence_status.upsert({
     where: {
       porepMarketDealId,
