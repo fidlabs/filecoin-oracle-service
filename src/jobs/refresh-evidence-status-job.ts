@@ -1,17 +1,23 @@
-import { refreshEvidenceStatusOnPoRepMarketContract } from "../blockchain/porep-market.contract";
+import {
+  PorepMarketEvidenceStatusTransactionResult,
+  refreshEvidenceStatusOnPoRepMarketContract,
+} from "../blockchain/porep-market.contract";
 import {
   getDealsToRefreshEvidenceStatusFromDb,
   storeOnChainTransactionToDb,
   upsertEvidenceStatusInDb,
 } from "../services/db/db-service";
+import { EvidenceResult } from "../services/db/deal-status.db";
+import {
+  encodeEvidenceBatchData,
+  getEvidenceBatchSizes,
+} from "../utils/evidence-batch";
 import { baseLogger } from "../utils/logger";
 
 const refreshEvidenceStatusLogger = baseLogger.child(
   { avengers: "assemble" },
   { msgPrefix: "[Refresh Evidence Status Job] " },
 );
-
-const NO_ADDITIONAL_EVIDENCE_DATA = "0x";
 
 export async function refreshEvidenceStatusJob() {
   try {
@@ -36,25 +42,60 @@ export async function refreshEvidenceStatusJob() {
           `Refreshing evidence status for deal ${deal.onChainDealId}`,
         );
 
-        const refreshEvidenceStatusResult =
-          await refreshEvidenceStatusOnPoRepMarketContract(
-            deal.onChainDealId,
-            NO_ADDITIONAL_EVIDENCE_DATA,
+        const batchSizes = getEvidenceBatchSizes(deal.allocationsRequiredCount);
+
+        if (!batchSizes.length) {
+          refreshEvidenceStatusLogger.info(
+            `Deal ${deal.onChainDealId} has no required allocations count, skipping refreshEvidenceStatus`,
+          );
+          continue;
+        }
+
+        const refreshEvidenceStatusResults: PorepMarketEvidenceStatusTransactionResult[] =
+          [];
+
+        for (const [batchIndex, batchSize] of batchSizes.entries()) {
+          refreshEvidenceStatusLogger.info(
+            `Refreshing evidence status batch ${batchIndex + 1}/${batchSizes.length} for deal ${deal.onChainDealId} with batch size ${batchSize}`,
           );
 
-        await storeOnChainTransactionToDb(
-          deal.id,
-          refreshEvidenceStatusResult.transactionResult,
+          const refreshEvidenceStatusResult =
+            await refreshEvidenceStatusOnPoRepMarketContract(
+              deal.onChainDealId,
+              encodeEvidenceBatchData(batchSize),
+            );
+
+          await storeOnChainTransactionToDb(
+            deal.id,
+            refreshEvidenceStatusResult.transactionResult,
+          );
+
+          await upsertEvidenceStatusInDb({
+            onChainDealId: deal.onChainDealId,
+            porepMarketDealId: deal.id,
+            evidenceStatus: refreshEvidenceStatusResult.status,
+          });
+
+          refreshEvidenceStatusResults.push(refreshEvidenceStatusResult);
+        }
+
+        const areAllBatchResultsAccepted = refreshEvidenceStatusResults.every(
+          (result) => result.status.result === EvidenceResult.Accepted,
         );
 
-        await upsertEvidenceStatusInDb({
-          onChainDealId: deal.onChainDealId,
-          porepMarketDealId: deal.id,
-          evidenceStatus: refreshEvidenceStatusResult.status,
-        });
+        if (!areAllBatchResultsAccepted) {
+          refreshEvidenceStatusLogger.info(
+            `At least one evidence status batch for deal ${deal.onChainDealId} was not accepted`,
+          );
+          continue;
+        }
 
         refreshEvidenceStatusLogger.info(
-          { status: refreshEvidenceStatusResult.status },
+          {
+            statuses: refreshEvidenceStatusResults.map(
+              (result) => result.status,
+            ),
+          },
           `Successfully refreshed evidence status for deal ${deal.onChainDealId}`,
         );
       } catch (error) {
