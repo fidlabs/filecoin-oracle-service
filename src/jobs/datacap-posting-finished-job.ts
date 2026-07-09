@@ -2,6 +2,7 @@ import { Address } from "viem";
 import { isDataCapPostingFinishedOnDCEvidenceContract } from "../blockchain/datacap-evidence-adapter-contract";
 import {
   activateEvidenceOnPoRepMarketContract,
+  PorepMarketEvidenceTransactionResult,
   submitEvidenceBatchOnPoRepMarketContract,
 } from "../blockchain/porep-market.contract";
 import {
@@ -10,6 +11,11 @@ import {
   storeOnChainTransactionToDb,
 } from "../services/db/db-service";
 import { PorepMarketDealDto } from "../services/db/dto/porep-market-deal.dto";
+import {
+  encodeEvidenceBatchData,
+  getEvidenceBatchSizes,
+  NO_ADDITIONAL_EVIDENCE_DATA,
+} from "../utils/evidence-batch";
 import { baseLogger } from "../utils/logger";
 import { ContractEvidenceResult } from "../utils/types";
 
@@ -17,8 +23,6 @@ const datacapPostingFinishedLogger = baseLogger.child(
   { avengers: "assemble" },
   { msgPrefix: "[DataCap Posting Finished Job] " },
 );
-
-const NO_ADDITIONAL_EVIDENCE_DATA = "0x";
 
 export async function dataCapPostingFinishedJob() {
   try {
@@ -56,32 +60,50 @@ export async function dataCapPostingFinishedJob() {
         continue;
       }
 
-      const submitEvidenceBatchResult =
-        await submitEvidenceBatchOnPoRepMarketContract(
-          deal.onChainDealId,
-          NO_ADDITIONAL_EVIDENCE_DATA,
+      const batchSizes = getEvidenceBatchSizes(deal.allocationsRequiredCount);
+
+      if (!batchSizes.length) {
+        datacapPostingFinishedLogger.info(
+          `Deal ${deal.onChainDealId} has no required allocations count, skipping submitEvidenceBatch`,
+        );
+        continue;
+      }
+
+      const submitEvidenceBatchResults: PorepMarketEvidenceTransactionResult[] =
+        [];
+
+      for (const [batchIndex, batchSize] of batchSizes.entries()) {
+        datacapPostingFinishedLogger.info(
+          `Submitting evidence batch ${batchIndex + 1}/${batchSizes.length} for deal ${deal.onChainDealId} with batch size ${batchSize}`,
         );
 
-      await storeOnChainTransactionToDb(
-        deal.id,
-        submitEvidenceBatchResult.transactionResult,
+        const submitEvidenceBatchResult =
+          await submitEvidenceBatchOnPoRepMarketContract(
+            deal.onChainDealId,
+            encodeEvidenceBatchData(batchSize),
+          );
+
+        await storeOnChainTransactionToDb(
+          deal.id,
+          submitEvidenceBatchResult.transactionResult,
+        );
+
+        submitEvidenceBatchResults.push(submitEvidenceBatchResult);
+      }
+
+      const areAllBatchResultsAccepted = submitEvidenceBatchResults.every(
+        (result) => result.decision.result === ContractEvidenceResult.Accepted,
       );
 
-      if (
-        submitEvidenceBatchResult.decision.result !==
-        ContractEvidenceResult.Accepted
-      ) {
+      if (!areAllBatchResultsAccepted) {
         datacapPostingFinishedLogger.info(
-          {
-            decision: submitEvidenceBatchResult.decision,
-          },
-          `Evidence batch for deal ${deal.onChainDealId} was not accepted, skipping activateEvidence`,
+          `At least one evidence batch for deal ${deal.onChainDealId} was not accepted, skipping activateEvidence`,
         );
         continue;
       }
 
       datacapPostingFinishedLogger.info(
-        `Evidence batch accepted for deal ${deal.onChainDealId}, activating evidence`,
+        `All evidence batch accepted for deal ${deal.onChainDealId}, activating evidence...`,
       );
 
       const activateEvidenceResult =
@@ -102,10 +124,6 @@ export async function dataCapPostingFinishedJob() {
       await setActivatePaymentAtInDb(deal.onChainDealId);
 
       datacapPostingFinishedLogger.info(
-        {
-          submitEvidenceBatchDecision: submitEvidenceBatchResult.decision,
-          activateEvidenceDecision: activateEvidenceResult.decision,
-        },
         `Successfully processed DataCap evidence and payment activation flow for deal ${deal.onChainDealId}`,
       );
     }
