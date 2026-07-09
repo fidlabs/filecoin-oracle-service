@@ -1,5 +1,9 @@
 import { Address, TransactionReceipt } from "viem";
 import { ContractName } from "../../prisma/generated/client";
+import {
+  DataCapAllocationStatus,
+  EvidenceResult,
+} from "../services/db/deal-status.db";
 
 export interface BigInt {
   toJSON: () => string;
@@ -131,7 +135,7 @@ export interface DealEvidenceStatus {
   activeCoveredBytes: bigint;
   lastEvidenceRefreshEpoch: bigint;
   reasonCode: bigint;
-  result: bigint;
+  result: EvidenceResult;
 }
 
 export enum PorepMarketContractDealState {
@@ -149,17 +153,27 @@ export interface PorepMarketContractDealSli extends SLIThresholds {
   onChainDealId: bigint;
 }
 
-export enum EvidenceResult {
+export enum ContractEvidenceResult {
   None = 0,
   Partial = 10,
   Accepted = 20,
   Rejected = 30,
+  Active = 40,
+  Inactive = 50,
+  CoveredBytesMismatch = 60,
+}
+
+export enum ContractDataCapAllocationStatus {
+  None = 0,
+  Allocated = 10,
+  Claimed = 20,
+  Inactive = 30,
 }
 
 export interface EvidenceActivationDecision {
   coveredBytes: bigint;
   reasonCode: number;
-  result: EvidenceResult;
+  result: ContractEvidenceResult;
 }
 
 export interface PorepMarketContractDealView {
@@ -244,6 +258,7 @@ export interface PorepMarketDeal {
   allocationsRequiredCount?: bigint;
   allocationsMatchedCount?: bigint;
   isAllocationsMatched?: boolean;
+  dataCapAllocationStatus?: DataCapAllocationStatus;
   activatePaymentAt?: Date | null;
   allocationIds?: bigint[];
   claims?: PorepMarketDealClaim[];
@@ -251,7 +266,7 @@ export interface PorepMarketDeal {
   terms: DealTerms;
   payment: DealPayment;
   requiredSLIs: SLIThresholds;
-  evidenceStatus?: DealEvidenceStatus;
+  evidenceStatus: DealEvidenceStatus;
   proposedAtEpoch: bigint;
 }
 

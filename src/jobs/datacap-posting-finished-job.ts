@@ -5,13 +5,13 @@ import {
   submitEvidenceBatchOnPoRepMarketContract,
 } from "../blockchain/porep-market.contract";
 import {
-  getAcceptedDealsToActivateDatacapEvidenceFromDb,
+  getDealsToActivateDCEvidenceFromDb,
   setActivatePaymentAtInDb,
   storeOnChainTransactionToDb,
 } from "../services/db/db-service";
 import { PorepMarketDealDto } from "../services/db/dto/porep-market-deal.dto";
 import { baseLogger } from "../utils/logger";
-import { EvidenceResult } from "../utils/types";
+import { ContractEvidenceResult } from "../utils/types";
 
 const datacapPostingFinishedLogger = baseLogger.child(
   { avengers: "assemble" },
@@ -25,7 +25,7 @@ export async function dataCapPostingFinishedJob() {
     datacapPostingFinishedLogger.info("Job started");
 
     const deals: PorepMarketDealDto[] =
-      await getAcceptedDealsToActivateDatacapEvidenceFromDb();
+      await getDealsToActivateDCEvidenceFromDb();
 
     if (!deals.length) {
       datacapPostingFinishedLogger.info(
@@ -68,7 +68,8 @@ export async function dataCapPostingFinishedJob() {
       );
 
       if (
-        submitEvidenceBatchResult.decision.result !== EvidenceResult.Accepted
+        submitEvidenceBatchResult.decision.result !==
+        ContractEvidenceResult.Accepted
       ) {
         datacapPostingFinishedLogger.info(
           {
