@@ -1,6 +1,6 @@
 import { SERVICE_CONFIG } from "../config/env";
 import { baseLogger } from "../utils/logger";
-
+import cors from "@fastify/cors";
 import swagger from "@fastify/swagger";
 import swaggerUI from "@fastify/swagger-ui";
 import Fastify from "fastify";
@@ -13,8 +13,8 @@ import {
 import { dealRoutes } from "./routes/deals";
 import { debugRoutes } from "./routes/debug";
 import { healthRoutes } from "./routes/health";
-import { responseCustomFormatterPlugin } from "./utils/response-formatter-plugin/response-plugin";
 import { onChainTransactionsRoutes } from "./routes/on-chain-transactions";
+import { responseCustomFormatterPlugin } from "./utils/response-formatter-plugin/response-plugin";
 
 export const httpLogger = baseLogger.child(
   { avengers: "assemble" },
@@ -27,6 +27,11 @@ export const app = fastify.withTypeProvider<ZodTypeProvider>();
 
 app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
+
+app.register(cors, {
+  origin: "*",
+  methods: ["GET", "POST"],
+});
 
 app.register(swagger, {
   openapi: {
