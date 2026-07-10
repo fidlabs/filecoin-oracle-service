@@ -30,7 +30,17 @@ export async function syncUrlFinderSliTargetsJob() {
 
     for (const deal of dealsToSyncUrlFinderSliTargets) {
       try {
-        await createOrUpdatePoRepDealSliTargetInUrlFinder(deal);
+        const wasSliTargetSynced =
+          await createOrUpdatePoRepDealSliTargetInUrlFinder(deal);
+
+        if (!wasSliTargetSynced) {
+          syncUrlFinderSliTargetsLogger.warn(
+            { dealId: deal.onChainDealId.toString() },
+            "URL Finder rejected the SLI target; deal will be retried during the next job run",
+          );
+          continue;
+        }
+
         await markUrlFinderSliTargetTriggeredInDb(deal.onChainDealId);
 
         syncUrlFinderSliTargetsLogger.info(
@@ -38,13 +48,13 @@ export async function syncUrlFinderSliTargetsJob() {
         );
       } catch (error) {
         syncUrlFinderSliTargetsLogger.error(
-          { error, dealId: deal.onChainDealId.toString() },
-          "Failed to sync URL Finder SLI target for deal",
+          { err: error, dealId: deal.onChainDealId.toString() },
+          "Failed to sync URL Finder SLI target; deal will be retried during the next job run",
         );
       }
     }
   } catch (error) {
-    syncUrlFinderSliTargetsLogger.error({ error }, "Job failed");
+    syncUrlFinderSliTargetsLogger.error({ err: error }, "Job failed");
   } finally {
     syncUrlFinderSliTargetsLogger.info("Job finished");
   }
