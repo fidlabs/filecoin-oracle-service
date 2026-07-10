@@ -54,6 +54,7 @@ const isDealEligibleForSyncClaims = async (
     return true;
   }
 
+  // TODO: Adjust to the states
   if (dealExistInDb && dealState !== DealState.Active) {
     syncDealLogger.info(
       `Deal with ID ${porepMarketContractDealId} exists in database with state ${dealExistInDb.state}, will not sync it`,
@@ -64,7 +65,8 @@ const isDealEligibleForSyncClaims = async (
 
   if (
     dealExistInDb &&
-    dealState === DealState.Active &&
+    dealExistInDb.dataCapAllocationStatus ===
+      DataCapAllocationStatus.Allocated &&
     dealExistInDb.isAllocationsMatched
   ) {
     syncDealLogger.info(
@@ -104,14 +106,15 @@ export async function syncDealsJob() {
     for (const dealView of contractAllDeals) {
       const deal = dealView.deal;
       const porepMarketContractDealId = deal.dealId;
+      const porepMarketContractDealIdStr = porepMarketContractDealId.toString();
 
       const dataCapAllocationStatus =
         await getDealAllocationStatusFromDCEvidenceContract(
-          deal.dealId,
+          porepMarketContractDealId,
           deal.evidenceAdapter,
         );
 
-      dealIdAllocationsMap[porepMarketContractDealId.toString()] = {
+      dealIdAllocationsMap[porepMarketContractDealIdStr] = {
         dataCapAllocationStatus,
       };
 
@@ -125,11 +128,11 @@ export async function syncDealsJob() {
 
         const [allocationIds, claimIds] = await Promise.all([
           getAllocationIdsPerDealFromDCEvidenceContract(
-            deal.dealId,
+            porepMarketContractDealId,
             deal.evidenceAdapter,
           ),
           getClaimIdsPerDealFromDCEvidenceContract(
-            deal.dealId,
+            porepMarketContractDealId,
             deal.evidenceAdapter,
           ),
         ]);
@@ -146,10 +149,12 @@ export async function syncDealsJob() {
           );
 
           const claimsInfoFromDealInspectorContract =
-            await getAllClaimsFromClaimInspectorContract(deal.dealId);
+            await getAllClaimsFromClaimInspectorContract(
+              porepMarketContractDealId,
+            );
 
           syncDealLogger.info(
-            `Fetched claims info for deal ${deal.dealId} from Deal Inspector contract, total success claims count: ${claimsInfoFromDealInspectorContract[1].length}`,
+            `Fetched claims info for deal ${porepMarketContractDealId} from Deal Inspector contract, total success claims count: ${claimsInfoFromDealInspectorContract[1].length}`,
           );
 
           const claimIds = claimsInfoFromDealInspectorContract[0];
@@ -162,16 +167,12 @@ export async function syncDealsJob() {
             }),
           );
 
-          dealIdAllocationsMap[porepMarketContractDealId.toString()] = {
-            ...dealIdAllocationsMap[porepMarketContractDealId.toString()],
-            claims: matchedClaims,
-          };
+          dealIdAllocationsMap[porepMarketContractDealIdStr].claims =
+            matchedClaims;
         }
 
-        dealIdAllocationsMap[porepMarketContractDealId.toString()] = {
-          ...dealIdAllocationsMap[porepMarketContractDealId.toString()],
-          allocationIds: requiredDealAllocations,
-        };
+        dealIdAllocationsMap[porepMarketContractDealIdStr].allocationIds =
+          requiredDealAllocations;
       }
     }
 

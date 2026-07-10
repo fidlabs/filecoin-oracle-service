@@ -10,7 +10,8 @@ const urlFinderServiceLogger = baseLogger.child(
 function bandwidthBytesPerSecondToMbps(
   bandwidthBytesPerSecond: bigint,
 ): number {
-  return Number((bandwidthBytesPerSecond * 8n) / 1_000_000n);
+  const result = Number((bandwidthBytesPerSecond * 8n) / 1_000_000n);
+  return result;
 }
 
 export async function createOrUpdatePoRepDealSliTargetInUrlFinder(
@@ -32,6 +33,22 @@ export async function createOrUpdatePoRepDealSliTargetInUrlFinder(
 
   urlFinderServiceLogger.info(`Calling URL Finder service at ${url}...`);
 
+  const requestBody = {
+    client: deal.client,
+    deal_size_bytes: deal.terms.requestedSizeBytes.toString(),
+    deal_version: "v2",
+    manifest_location: deal.manifestLocation,
+    manifest_hash: deal.manifestHash,
+    provider_id: `f0${deal.provider.toString()}`,
+    requirements: {
+      bandwidth_mbps: bandwidthBytesPerSecondToMbps(
+        deal.requiredSLIs.bandwidthBytesPerSecond,
+      ),
+      latency_ms: Number(deal.requiredSLIs.latencyMs),
+      retrievability_bps: Number(deal.requiredSLIs.retrievabilityBps),
+    },
+  };
+
   const response = await fetch(url, {
     method: "PUT",
     headers: {
@@ -39,28 +56,16 @@ export async function createOrUpdatePoRepDealSliTargetInUrlFinder(
       Authorization: `Bearer ${SERVICE_CONFIG.URL_FINDER_AUTH_TOKEN}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      client: deal.client,
-      deal_size_bytes: deal.terms.requestedSizeBytes.toString(),
-      deal_version: "v2",
-      manifest_location: deal.manifestLocation,
-      manifest_hash: deal.manifestHash,
-      provider_id: `f0${deal.provider.toString()}`,
-      requirements: {
-        bandwidth_mbps: bandwidthBytesPerSecondToMbps(
-          deal.requiredSLIs.bandwidthBytesPerSecond,
-        ),
-        latency_ms: Number(deal.requiredSLIs.latencyMs),
-        retrievability_bps: Number(deal.requiredSLIs.retrievabilityBps),
-      },
-    }),
+    body: JSON.stringify(requestBody),
   });
 
   if (!response.ok) {
-    throw new Error(
+    urlFinderServiceLogger.error(
       `URL Finder PoRep Deal SLI target PUT failed for deal ${deal.onChainDealId.toString()}: ${response.status} ${response.statusText}`,
     );
   }
 
   await response.text();
+
+  return response.ok;
 }
