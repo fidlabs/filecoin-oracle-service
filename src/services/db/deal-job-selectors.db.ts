@@ -110,6 +110,16 @@ export async function getCompletedDealsToTerminateFromDb(blockNumber: bigint) {
   return deals ? deals : [];
 }
 
+export async function getDealsToFinalizeFromDb(currentEpoch: bigint) {
+  return getDealsByWhereFromDb({
+    state: toPrismaDealState(DealState.Active),
+    serviceEndEpoch: {
+      not: null,
+      lte: currentEpoch,
+    },
+  });
+}
+
 export async function getDealsToSetSliFromDb(): Promise<PorepMarketDealDto[]> {
   return await getDealsByWhereFromDb({
     state: toPrismaDealState(DealState.Active),
@@ -138,6 +148,7 @@ export async function getDealsToSyncUrlFinderSliTargetsFromDb(): Promise<
   PorepMarketDealDto[]
 > {
   return await getDealsByWhereFromDb({
+    state: DealState.Active,
     urlFinderSliTargetTriggeredAt: null,
   });
 }
