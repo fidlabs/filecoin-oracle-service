@@ -15,7 +15,6 @@ import { syncDealsJob } from "../../../jobs/sync-deal-job";
 import { syncSettlementHistoryJob } from "../../../jobs/sync-settlement-history-job";
 import { syncUrlFinderSliTargetsJob } from "../../../jobs/sync-url-finder-sli-targets-job";
 import { trackTerminateDealJob } from "../../../jobs/terminate-deal-job";
-import { httpLogger } from "../../server";
 import { AppError } from "../../utils/response-formatter-plugin/types";
 import { PostDebugJobRequest } from "./type";
 
@@ -51,7 +50,7 @@ export function debugRoutes(
       },
     },
     async (req: PostDebugJobRequest, replay: FastifyReply) => {
-      httpLogger.info(`Received request to trigger job: ${req.query.job}`);
+      req.log.info({ job: req.query.job }, "Received request to trigger job");
 
       switch (req.query.job) {
         case "sync-deals":
