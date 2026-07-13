@@ -276,6 +276,49 @@ export async function rejectExpiredDealOnPoRepMarketContract(
   };
 }
 
+export async function finalizeDealOnPoRepMarketContract(
+  onChainDealId: bigint,
+): Promise<OnChainTransactionResult> {
+  const functionName = "finalizeDeal";
+  const rpcClient = getRpcClient();
+  const walletClient = getWalletClient(WalletAccountRole.POREP_SERVICE_ROLE);
+
+  childLogger.info(
+    `${functionName}: Simulating request for deal ${onChainDealId}...`,
+  );
+
+  const { request } = await rpcClient.simulateContract({
+    address: SERVICE_CONFIG.POREP_MARKET_CONTRACT_ADDRESS as Address,
+    abi: POREP_MARKET_CONTRACT_ABI,
+    functionName,
+    args: [onChainDealId],
+    account: walletClient.account,
+  });
+
+  childLogger.info(
+    `${functionName}: Sending transaction for deal ${onChainDealId}...`,
+  );
+
+  const txHash = await walletClient.writeContract(request);
+
+  childLogger.info(
+    `${functionName}: Transaction sent: ${txHash}, waiting for confirmation...`,
+  );
+
+  const receipt = await waitForTransactionReceiptWithRetry(txHash);
+
+  childLogger.info(
+    `${functionName}: Transaction executed in block ${receipt.blockNumber}`,
+  );
+
+  return {
+    success: true,
+    contractName: ContractName.PoRepMarket,
+    functionName,
+    receipt,
+  };
+}
+
 export async function activatePaymentOnPoRepMarketContract(
   onChainDealId: bigint,
 ): Promise<OnChainTransactionResult> {
