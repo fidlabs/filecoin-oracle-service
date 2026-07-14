@@ -226,6 +226,7 @@ export async function syncDealsJob() {
     );
   } catch (error) {
     syncDealLogger.error({ error }, "Job failed");
+    throw error;
   } finally {
     syncDealLogger.info("Job finished");
   }

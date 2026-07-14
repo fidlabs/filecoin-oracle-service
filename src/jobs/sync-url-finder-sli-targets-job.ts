@@ -55,6 +55,7 @@ export async function syncUrlFinderSliTargetsJob() {
     }
   } catch (error) {
     syncUrlFinderSliTargetsLogger.error({ err: error }, "Job failed");
+    throw error;
   } finally {
     syncUrlFinderSliTargetsLogger.info("Job finished");
   }
