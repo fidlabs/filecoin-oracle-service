@@ -1,7 +1,6 @@
 import { Prisma } from "../../../prisma/generated/client";
 import { DealState } from "../../utils/types";
 import { prismaClient } from "./db-client";
-import { toPrismaDealState } from "./deal-state.db";
 import { DataCapAllocationStatus } from "./deal-status.db";
 import {
   porepMarkerDealSelect,
@@ -24,7 +23,7 @@ export async function getCompletedDealsToSettleFromDb() {
 
   const deals = await prismaClient.porep_market_deal.findMany({
     where: {
-      state: toPrismaDealState(DealState.Active),
+      state: DealState.Active,
       isRailTerminated: false,
       isAllocationsMatched: true,
       OR: [
@@ -82,7 +81,7 @@ export async function getCompletedDealsToCheckClaimTerminationFromDb() {
       dealEndEpoch: {
         not: null,
       },
-      state: toPrismaDealState(DealState.Active),
+      state: DealState.Active,
       isRailTerminated: false,
       isAllocationsMatched: true, // IMPORTANT: only consider deals with matching allocation count between expected and actual to avoid setting wrong deal end epoch
     },
@@ -101,7 +100,7 @@ export async function getCompletedDealsToTerminateFromDb(blockNumber: bigint) {
         not: null,
         lte: blockNumber,
       },
-      state: toPrismaDealState(DealState.Active),
+      state: DealState.Active,
       isRailTerminated: false,
       isAllocationsMatched: true, // IMPORTANT: only consider deals with matching allocation count between expected and actual to avoid setting wrong deal end epoch
     },
@@ -112,7 +111,7 @@ export async function getCompletedDealsToTerminateFromDb(blockNumber: bigint) {
 
 export async function getDealsToFinalizeFromDb(currentEpoch: bigint) {
   return getDealsByWhereFromDb({
-    state: toPrismaDealState(DealState.Active),
+    state: DealState.Active,
     serviceEndEpoch: {
       not: null,
       lte: currentEpoch,
@@ -122,7 +121,7 @@ export async function getDealsToFinalizeFromDb(currentEpoch: bigint) {
 
 export async function getDealsToSetSliFromDb(): Promise<PorepMarketDealDto[]> {
   return await getDealsByWhereFromDb({
-    state: toPrismaDealState(DealState.Active),
+    state: DealState.Active,
     isAllocationsMatched: true,
     isRailTerminated: false,
     activatePaymentAt: {
@@ -135,7 +134,7 @@ export async function getDealsToRefreshEvidenceStatusFromDb(): Promise<
   PorepMarketDealDto[]
 > {
   return await getDealsByWhereFromDb({
-    state: toPrismaDealState(DealState.Active),
+    state: DealState.Active,
     isAllocationsMatched: true,
     isRailTerminated: false,
     activatePaymentAt: {
