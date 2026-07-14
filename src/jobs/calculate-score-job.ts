@@ -102,6 +102,7 @@ export async function calculateScoreJob() {
     sliChildLogger.info(`Stored deals scores to DB`);
   } catch (err) {
     sliChildLogger.error({ err }, "Failed");
+    throw err;
   } finally {
     sliChildLogger.info("Job finished");
   }

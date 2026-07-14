@@ -105,6 +105,7 @@ export async function syncSettlementHistoryJob() {
     await syncSettlementHistoryFromCdp();
   } catch (error) {
     settlementHistorySyncLogger.error({ error }, "Job failed");
+    throw error;
   } finally {
     settlementHistorySyncLogger.info("Job finished");
   }
