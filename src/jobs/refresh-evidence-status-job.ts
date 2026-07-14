@@ -107,6 +107,7 @@ export async function refreshEvidenceStatusJob() {
     }
   } catch (error) {
     refreshEvidenceStatusLogger.error({ error }, "Job failed");
+    throw error;
   } finally {
     refreshEvidenceStatusLogger.info("Job finished");
   }

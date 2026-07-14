@@ -113,6 +113,7 @@ export async function setSliOracleJob() {
     sliChildLogger.info(`Finished calculating score for providers`);
   } catch (err) {
     sliChildLogger.error({ err }, "Failed");
+    throw err;
   } finally {
     sliChildLogger.info("Job finished");
   }

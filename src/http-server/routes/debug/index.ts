@@ -52,39 +52,56 @@ export function debugRoutes(
     async (req: PostDebugJobRequest, replay: FastifyReply) => {
       req.log.info({ job: req.query.job }, "Received request to trigger job");
 
-      switch (req.query.job) {
-        case "sync-deals":
-          await syncDealsJob();
-          break;
-        case "sync-url-finder-sli-targets":
-          await syncUrlFinderSliTargetsJob();
-          break;
-        case "datacap-posting-finished":
-          await dataCapPostingFinishedJob();
-          break;
-        case "set-sli":
-          await setSliOracleJob();
-          break;
-        case "track-terminated-claims":
-          await trackClaimsTerminatedEarlyJob();
-          break;
-        case "run-settlement":
-          await runSettlementBotJob();
-          break;
-        case "sync-settlement-history":
-          await syncSettlementHistoryJob();
-          break;
-        case "refresh-evidence-status":
-          await refreshEvidenceStatusJob();
-          break;
-        case "track-terminated-deals":
-          await trackTerminateDealJob();
-          break;
-        case "reject-expired-deal":
-          await runRejectExpiredDealJob();
-          break;
-        default:
-          throw new AppError("Invalid job type", "INVALID_JOB_TYPE", 400);
+      try {
+        switch (req.query.job) {
+          case "sync-deals":
+            await syncDealsJob();
+            break;
+          case "sync-url-finder-sli-targets":
+            await syncUrlFinderSliTargetsJob();
+            break;
+          case "datacap-posting-finished":
+            await dataCapPostingFinishedJob();
+            break;
+          case "set-sli":
+            await setSliOracleJob();
+            break;
+          case "track-terminated-claims":
+            await trackClaimsTerminatedEarlyJob();
+            break;
+          case "run-settlement":
+            await runSettlementBotJob();
+            break;
+          case "sync-settlement-history":
+            await syncSettlementHistoryJob();
+            break;
+          case "refresh-evidence-status":
+            await refreshEvidenceStatusJob();
+            break;
+          case "track-terminated-deals":
+            await trackTerminateDealJob();
+            break;
+          case "reject-expired-deal":
+            await runRejectExpiredDealJob();
+            break;
+          default:
+            throw new AppError("Invalid job type", "INVALID_JOB_TYPE", 400);
+        }
+      } catch (error) {
+        if (error instanceof AppError) {
+          throw error;
+        }
+
+        req.log.error(
+          { err: error, job: req.query.job },
+          "Triggered job failed",
+        );
+
+        throw new AppError(
+          `Job '${req.query.job}' execution failed`,
+          "JOB_EXECUTION_FAILED",
+          500,
+        );
       }
 
       replay.success({ status: "ok", message: "Job executed successfully" });

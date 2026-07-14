@@ -60,6 +60,7 @@ export async function runSettlementBotJob() {
     }
   } catch (err) {
     settlementChildLogger.error({ err }, "Failed");
+    throw err;
   } finally {
     settlementChildLogger.info("Job finished");
   }

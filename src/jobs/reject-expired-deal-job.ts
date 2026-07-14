@@ -72,6 +72,7 @@ export async function runRejectExpiredDealJob() {
     }
   } catch (error) {
     rejectExpiredDealChildLogger.error({ error }, "Job failed");
+    throw error;
   } finally {
     rejectExpiredDealChildLogger.info("Job finished");
   }

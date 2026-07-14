@@ -129,6 +129,7 @@ export async function dataCapPostingFinishedJob() {
     }
   } catch (error) {
     datacapPostingFinishedLogger.error({ error }, "Job failed");
+    throw error;
   } finally {
     datacapPostingFinishedLogger.info("Job finished");
   }
