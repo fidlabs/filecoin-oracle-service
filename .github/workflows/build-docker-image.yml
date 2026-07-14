@@ -10,9 +10,12 @@ on:
       commit_sha:
         required: false
         type: string
+      ecr_repository:
+        required: true
+        type: string
 
 env:
-  ECR_REPOSITORY: "filecoin-oracle-service"
+  ECR_REPOSITORY: ${{ inputs.ecr_repository }}
 
 jobs:
   build_and_push:
