@@ -2,7 +2,7 @@ import { setSliOnOracleContract } from "../blockchain/sli-oracle-contract";
 import { getSliForDeals } from "../services/cdp-fetch-service";
 import { getDealsToSetSliFromDb } from "../services/db/db-service";
 import { baseLogger } from "../utils/logger";
-import { DealSliData, DealSliMetricType, SliAttestation } from "../utils/types";
+import { SliAttestation } from "../utils/types";
 import { calculateScoreJob } from "./calculate-score-job";
 
 const sliChildLogger = baseLogger.child(
@@ -60,38 +60,21 @@ export async function setSliOracleJob() {
     const buildedSliData: SliAttestation[] = Object.entries(
       sliDataForDeals.data,
     ).map(([onChainDealId, sliData]) => {
-      const retrievability =
-        Number(
-          sliData.find(
-            (d: DealSliData) => d.name === DealSliMetricType.RETRIEVABILITY_BPS,
-          )?.value,
-        ) || 0;
-      const indexingMetric =
-        Number(
-          sliData.find(
-            (d: DealSliData) => d.name === DealSliMetricType.INDEXING_PCT,
-          )?.value,
-        ) || 0;
-
-      const latencyMetric =
-        Number(
-          sliData.find(
-            (d: DealSliData) => d.name === DealSliMetricType.LATENCY_MS,
-          )?.value,
-        ) || 0;
-
-      const bandwidthBytesPerSecond = convertMbpsToBytesPerSecond(
-        sliData.find(
-          (d: DealSliData) => d.name === DealSliMetricType.BANDWIDTH_MBPS,
-        )?.value,
-      );
+      const retrievabilityMetric = Number(sliData.RETRIEVABILITY_BPS ?? 0);
+      const indexingMetric = Number(sliData.INDEXING_PCT ?? 0);
+      const latencyMetric = Number(sliData.LATENCY_MS ?? 0);
+      const bandwidthBytesPerSecondMetric = sliData.BANDWIDTH_MBPS ?? 0;
 
       const sliAttestation: SliAttestation = {
         onChainDealId: BigInt(onChainDealId),
         slis: {
           retrievabilityBps:
-            retrievability !== null ? Math.floor(retrievability * 10000) : 0,
-          bandwidthBytesPerSecond,
+            retrievabilityMetric !== null
+              ? Math.floor(retrievabilityMetric * 10000)
+              : 0,
+          bandwidthBytesPerSecond: convertMbpsToBytesPerSecond(
+            bandwidthBytesPerSecondMetric.toString(),
+          ),
           indexingPct: Math.floor(indexingMetric * 100),
           latencyMs: latencyMetric,
         },

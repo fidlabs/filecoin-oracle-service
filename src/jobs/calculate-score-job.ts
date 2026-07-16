@@ -40,7 +40,7 @@ export async function calculateScoreJob() {
       `Extracted ${uniqueDeals.length} unique deals from ${dealsToCalculateScore.length} deals to calculate score for`,
     );
 
-    const lastSliForProvider =
+    const lastSliForDeal =
       await getLastSliForDealsFromSliOracleContract(uniqueDeals);
 
     for (const deal of dealsToCalculateScore) {
@@ -51,19 +51,19 @@ export async function calculateScoreJob() {
         continue;
       }
 
-      const lastSliForProviderValue = lastSliForProvider.find(
+      const lastSliForDealValue = lastSliForDeal.find(
         (sli) => sli.onChainDealIds === deal.onChainDealId,
       )?.sliAttestation;
 
-      if (!lastSliForProviderValue) {
+      if (!lastSliForDealValue) {
         sliChildLogger.warn(
-          `No SLI attestation found for deal ${deal.provider} on sli oracle contract, skipping score calculation for this deal`,
+          `No SLI attestation found for deal ${deal.id} on sli oracle contract, skipping score calculation for this deal`,
         );
         continue;
       }
 
       const scoreResult = await calculateScoreOnSliScorerContract(
-        deal.provider,
+        deal.onChainDealId,
         {
           retrievabilityBps: Number(deal.requiredSLIs?.retrievabilityBps),
           bandwidthBytesPerSecond: BigInt(
@@ -75,20 +75,19 @@ export async function calculateScoreJob() {
       );
 
       dealScore.push({
-        providerId: deal.provider,
         calculatedScore: scoreResult,
         porepMarketDealId: deal.id,
-        averageBandwidthMbps: lastSliForProviderValue?.bandwidthBytesPerSecond
-          ? BigInt(lastSliForProviderValue.bandwidthBytesPerSecond)
+        averageBandwidthMbps: lastSliForDealValue?.bandwidthBytesPerSecond
+          ? BigInt(lastSliForDealValue.bandwidthBytesPerSecond)
           : BigInt(0),
-        averageRetrievabilityBps: lastSliForProviderValue?.retrievabilityBps
-          ? BigInt(lastSliForProviderValue.retrievabilityBps)
+        averageRetrievabilityBps: lastSliForDealValue?.retrievabilityBps
+          ? BigInt(lastSliForDealValue.retrievabilityBps)
           : BigInt(0),
-        averageLatencyMs: lastSliForProviderValue?.latencyMs
-          ? BigInt(lastSliForProviderValue.latencyMs)
+        averageLatencyMs: lastSliForDealValue?.latencyMs
+          ? BigInt(lastSliForDealValue.latencyMs)
           : BigInt(0),
-        averageIndexingPct: lastSliForProviderValue?.indexingPct
-          ? BigInt(lastSliForProviderValue.indexingPct)
+        averageIndexingPct: lastSliForDealValue?.indexingPct
+          ? BigInt(lastSliForDealValue.indexingPct)
           : BigInt(0),
       });
     }
