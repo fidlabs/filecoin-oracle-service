@@ -41,7 +41,11 @@ export interface DealSliData {
 
 export interface CdpDealSliResponse {
   sliMetadata: { [K in DealSliMetricType]: DealSliMetadata };
-  data: { [dealId: string]: DealSliData[] };
+  data: {
+    [dealId: string]: {
+      [K in DealSliMetricType]: number | string | null;
+    };
+  };
 }
 
 export interface FilecoinAPIStateSectorPartition {
@@ -271,7 +275,6 @@ export interface PorepMarketDeal {
 }
 
 export interface DealScore {
-  providerId: bigint;
   calculatedScore: bigint;
   porepMarketDealId: string;
   averageRetrievabilityBps: bigint;

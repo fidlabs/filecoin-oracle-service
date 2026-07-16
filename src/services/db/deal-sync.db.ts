@@ -8,7 +8,6 @@ import {
   SLIThresholds,
 } from "../../utils/types";
 import { prismaClient } from "./db-client";
-import { toDomainDealState, toPrismaDealState } from "./deal-state.db";
 
 const SYNC_DEALS_DB_BATCH_SIZE = 100;
 
@@ -44,7 +43,7 @@ const buildDealPersistenceData = (deal: PorepMarketDeal) => ({
   evidenceAdapterContractAddress: deal.evidenceAdapterContractAddress,
   validatorContractAddress: deal.validatorContractAddress,
   providerOrganization: deal.providerOrganization,
-  state: toPrismaDealState(deal.state),
+  state: deal.state,
   manifestHash: deal.manifestHash,
   manifestLocation: deal.manifestLocation,
   expiresAtEpoch: deal.expiresAtEpoch,
@@ -66,7 +65,7 @@ const buildDealCreateData = (deal: PorepMarketDeal) => ({
   ...buildDealPersistenceData(deal),
   history: {
     create: {
-      state: toPrismaDealState(deal.state),
+      state: deal.state,
     },
   },
   isRailTerminated: false,
@@ -312,11 +311,11 @@ async function syncPoRepMarketContractDealsBatchWithDb(
           const prev = existingDealsMap.get(d.dealId.toString());
           if (!prev) return null;
 
-          if (toDomainDealState(prev.state) === d.state) return null;
+          if (prev.state === d.state) return null;
 
           return {
             porepMarketDealId: prev.id,
-            state: toPrismaDealState(d.state),
+            state: d.state,
           };
         })
         .filter(Boolean) as {

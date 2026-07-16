@@ -27,6 +27,7 @@ const syncDealLogger = baseLogger.child(
 
 const isDealEligibleForSyncClaims = async (
   porepMarketContractDealId: bigint,
+  currentContractDealState: DealState,
 ) => {
   const dealExistInDb = await getDealByOnChainIdFromDb(
     porepMarketContractDealId,
@@ -40,11 +41,11 @@ const isDealEligibleForSyncClaims = async (
     return true;
   }
 
-  const dealState = dealExistInDb.state as DealState;
+  // const dealState = dealExistInDb.state as DealState;
 
   if (
     dealExistInDb &&
-    dealState === DealState.Active &&
+    currentContractDealState === DealState.Active &&
     !dealExistInDb.isAllocationsMatched
   ) {
     syncDealLogger.info(
@@ -54,8 +55,7 @@ const isDealEligibleForSyncClaims = async (
     return true;
   }
 
-  // TODO: Adjust to the states
-  if (dealExistInDb && dealState !== DealState.Active) {
+  if (dealExistInDb && currentContractDealState !== DealState.Active) {
     syncDealLogger.info(
       `Deal with ID ${porepMarketContractDealId} exists in database with state ${dealExistInDb.state}, will not sync it`,
     );
@@ -65,7 +65,7 @@ const isDealEligibleForSyncClaims = async (
 
   if (
     dealExistInDb &&
-    dealExistInDb.dataCapAllocationStatus ===
+    dealExistInDb.dataCapAllocationStatus !==
       DataCapAllocationStatus.Allocated &&
     dealExistInDb.isAllocationsMatched
   ) {
@@ -120,6 +120,7 @@ export async function syncDealsJob() {
 
       const shouldSyncClaims = await isDealEligibleForSyncClaims(
         porepMarketContractDealId,
+        getChainStateToDomain(deal.state),
       );
 
       if (shouldSyncClaims) {

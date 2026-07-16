@@ -1,6 +1,5 @@
 import { DealState } from "../../utils/types";
 import { prismaClient } from "./db-client";
-import { toPrismaDealState } from "./deal-state.db";
 import {
   porepMarkerDealSelect,
   PorepMarketDealDto,
@@ -45,7 +44,7 @@ export async function getPaginatedDealsByStateFromDb({
   const [filteredDeals, totalDeals] = await Promise.all([
     prismaClient.porep_market_deal.findMany({
       where: {
-        state: state ? toPrismaDealState(state) : undefined,
+        state: state ? state : undefined,
       },
       orderBy: {
         createdAt: "asc",
@@ -56,7 +55,7 @@ export async function getPaginatedDealsByStateFromDb({
     }),
     prismaClient.porep_market_deal.count({
       where: {
-        state: state ? toPrismaDealState(state) : undefined,
+        state: state ? state : undefined,
       },
     }),
   ]);
@@ -68,14 +67,14 @@ export async function getDealsByStateFromDb(
   states: DealState[],
 ): Promise<PorepMarketDealDto[]> {
   const dealsByState: PorepMarketDealDto[] =
-    (await prismaClient.porep_market_deal.findMany({
+    await prismaClient.porep_market_deal.findMany({
       where: {
         state: {
-          in: states.map(toPrismaDealState),
+          in: states,
         },
       },
       select: porepMarkerDealSelect,
-    })) as unknown as PorepMarketDealDto[];
+    });
 
   return dealsByState;
 }
