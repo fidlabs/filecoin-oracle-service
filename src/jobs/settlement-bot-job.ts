@@ -46,7 +46,10 @@ export async function runSettlementBotJob() {
           transactionResult.receipt.blockNumber,
         );
 
-        await storeOnChainTransactionToDb(deal.id, transactionResult);
+        await storeOnChainTransactionToDb(
+          deal.onChainDealId,
+          transactionResult,
+        );
 
         settlementChildLogger.info(
           `Successfully settled rail with ID ${deal.railId} for completed deal with ID ${deal.onChainDealId}`,
