@@ -66,7 +66,7 @@ export async function refreshEvidenceStatusJob() {
             );
 
           await storeOnChainTransactionToDb(
-            deal.id,
+            deal.onChainDealId,
             refreshEvidenceStatusResult.transactionResult,
           );
 

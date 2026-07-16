@@ -38,7 +38,7 @@ export async function trackTerminateDealJob() {
       //   deal.validatorContractAddress as Address,
       // );
 
-      // await storeOnChainTransactionToDb(deal.id, transactionResult);
+      // await storeOnChainTransactionToDb(deal.onChainDealId, transactionResult);
 
       // await prismaClient.porep_market_deal.update({
       //   where: {

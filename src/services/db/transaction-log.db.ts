@@ -5,14 +5,18 @@ import {
 import { prismaClient } from "./db-client";
 
 export async function storeOnChainTransactionToDb(
-  porepMarketDealId: string,
+  onChainDealId: bigint,
   transactionResult: OnChainTransactionResult,
 ) {
   const { receipt, contractName, functionName } = transactionResult;
 
   return prismaClient.porep_market_deal_on_chain_transaction.create({
     data: {
-      porepMarketDealId,
+      deal: {
+        connect: {
+          onChainDealId,
+        },
+      },
       contractName,
       functionName,
       detail: {
