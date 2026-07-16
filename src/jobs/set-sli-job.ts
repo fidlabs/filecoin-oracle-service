@@ -1,6 +1,9 @@
 import { setSliOnOracleContract } from "../blockchain/sli-oracle-contract";
 import { getSliForDeals } from "../services/cdp-fetch-service";
-import { getDealsToSetSliFromDb } from "../services/db/db-service";
+import {
+  getDealsToSetSliFromDb,
+  storeOnChainTransactionToDb,
+} from "../services/db/db-service";
 import { baseLogger } from "../utils/logger";
 import { SliAttestation } from "../utils/types";
 import { calculateScoreJob } from "./calculate-score-job";
@@ -85,7 +88,14 @@ export async function setSliOracleJob() {
 
     sliChildLogger.info(`Prepared SLI attestation for providers`);
 
-    await setSliOnOracleContract(buildedSliData);
+    for (const sliAttestation of buildedSliData) {
+      const transactionResult = await setSliOnOracleContract(sliAttestation);
+
+      await storeOnChainTransactionToDb(
+        sliAttestation.onChainDealId,
+        transactionResult,
+      );
+    }
 
     sliChildLogger.info(
       `Finished setting SLI on oracle contract for providers, starting score calculation for providers based on new set SLI values...`,

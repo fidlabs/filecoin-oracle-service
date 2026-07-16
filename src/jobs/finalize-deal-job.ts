@@ -45,7 +45,10 @@ export async function finalizeDealJob() {
           deal.onChainDealId,
         );
 
-        await storeOnChainTransactionToDb(deal.id, transactionResult);
+        await storeOnChainTransactionToDb(
+          deal.onChainDealId,
+          transactionResult,
+        );
 
         finalizeDealLogger.info(
           { dealId: deal.onChainDealId },

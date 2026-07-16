@@ -84,7 +84,7 @@ export async function dataCapPostingFinishedJob() {
           );
 
         await storeOnChainTransactionToDb(
-          deal.id,
+          deal.onChainDealId,
           submitEvidenceBatchResult.transactionResult,
         );
 
@@ -113,7 +113,7 @@ export async function dataCapPostingFinishedJob() {
         );
 
       await storeOnChainTransactionToDb(
-        deal.id,
+        deal.onChainDealId,
         activateEvidenceResult.transactionResult,
       );
 

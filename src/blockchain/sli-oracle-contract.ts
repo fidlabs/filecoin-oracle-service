@@ -16,7 +16,7 @@ const childLogger = baseLogger.child(
   { msgPrefix: "[SLI Oracle Contract] " },
 );
 
-export async function setSliOnOracleContract(
+export async function setSliOnOracleContractMulticall(
   sliData: SliAttestation[],
 ): Promise<OnChainTransactionResult> {
   childLogger.info(`Setting SLI for providers on oracle contract...`);
@@ -59,6 +59,63 @@ export async function setSliOnOracleContract(
 
   childLogger.info(
     `${functionName}: Transaction executed in block ${receipt?.blockNumber}`,
+  );
+
+  return {
+    success: true,
+    contractName: ContractName.SliOracle,
+    functionName,
+    receipt,
+  };
+}
+
+export async function setSliOnOracleContract(
+  sliAttestation: SliAttestation,
+): Promise<OnChainTransactionResult> {
+  const { onChainDealId, slis } = sliAttestation;
+
+  childLogger.info(
+    `Setting SLI for deal ${onChainDealId} on oracle contract...`,
+  );
+
+  const oracleContractAddress =
+    SERVICE_CONFIG.SLI_ORACLE_CONTRACT_ADDRESS as Address;
+
+  const functionName = "setSLI";
+  const rpcClient = getRpcClient();
+  const walletClient = getWalletClient(WalletAccountRole.ORACLE_ROLE);
+
+  childLogger.info(
+    `${functionName}: Simulating request for deal ${onChainDealId}...`,
+  );
+
+  const { request } = await rpcClient.simulateContract({
+    address: oracleContractAddress,
+    abi: SLI_ORACLE_CONTRACT_ABI,
+    functionName: "setSLI",
+    args: [
+      onChainDealId,
+      {
+        ...slis,
+      },
+    ],
+    account: walletClient.account,
+  });
+
+  childLogger.info(
+    `${functionName}: Sending transaction for deal ${onChainDealId}...`,
+  );
+
+  const txHash = await walletClient.writeContract(request);
+
+  childLogger.info(
+    `${functionName}: Transaction sent for deal ${onChainDealId}: ${txHash}, waiting for confirmation...`,
+  );
+
+  const receipt = await waitForTransactionReceiptWithRetry(txHash);
+
+  childLogger.info(
+    `${functionName}: Transaction for deal ${onChainDealId} executed in block ${receipt.blockNumber}`,
   );
 
   return {

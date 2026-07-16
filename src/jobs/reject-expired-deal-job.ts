@@ -64,7 +64,10 @@ export async function runRejectExpiredDealJob() {
         onChainDeal.deal.dealId,
       );
 
-      await storeOnChainTransactionToDb(dbDeal.id, transactionResult);
+      await storeOnChainTransactionToDb(
+        dbDeal.onChainDealId,
+        transactionResult,
+      );
 
       rejectExpiredDealChildLogger.info(
         `Successfully processed potentially expired deal with ID ${onChainDeal.deal.dealId}`,
