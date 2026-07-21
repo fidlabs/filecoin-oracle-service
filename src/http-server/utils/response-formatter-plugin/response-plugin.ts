@@ -45,13 +45,17 @@ export const responseCustomFormatterPlugin: FastifyPluginAsync = async (
   );
 
   fastify.setErrorHandler(
-    (error: Error, _request: FastifyRequest, reply: FastifyReply) => {
+    (error: Error, request: FastifyRequest, reply: FastifyReply) => {
       let statusCode = 500;
       let code: ErrorCode = "INTERNAL_ERROR";
 
       if (error instanceof AppError) {
         statusCode = error.statusCode;
         code = error.code;
+      }
+
+      if (statusCode >= 500) {
+        request.log.error({ err: error }, "Request failed");
       }
 
       const response: ErrorResponse = {

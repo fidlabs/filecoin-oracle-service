@@ -1,12 +1,6 @@
 import "dotenv/config";
-import cron from "node-cron";
 import { SERVICE_CONFIG } from "./config/env";
 import "./http-server/server";
-import { runRejectExpiredDealJob } from "./jobs/reject-expired-deal-job";
-import { trackDealEndEpochJob } from "./jobs/set-deal-end-epoch-job";
-import { setSliOracleJob } from "./jobs/set-sli-job";
-import { runSettlementBotJob } from "./jobs/settlement-bot-job";
-import { syncDealsJob } from "./jobs/sync-deal-job";
 import { baseLogger } from "./utils/logger";
 
 declare global {
@@ -32,7 +26,8 @@ try {
     !SERVICE_CONFIG.TRIGGER_TERMINATE_DEAL_JOB_INTERVAL_CRON ||
     !SERVICE_CONFIG.TRIGGER_SYNC_DEALS_JOB_INTERVAL_CRON ||
     !SERVICE_CONFIG.TRIGGER_END_EPOCH_DEAL_JOB_INTERVAL_CRON ||
-    !SERVICE_CONFIG.TRIGGER_REJECT_EXPIRED_DEAL_INTERVAL_CRON
+    !SERVICE_CONFIG.TRIGGER_REJECT_EXPIRED_DEAL_INTERVAL_CRON ||
+    !SERVICE_CONFIG.TRIGGER_REFRESH_EVIDENCE_STATUS_INTERVAL_CRON
   ) {
     throw new Error(
       `Missing one or more required cron job intervals in environment variables. Please check the configuration.`,
@@ -47,12 +42,21 @@ try {
   const terminateDealsInterval =
     SERVICE_CONFIG.TRIGGER_TERMINATE_DEAL_JOB_INTERVAL_CRON;
   const syncDealsInterval = SERVICE_CONFIG.TRIGGER_SYNC_DEALS_JOB_INTERVAL_CRON;
+  const syncUrlFinderSliTargetsInterval =
+    SERVICE_CONFIG.SYNC_URL_FINDER_SLI_TARGETS_JOB_INTERVAL_CRON;
   const trackDealEndEpochInterval =
     SERVICE_CONFIG.TRIGGER_END_EPOCH_DEAL_JOB_INTERVAL_CRON;
   const rejectExpiredDealInterval =
     SERVICE_CONFIG.TRIGGER_REJECT_EXPIRED_DEAL_INTERVAL_CRON;
+  const refreshEvidenceStatusInterval =
+    SERVICE_CONFIG.TRIGGER_REFRESH_EVIDENCE_STATUS_INTERVAL_CRON;
 
   childLogger.info(`Scheduling sync deals cron job "${syncDealsInterval}"`);
+
+  childLogger.info(
+    `Scheduling Sync URL Finder SLI Targets cron job "${syncUrlFinderSliTargetsInterval}"`,
+  );
+
   childLogger.info(
     `Scheduling Track Deal End Epoch cron job "${trackDealEndEpochInterval}"`,
   );
@@ -69,12 +73,17 @@ try {
   childLogger.info(
     `Scheduling Reject Expired Deal cron job "${rejectExpiredDealInterval}"`,
   );
+  childLogger.info(
+    `Scheduling Refresh Evidence Status cron job "${refreshEvidenceStatusInterval}"`,
+  );
 
-  cron.schedule(rejectExpiredDealInterval, runRejectExpiredDealJob);
-  cron.schedule(syncDealsInterval, syncDealsJob);
-  cron.schedule(sliInterval, setSliOracleJob);
-  cron.schedule(trackDealEndEpochInterval, trackDealEndEpochJob);
-  cron.schedule(settlementBotInterval, runSettlementBotJob);
+  // cron.schedule(refreshEvidenceStatusInterval, refreshEvidenceStatusJob);
+  // cron.schedule(rejectExpiredDealInterval, runRejectExpiredDealJob);
+  // cron.schedule(syncDealsInterval, syncDealsJob);
+  // cron.schedule(syncUrlFinderSliTargetsInterval, syncUrlFinderSliTargetsJob);
+  // cron.schedule(sliInterval, setSliOracleJob);
+  // cron.schedule(trackDealEndEpochInterval, trackDealEndEpochJob);
+  // cron.schedule(settlementBotInterval, runSettlementBotJob);
 
   //cron.schedule(claimsTerminatedEarlyInterval, trackClaimsTerminatedEarlyJob);
   //cron.schedule(terminateDealsInterval, trackTerminateDealJob);

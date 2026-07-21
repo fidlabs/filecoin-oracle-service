@@ -6,14 +6,15 @@ import {
 } from "fastify";
 import { SERVICE_CONFIG } from "../../../config/env";
 import { trackClaimsTerminatedEarlyJob } from "../../../jobs/claims-terminated-early-job";
+import { dataCapPostingFinishedJob } from "../../../jobs/datacap-posting-finished-job";
+import { refreshEvidenceStatusJob } from "../../../jobs/refresh-evidence-status-job";
 import { runRejectExpiredDealJob } from "../../../jobs/reject-expired-deal-job";
-import { trackDealEndEpochJob } from "../../../jobs/set-deal-end-epoch-job";
 import { setSliOracleJob } from "../../../jobs/set-sli-job";
 import { runSettlementBotJob } from "../../../jobs/settlement-bot-job";
 import { syncDealsJob } from "../../../jobs/sync-deal-job";
 import { syncSettlementHistoryJob } from "../../../jobs/sync-settlement-history-job";
+import { syncUrlFinderSliTargetsJob } from "../../../jobs/sync-url-finder-sli-targets-job";
 import { trackTerminateDealJob } from "../../../jobs/terminate-deal-job";
-import { httpLogger } from "../../server";
 import { AppError } from "../../utils/response-formatter-plugin/types";
 import { PostDebugJobRequest } from "./type";
 
@@ -49,35 +50,58 @@ export function debugRoutes(
       },
     },
     async (req: PostDebugJobRequest, replay: FastifyReply) => {
-      httpLogger.info(`Received request to trigger job: ${req.query.job}`);
+      req.log.info({ job: req.query.job }, "Received request to trigger job");
 
-      switch (req.query.job) {
-        case "sync-deals":
-          await syncDealsJob();
-          break;
-        case "track-deal-end-epoch":
-          await trackDealEndEpochJob();
-          break;
-        case "set-sli":
-          await setSliOracleJob();
-          break;
-        case "track-terminated-claims":
-          await trackClaimsTerminatedEarlyJob();
-          break;
-        case "run-settlement":
-          await runSettlementBotJob();
-          break;
-        case "sync-settlement-history":
-          await syncSettlementHistoryJob();
-          break;
-        case "track-terminated-deals":
-          await trackTerminateDealJob();
-          break;
-        case "reject-expired-deal":
-          await runRejectExpiredDealJob();
-          break;
-        default:
-          throw new AppError("Invalid job type", "INVALID_JOB_TYPE", 400);
+      try {
+        switch (req.query.job) {
+          case "sync-deals":
+            await syncDealsJob();
+            break;
+          case "sync-url-finder-sli-targets":
+            await syncUrlFinderSliTargetsJob();
+            break;
+          case "datacap-posting-finished":
+            await dataCapPostingFinishedJob();
+            break;
+          case "set-sli":
+            await setSliOracleJob();
+            break;
+          case "track-terminated-claims":
+            await trackClaimsTerminatedEarlyJob();
+            break;
+          case "run-settlement":
+            await runSettlementBotJob();
+            break;
+          case "sync-settlement-history":
+            await syncSettlementHistoryJob();
+            break;
+          case "refresh-evidence-status":
+            await refreshEvidenceStatusJob();
+            break;
+          case "track-terminated-deals":
+            await trackTerminateDealJob();
+            break;
+          case "reject-expired-deal":
+            await runRejectExpiredDealJob();
+            break;
+          default:
+            throw new AppError("Invalid job type", "INVALID_JOB_TYPE", 400);
+        }
+      } catch (error) {
+        if (error instanceof AppError) {
+          throw error;
+        }
+
+        req.log.error(
+          { err: error, job: req.query.job },
+          "Triggered job failed",
+        );
+
+        throw new AppError(
+          `Job '${req.query.job}' execution failed`,
+          "JOB_EXECUTION_FAILED",
+          500,
+        );
       }
 
       replay.success({ status: "ok", message: "Job executed successfully" });

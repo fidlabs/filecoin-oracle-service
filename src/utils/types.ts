@@ -1,5 +1,9 @@
 import { Address, TransactionReceipt } from "viem";
 import { ContractName } from "../../prisma/generated/client";
+import {
+  DataCapAllocationStatus,
+  EvidenceResult,
+} from "../services/db/deal-status.db";
 
 export interface BigInt {
   toJSON: () => string;
@@ -7,40 +11,41 @@ export interface BigInt {
 
 export interface SLIThresholds {
   retrievabilityBps: number;
-  bandwidthMbps: number;
+  bandwidthBytesPerSecond: bigint;
   latencyMs: number;
   indexingPct: number;
 }
 
 export interface SliAttestation {
-  provider: bigint;
+  onChainDealId: bigint;
   slis: SLIThresholds;
 }
 
-export enum StorageProvidersSliMetricType {
-  RPA_RETRIEVABILITY = "RPA_RETRIEVABILITY",
-  IPNI_REPORTING = "IPNI_REPORTING",
-  TTFB = "TTFB",
-  BANDWIDTH = "BANDWIDTH",
+export enum DealSliMetricType {
+  RETRIEVABILITY_BPS = "RETRIEVABILITY_BPS",
+  INDEXING_PCT = "INDEXING_PCT",
+  LATENCY_MS = "LATENCY_MS",
+  BANDWIDTH_MBPS = "BANDWIDTH_MBPS",
 }
 
-export interface StorageProviderSliMetadata {
-  sliMetricType: StorageProvidersSliMetricType;
-  sliMetricName: string;
-  sliMetricDescription: string;
-  sliMetricUnit: string;
+export interface DealSliMetadata {
+  name: string;
+  description: string;
+  unit: string;
 }
 
-export interface StorageProvidersSliData {
-  sliMetricType: StorageProvidersSliMetricType;
-  sliMetricValue: string;
+export interface DealSliData {
+  name: DealSliMetricType;
+  value: string;
 }
 
-export interface CdpSliResponse {
-  sliMetadata: {
-    [code: string]: StorageProviderSliMetadata;
+export interface CdpDealSliResponse {
+  sliMetadata: { [K in DealSliMetricType]: DealSliMetadata };
+  data: {
+    [dealId: string]: {
+      [K in DealSliMetricType]: number | string | null;
+    };
   };
-  data: { [storageProviderId: string]: StorageProvidersSliData[] };
 }
 
 export interface FilecoinAPIStateSectorPartition {
@@ -108,38 +113,118 @@ export interface FilecoinAPIStateGetClaim {
 }
 
 export enum DealState {
+  None = "None",
   Proposed = "Proposed",
   Accepted = "Accepted",
-  Completed = "Completed",
+  Active = "Active",
+  Finalized = "Finalized",
   Rejected = "Rejected",
+  Expired = "Expired",
   Terminated = "Terminated",
 }
 
 export interface DealTerms {
-  dealSizeBytes: bigint;
-  pricePerSectorPerMonth: bigint;
-  durationDays: number;
+  requestedSizeBytes: bigint;
+  durationEpochs: bigint;
+}
+
+export interface DealPayment {
+  paymentToken: Address;
+  pricePer32GiBPerMonth: bigint;
+  billed32GiBUnits: bigint;
+  railMaxRatePerEpoch: bigint;
+}
+
+export interface DealEvidenceStatus {
+  activeCoveredBytes: bigint;
+  lastEvidenceRefreshEpoch: bigint;
+  reasonCode: bigint;
+  result: EvidenceResult;
 }
 
 export enum PorepMarketContractDealState {
-  Proposed,
-  Accepted,
-  Completed,
-  Rejected,
-  Terminated,
+  None = 0,
+  Proposed = 10,
+  Accepted = 20,
+  Active = 30,
+  Finalized = 40,
+  Rejected = 50,
+  Expired = 60,
+  Terminated = 70,
 }
 
-export interface PorepMarketContractDealProposal {
-  dealId: bigint;
-  client: Address;
-  provider: bigint;
-  validator: Address;
-  railId: bigint;
-  manifestLocation: string;
-  proposedAtBlock: bigint;
-  state: PorepMarketContractDealState;
-  terms: DealTerms;
-  requirements: SLIThresholds;
+export interface PorepMarketContractDealSli extends SLIThresholds {
+  onChainDealId: bigint;
+}
+
+export enum ContractEvidenceResult {
+  None = 0,
+  Partial = 10,
+  Accepted = 20,
+  Rejected = 30,
+  Active = 40,
+  Inactive = 50,
+  CoveredBytesMismatch = 60,
+}
+
+export enum ContractDataCapAllocationStatus {
+  None = 0,
+  Allocated = 10,
+  Claimed = 20,
+  Inactive = 30,
+}
+
+export interface EvidenceActivationDecision {
+  coveredBytes: bigint;
+  reasonCode: number;
+  result: ContractEvidenceResult;
+}
+
+export interface PorepMarketContractDealView {
+  deal: {
+    dealId: bigint;
+    client: Address;
+    provider: bigint;
+    offerId: bigint;
+    state: PorepMarketContractDealState;
+    evidenceAdapter: Address;
+    validator: Address;
+    railId: bigint;
+  };
+  data: {
+    manifestHash: Address;
+    manifestLocation: string;
+  };
+  requiredSLIs: SLIThresholds;
+  terms: {
+    requestedSizeBytes: bigint;
+    durationEpochs: bigint;
+  };
+  timing: {
+    proposedAtEpoch: bigint;
+    expiresAtEpoch: bigint;
+  };
+  service: {
+    serviceStartEpoch: bigint;
+    serviceEndEpoch: bigint;
+  };
+  capacity: {
+    reservedBytes: bigint;
+    committedBytes: bigint;
+  };
+  payment: {
+    paymentToken: Address;
+    pricePer32GiBPerMonth: bigint;
+    billed32GiBUnits: bigint;
+    railMaxRatePerEpoch: bigint;
+  };
+  providerOrganization: Address;
+  evidenceStatus: {
+    activeCoveredBytes: bigint;
+    lastEvidenceRefreshEpoch: bigint;
+    reasonCode: number;
+    result: number;
+  };
 }
 
 export interface PorepMarketDealClaim {
@@ -159,26 +244,37 @@ export interface PorepMarketDeal {
   dealId: bigint;
   client: Address;
   provider: bigint;
+  offerId?: bigint;
   validatorContractAddress: Address;
+  evidenceAdapterContractAddress: Address;
   railId: bigint;
+  providerOrganization?: Address;
   dealStartEpoch?: bigint;
   dealEndEpoch?: bigint;
-  manifestLocation: string;
+  manifestHash?: `0x${string}`;
+  manifestLocation?: string;
+  expiresAtEpoch?: bigint;
+  serviceStartEpoch?: bigint;
+  serviceEndEpoch?: bigint;
+  reservedBytes?: bigint;
+  committedBytes?: bigint;
   state: DealState;
   allocationsRequiredCount?: bigint;
   allocationsMatchedCount?: bigint;
   isAllocationsMatched?: boolean;
-  isDealEndEpochSetOnChain?: boolean;
+  dataCapAllocationStatus?: DataCapAllocationStatus;
+  activatePaymentAt?: Date | null;
   allocationIds?: bigint[];
   claims?: PorepMarketDealClaim[];
   isRailTerminated?: boolean;
   terms: DealTerms;
-  requirements: SLIThresholds;
-  proposedAtBlock: bigint;
+  payment: DealPayment;
+  requiredSLIs: SLIThresholds;
+  evidenceStatus: DealEvidenceStatus;
+  proposedAtEpoch: bigint;
 }
 
-export interface ProviderScore {
-  providerId: bigint;
+export interface DealScore {
   calculatedScore: bigint;
   porepMarketDealId: string;
   averageRetrievabilityBps: bigint;

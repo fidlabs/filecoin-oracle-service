@@ -2,6 +2,7 @@ import { Prisma } from "../../../../prisma/generated/client";
 
 export const porepMarkerDealSelect =
   Prisma.validator<Prisma.porep_market_dealSelect>()({
+    id: true,
     onChainDealId: true,
     client: true,
     provider: true,
@@ -13,31 +14,39 @@ export const porepMarkerDealSelect =
     allocationsRequiredCount: true,
     allocationsMatchedCount: true,
     isAllocationsMatched: true,
-    isDealEndEpochSetOnChain: true,
-    modifyRailPaymentAt: true,
+    dataCapAllocationStatus: true,
     allocationIds: true,
     isRailTerminated: true,
     manifestLocation: true,
+    urlFinderSliTargetTriggeredAt: true,
     createdAt: true,
     updatedAt: true,
     lastSyncedAt: true,
-    proposedAtBlock: true,
+    proposedAtEpoch: true,
+    evidenceAdapterContractAddress: true,
+    manifestHash: true,
+    expiresAtEpoch: true,
+    serviceStartEpoch: true,
+    serviceEndEpoch: true,
+    reservedBytes: true,
+    committedBytes: true,
+    offerId: true,
+    providerOrganization: true,
     terms: {
       select: {
-        dealSizeBytes: true,
-        pricePerSectorPerMonth: true,
-        durationDays: true,
+        requestedSizeBytes: true,
+        durationEpochs: true,
       },
     },
-    requirements: {
+    requiredSLIs: {
       select: {
         retrievabilityBps: true,
-        bandwidthMbps: true,
+        bandwidthBytesPerSecond: true,
         latencyMs: true,
         indexingPct: true,
       },
     },
-    provider_score: {
+    score: {
       select: {
         calculatedScore: true,
         averageBandwidthMbps: true,
@@ -79,6 +88,14 @@ export const porepMarkerDealSelect =
         term_min: true,
         term_max: true,
         term_start: true,
+      },
+    },
+    payment: {
+      select: {
+        paymentToken: true,
+        pricePer32GiBPerMonth: true,
+        billed32GiBUnits: true,
+        railMaxRatePerEpoch: true,
       },
     },
   });
