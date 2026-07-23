@@ -3,7 +3,6 @@ import { createOrUpdatePoRepDealSliTargetInUrlFinder } from "../../src/services/
 import { buildActivePorepMarketDeal } from "../fixtures/porep-market-deal.fixture";
 import {
   getLatestDealSliEvidence,
-  hasAnySliValue,
   triggerDealMeasurementRun,
 } from "../helpers/url-finder-api";
 import {
@@ -12,53 +11,53 @@ import {
   RecordedExchange,
 } from "../helpers/url-finder-recorder";
 
-describe("oracle-service to RPA deal measurement flow", () => {
-  const deal = buildActivePorepMarketDeal();
-  const dealId = deal.onChainDealId;
+ const describeE2E =
+   process.env.RUN_URL_FINDER_E2E === "true" ? describe : describe.skip;
 
-  let recorder: ReturnType<typeof recordUrlFinderExchanges>;
+ describeE2E("oracle-service to RPA deal measurement flow", () => {
+   const deal = buildActivePorepMarketDeal();
+   const dealId = deal.onChainDealId;
 
-  beforeAll(() => {
-    if (!SERVICE_CONFIG.URL_FINDER_AUTH_TOKEN) {
-      throw new Error(
-        "URL_FINDER_AUTH_TOKEN is not set. PUT /deals/{deal_id} and " +
-          "POST /deals/{deal_id}/runs require an oracle bearer token.",
-      );
-    }
-  });
+   let recorder: ReturnType<typeof recordUrlFinderExchanges>;
 
-  beforeEach(() => {
-    recorder = recordUrlFinderExchanges();
-  });
+   beforeAll(() => {
+     if (!process.env.URL_FINDER_SERVICE_URL) {
+       throw new Error(
+         "URL_FINDER_SERVICE_URL is not set. Set it explicitly to run this staging smoke test.",
+       );
+     }
 
-  afterEach(() => {
-    recorder.restore();
-  });
+   beforeEach(() => {
+     recorder = recordUrlFinderExchanges();
+   });
 
-  it("registers the deal, runs a measurement, and reads back its SLI evidence", async () => {
-    const wasRegistered =
-      await createOrUpdatePoRepDealSliTargetInUrlFinder(deal);
+   afterEach(() => {
+     recorder.restore();
+   });
 
-    const exchange: RecordedExchange | undefined = recorder.exchanges.at(-1);
+   it("registers the deal, runs a measurement, and reads back its SLI evidence", async () => {
+     const wasRegistered =
+       await createOrUpdatePoRepDealSliTargetInUrlFinder(deal);
 
-    if (!wasRegistered) {
-      throw new Error(
-        `URL Finder rejected deal ${dealId}. ${describeExchange(exchange)}`,
-      );
-    }
-    expect(wasRegistered).toBe(true);
+     const exchange: RecordedExchange | undefined = recorder.exchanges.at(-1);
 
-    // runs a measurement for the deal
-    const run = await triggerDealMeasurementRun(dealId);
-    expect(run.deal_id).toBe(dealId.toString());
-    expect(run.measurement_state).not.toBe("missing");
-    expect(run.piece_count).toBeGreaterThan(0);
+     if (!wasRegistered) {
+       throw new Error(
+         `URL Finder rejected deal ${dealId}. ${describeExchange(exchange)}`,
+       );
+     }
+     expect(wasRegistered).toBe(true);
 
-    // reads the latest deal SLI evidence back
-    const latest = await getLatestDealSliEvidence(dealId);
-    expect(latest.deal_id).toBe(dealId.toString());
-    expect(latest.measurement_state).not.toBe("missing");
-    expect(latest.tested_at).toBeTruthy();
-  });
+     // runs a measurement for the deal
+     const run = await triggerDealMeasurementRun(dealId);
+     expect(run.deal_id).toBe(dealId.toString());
+     expect(run.measurement_state).not.toBe("missing");
+     expect(run.piece_count).toBeGreaterThan(0);
 
-});
+     // reads the latest deal SLI evidence back
+     const latest = await getLatestDealSliEvidence(dealId);
+     expect(latest.deal_id).toBe(dealId.toString());
+     expect(latest.measurement_state).not.toBe("missing");
+     expect(latest.tested_at).toBeTruthy();
+   });
+ });
