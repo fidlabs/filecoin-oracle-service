@@ -190,9 +190,10 @@ export interface PorepMarketContractDealView {
     evidenceAdapter: Address;
     validator: Address;
     railId: bigint;
+    proposedAtEpoch: bigint;
   };
   data: {
-    manifestHash: Address;
+    manifestHash: `0x${string}`;
     manifestLocation: string;
   };
   requiredSLIs: SLIThresholds;
@@ -200,13 +201,12 @@ export interface PorepMarketContractDealView {
     requestedSizeBytes: bigint;
     durationEpochs: bigint;
   };
-  timing: {
-    proposedAtEpoch: bigint;
-    expiresAtEpoch: bigint;
-  };
   service: {
     serviceStartEpoch: bigint;
     serviceEndEpoch: bigint;
+    earlyTerminationEpoch: bigint;
+    minTimeBetweenSettlementsInEpochs: bigint;
+    lastSettledEpoch: bigint;
   };
   capacity: {
     reservedBytes: bigint;
@@ -214,6 +214,7 @@ export interface PorepMarketContractDealView {
   };
   payment: {
     paymentToken: Address;
+    payee: Address;
     pricePer32GiBPerMonth: bigint;
     billed32GiBUnits: bigint;
     railMaxRatePerEpoch: bigint;
@@ -224,6 +225,8 @@ export interface PorepMarketContractDealView {
     lastEvidenceRefreshEpoch: bigint;
     reasonCode: number;
     result: number;
+    checkedClaims: bigint;
+    totalClaims: bigint;
   };
 }
 

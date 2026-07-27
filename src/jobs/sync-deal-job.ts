@@ -185,7 +185,7 @@ export async function syncDealsJob() {
         return {
           ...deal,
           ...dealView.data,
-          ...dealView.timing,
+          proposedAtEpoch: deal.proposedAtEpoch,
           ...dealView.service,
           ...dealView.capacity,
           validatorContractAddress: deal.validator,
@@ -195,7 +195,12 @@ export async function syncDealsJob() {
             requestedSizeBytes: dealView.terms.requestedSizeBytes,
             durationEpochs: dealView.terms.durationEpochs,
           },
-          payment: dealView.payment,
+          payment: {
+            paymentToken: dealView.payment.paymentToken,
+            pricePer32GiBPerMonth: dealView.payment.pricePer32GiBPerMonth,
+            billed32GiBUnits: dealView.payment.billed32GiBUnits,
+            railMaxRatePerEpoch: dealView.payment.railMaxRatePerEpoch,
+          },
           requiredSLIs: dealView.requiredSLIs,
           evidenceStatus: {
             activeCoveredBytes: dealView.evidenceStatus.activeCoveredBytes,

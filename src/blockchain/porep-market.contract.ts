@@ -11,6 +11,7 @@ import {
   PorepMarketContractDealView,
 } from "../utils/types";
 import { POREP_MARKET_CONTRACT_ABI } from "./abis/porep-market-abi";
+import { POREP_MARKET_VIEW_HELPER_ABI } from "./abis/porep-market-view-helper-abi";
 import {
   getRpcClient,
   getWalletClient,
@@ -50,13 +51,16 @@ export async function getDealsFromPoRepMarketContract(): Promise<
   let offset = 0n;
   let totalDeals: bigint | undefined;
 
+  const dealViewsAddress = (SERVICE_CONFIG.POREP_MARKET_VIEW_HELPER_CONTRACT_ADDRESS ||
+    SERVICE_CONFIG.POREP_MARKET_CONTRACT_ADDRESS) as Address;
+
   do {
-    const [pageDealViews, total] = await rpcClient.readContract({
-      address: SERVICE_CONFIG.POREP_MARKET_CONTRACT_ADDRESS as Address,
-      abi: POREP_MARKET_CONTRACT_ABI,
+    const [pageDealViews, total] = (await rpcClient.readContract({
+      address: dealViewsAddress,
+      abi: POREP_MARKET_VIEW_HELPER_ABI,
       functionName: "getDealViews",
       args: [offset, DEAL_VIEWS_PAGE_SIZE],
-    });
+    })) as [PorepMarketContractDealView[], bigint];
 
     totalDeals = total;
     dealViews.push(...pageDealViews);
