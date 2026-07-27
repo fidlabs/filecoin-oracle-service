@@ -12,12 +12,19 @@ const childLogger = baseLogger.child(
 export const getAllClaimsFromClaimInspectorContract = async (
   onChainDealId: bigint,
 ) => {
+  const claimInspectorAddress = SERVICE_CONFIG.CLAIM_INSPECTOR_CONTRACT_ADDRESS;
+  if (!claimInspectorAddress) {
+    throw new Error(
+      "CLAIM_INSPECTOR_CONTRACT_ADDRESS is not set; deploy PoRepMarketClaimInspector or leave unset to skip claim detail sync",
+    );
+  }
+
   childLogger.info(`Fetching claims for deal ${onChainDealId}...`);
 
   const rpcClient = getRpcClient();
 
   const response = await rpcClient.readContract({
-    address: SERVICE_CONFIG.CLAIM_INSPECTOR_CONTRACT_ADDRESS as Address,
+    address: claimInspectorAddress as Address,
     abi: CLAIM_INSPECTOR_CONTRACT_ABI,
     functionName: "getClaimForDeal",
     args: [onChainDealId],

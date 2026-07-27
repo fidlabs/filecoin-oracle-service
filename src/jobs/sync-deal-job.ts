@@ -1,4 +1,5 @@
 import { getAllClaimsFromClaimInspectorContract } from "../blockchain/claim-inspector-contract";
+import { SERVICE_CONFIG } from "../config/env";
 import {
   getAllocationIdsPerDealFromDCEvidenceContract,
   getClaimIdsPerDealFromDCEvidenceContract,
@@ -145,31 +146,37 @@ export async function syncDealsJob() {
         );
 
         if (requiredDealAllocations.length) {
-          syncDealLogger.info(
-            `Fetching claims info for client ${deal.client} from deal inspector contract...`,
-          );
-
-          const claimsInfoFromDealInspectorContract =
-            await getAllClaimsFromClaimInspectorContract(
-              porepMarketContractDealId,
+          if (!SERVICE_CONFIG.CLAIM_INSPECTOR_CONTRACT_ADDRESS) {
+            syncDealLogger.warn(
+              `CLAIM_INSPECTOR_CONTRACT_ADDRESS unset; skipping claim details for deal ${porepMarketContractDealId}`,
+            );
+          } else {
+            syncDealLogger.info(
+              `Fetching claims info for client ${deal.client} from deal inspector contract...`,
             );
 
-          syncDealLogger.info(
-            `Fetched claims info for deal ${porepMarketContractDealId} from Deal Inspector contract, total success claims count: ${claimsInfoFromDealInspectorContract[1].length}`,
-          );
+            const claimsInfoFromDealInspectorContract =
+              await getAllClaimsFromClaimInspectorContract(
+                porepMarketContractDealId,
+              );
 
-          const claimIds = claimsInfoFromDealInspectorContract[0];
+            syncDealLogger.info(
+              `Fetched claims info for deal ${porepMarketContractDealId} from Deal Inspector contract, total success claims count: ${claimsInfoFromDealInspectorContract[1].length}`,
+            );
 
-          // get the matched claims from the helper contract
-          matchedClaims = claimsInfoFromDealInspectorContract[1].map(
-            (claim, index) => ({
-              ...claim,
-              claimId: claimIds[index],
-            }),
-          );
+            const claimIds = claimsInfoFromDealInspectorContract[0];
 
-          dealIdAllocationsMap[porepMarketContractDealIdStr].claims =
-            matchedClaims;
+            // get the matched claims from the helper contract
+            matchedClaims = claimsInfoFromDealInspectorContract[1].map(
+              (claim, index) => ({
+                ...claim,
+                claimId: claimIds[index],
+              }),
+            );
+
+            dealIdAllocationsMap[porepMarketContractDealIdStr].claims =
+              matchedClaims;
+          }
         }
 
         dealIdAllocationsMap[porepMarketContractDealIdStr].allocationIds =
