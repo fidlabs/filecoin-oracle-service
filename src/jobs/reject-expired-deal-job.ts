@@ -14,6 +14,7 @@ const rejectExpiredDealChildLogger = baseLogger.child(
   { msgPrefix: "[Reject Expired Deal Job] " },
 );
 
+// Not using currently in v2
 export async function runRejectExpiredDealJob() {
   try {
     rejectExpiredDealChildLogger.info("Job started...");
