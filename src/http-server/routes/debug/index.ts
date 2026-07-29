@@ -8,7 +8,6 @@ import { SERVICE_CONFIG } from "../../../config/env";
 import { trackClaimsTerminatedEarlyJob } from "../../../jobs/claims-terminated-early-job";
 import { dataCapPostingFinishedJob } from "../../../jobs/datacap-posting-finished-job";
 import { refreshEvidenceStatusJob } from "../../../jobs/refresh-evidence-status-job";
-import { runRejectExpiredDealJob } from "../../../jobs/reject-expired-deal-job";
 import { setSliOracleJob } from "../../../jobs/set-sli-job";
 import { runSettlementBotJob } from "../../../jobs/settlement-bot-job";
 import { syncDealsJob } from "../../../jobs/sync-deal-job";
@@ -81,8 +80,6 @@ export function debugRoutes(
           case "track-terminated-deals":
             await trackTerminateDealJob();
             break;
-          case "reject-expired-deal":
-            await runRejectExpiredDealJob();
             break;
           default:
             throw new AppError("Invalid job type", "INVALID_JOB_TYPE", 400);

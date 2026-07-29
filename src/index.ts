@@ -78,7 +78,6 @@ try {
   );
 
   // cron.schedule(refreshEvidenceStatusInterval, refreshEvidenceStatusJob);
-  // cron.schedule(rejectExpiredDealInterval, runRejectExpiredDealJob);
   // cron.schedule(syncDealsInterval, syncDealsJob);
   // cron.schedule(syncUrlFinderSliTargetsInterval, syncUrlFinderSliTargetsJob);
   // cron.schedule(sliInterval, setSliOracleJob);
