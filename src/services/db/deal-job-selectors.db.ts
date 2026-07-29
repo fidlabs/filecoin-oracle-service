@@ -156,9 +156,7 @@ export async function getDealsToActivateDCEvidenceFromDb(): Promise<
   PorepMarketDealDto[]
 > {
   return await getDealsByWhereFromDb({
-    dataCapAllocationStatus: {
-      notIn: [DataCapAllocationStatus.None, DataCapAllocationStatus.Inactive],
-    },
+    dataCapAllocationStatus: DataCapAllocationStatus.Allocated,
     isRailTerminated: false,
   });
 }
