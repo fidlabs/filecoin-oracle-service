@@ -80,7 +80,6 @@ export function debugRoutes(
           case "track-terminated-deals":
             await trackTerminateDealJob();
             break;
-            break;
           default:
             throw new AppError("Invalid job type", "INVALID_JOB_TYPE", 400);
         }
