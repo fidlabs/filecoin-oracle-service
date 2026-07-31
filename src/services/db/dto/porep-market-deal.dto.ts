@@ -28,10 +28,14 @@ export const porepMarkerDealSelect =
     expiresAtEpoch: true,
     serviceStartEpoch: true,
     serviceEndEpoch: true,
+    earlyTerminationEpoch: true,
+    minTimeBetweenSettlementsInEpochs: true,
+    lastSettledEpoch: true,
     reservedBytes: true,
     committedBytes: true,
     offerId: true,
     providerOrganization: true,
+    dealType: true,
     terms: {
       select: {
         requestedSizeBytes: true,
@@ -93,9 +97,20 @@ export const porepMarkerDealSelect =
     payment: {
       select: {
         paymentToken: true,
+        payee: true,
         pricePer32GiBPerMonth: true,
         billed32GiBUnits: true,
         railMaxRatePerEpoch: true,
+      },
+    },
+    evidenceStatus: {
+      select: {
+        activeCoveredBytes: true,
+        lastEvidenceRefreshEpoch: true,
+        reasonCode: true,
+        checkedClaims: true,
+        totalClaims: true,
+        result: true,
       },
     },
   });

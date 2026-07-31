@@ -4,9 +4,10 @@ import {
   getClaimIdsPerDealFromDCEvidenceContract,
   getDealAllocationStatusFromDCEvidenceContract,
 } from "../blockchain/datacap-evidence-adapter-contract";
-import { getDealsFromPoRepMarketContract } from "../blockchain/porep-market.contract";
+import { getDealsFromPoRepMarketViewContract } from "../blockchain/porep-market-view-helper-contract";
 import {
   getChainStateToDomain,
+  getChainDealTypeToDomain,
   getDealsFromDb,
   syncPoRepMarketContractDealsWithDb,
   toPrismaEvidenceResult,
@@ -60,7 +61,7 @@ export async function syncDealsJob() {
     syncDealLogger.info("Job started");
 
     const contractAllDeals: PorepMarketContractDealView[] =
-      await getDealsFromPoRepMarketContract();
+      await getDealsFromPoRepMarketViewContract();
 
     syncDealLogger.info(
       `Fetched ${contractAllDeals.length} deals from PoRep Market contract`,
@@ -146,11 +147,11 @@ export async function syncDealsJob() {
       const completedDeal: PorepMarketDeal = {
         ...deal,
         ...dealView.data,
-        ...dealView.timing,
         ...dealView.service,
         ...dealView.capacity,
         validatorContractAddress: deal.validator,
         evidenceAdapterContractAddress: deal.evidenceAdapter,
+        dealType: getChainDealTypeToDomain(deal.dealType),
         state: contractState,
         terms: {
           requestedSizeBytes: dealView.terms.requestedSizeBytes,
@@ -163,6 +164,8 @@ export async function syncDealsJob() {
           lastEvidenceRefreshEpoch:
             dealView.evidenceStatus.lastEvidenceRefreshEpoch,
           reasonCode: BigInt(dealView.evidenceStatus.reasonCode),
+          checkedClaims: dealView.evidenceStatus.checkedClaims,
+          totalClaims: dealView.evidenceStatus.totalClaims,
           result: toPrismaEvidenceResult(dealView.evidenceStatus.result),
         },
         allocationsRequiredCount: allocationIds?.length

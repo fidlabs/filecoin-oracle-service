@@ -157,6 +157,7 @@ export async function getDealsToActivateDCEvidenceFromDb(): Promise<
 > {
   return await getDealsByWhereFromDb({
     dataCapAllocationStatus: DataCapAllocationStatus.Allocated,
+    state: DealState.Accepted,
     isRailTerminated: false,
   });
 }

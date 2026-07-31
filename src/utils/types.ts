@@ -1,5 +1,5 @@
 import { Address, TransactionReceipt } from "viem";
-import { ContractName } from "../../prisma/generated/client";
+import { ContractName, DealType } from "../../prisma/generated/client";
 import {
   DataCapAllocationStatus,
   EvidenceResult,
@@ -130,6 +130,7 @@ export interface DealTerms {
 
 export interface DealPayment {
   paymentToken: Address;
+  payee: Address;
   pricePer32GiBPerMonth: bigint;
   billed32GiBUnits: bigint;
   railMaxRatePerEpoch: bigint;
@@ -138,6 +139,8 @@ export interface DealPayment {
 export interface DealEvidenceStatus {
   activeCoveredBytes: bigint;
   lastEvidenceRefreshEpoch: bigint;
+  checkedClaims: bigint;
+  totalClaims: bigint;
   reasonCode: bigint;
   result: EvidenceResult;
 }
@@ -174,6 +177,12 @@ export enum ContractDataCapAllocationStatus {
   Inactive = 30,
 }
 
+export enum ContractDealType {
+  None = 0,
+  Public = 10,
+  Private = 20,
+}
+
 export interface EvidenceActivationDecision {
   coveredBytes: bigint;
   reasonCode: number;
@@ -188,11 +197,13 @@ export interface PorepMarketContractDealView {
     offerId: bigint;
     state: PorepMarketContractDealState;
     evidenceAdapter: Address;
+    dealType: ContractDealType;
     validator: Address;
     railId: bigint;
+    proposedAtEpoch: bigint;
   };
   data: {
-    manifestHash: Address;
+    manifestHash: `0x${string}`;
     manifestLocation: string;
   };
   requiredSLIs: SLIThresholds;
@@ -200,13 +211,12 @@ export interface PorepMarketContractDealView {
     requestedSizeBytes: bigint;
     durationEpochs: bigint;
   };
-  timing: {
-    proposedAtEpoch: bigint;
-    expiresAtEpoch: bigint;
-  };
   service: {
     serviceStartEpoch: bigint;
     serviceEndEpoch: bigint;
+    earlyTerminationEpoch: bigint;
+    minTimeBetweenSettlementsInEpochs: bigint;
+    lastSettledEpoch: bigint;
   };
   capacity: {
     reservedBytes: bigint;
@@ -214,6 +224,7 @@ export interface PorepMarketContractDealView {
   };
   payment: {
     paymentToken: Address;
+    payee: Address;
     pricePer32GiBPerMonth: bigint;
     billed32GiBUnits: bigint;
     railMaxRatePerEpoch: bigint;
@@ -224,6 +235,8 @@ export interface PorepMarketContractDealView {
     lastEvidenceRefreshEpoch: bigint;
     reasonCode: number;
     result: number;
+    checkedClaims: bigint;
+    totalClaims: bigint;
   };
 }
 
@@ -256,9 +269,13 @@ export interface PorepMarketDeal {
   expiresAtEpoch?: bigint;
   serviceStartEpoch?: bigint;
   serviceEndEpoch?: bigint;
+  earlyTerminationEpoch?: bigint;
+  minTimeBetweenSettlementsInEpochs?: bigint;
+  lastSettledEpoch?: bigint;
   reservedBytes?: bigint;
   committedBytes?: bigint;
   state: DealState;
+  dealType: DealType;
   allocationsRequiredCount?: bigint;
   allocationsMatchedCount?: bigint;
   isAllocationsMatched?: boolean;
