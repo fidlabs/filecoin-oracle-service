@@ -1,6 +1,13 @@
 import "dotenv/config";
+import cron from "node-cron";
 import { SERVICE_CONFIG } from "./config/env";
 import "./http-server/server";
+import { trackClaimsTerminatedEarlyJob } from "./jobs/claims-terminated-early-job";
+import { refreshEvidenceStatusJob } from "./jobs/refresh-evidence-status-job";
+import { setSliOracleJob } from "./jobs/set-sli-job";
+import { runSettlementBotJob } from "./jobs/settlement-bot-job";
+import { syncDealsJob } from "./jobs/sync-deal-job";
+import { syncUrlFinderSliTargetsJob } from "./jobs/sync-url-finder-sli-targets-job";
 import { baseLogger } from "./utils/logger";
 
 declare global {
@@ -77,14 +84,12 @@ try {
     `Scheduling Refresh Evidence Status cron job "${refreshEvidenceStatusInterval}"`,
   );
 
-  // cron.schedule(refreshEvidenceStatusInterval, refreshEvidenceStatusJob);
-  // cron.schedule(syncDealsInterval, syncDealsJob);
-  // cron.schedule(syncUrlFinderSliTargetsInterval, syncUrlFinderSliTargetsJob);
-  // cron.schedule(sliInterval, setSliOracleJob);
-  // cron.schedule(trackDealEndEpochInterval, trackDealEndEpochJob);
-  // cron.schedule(settlementBotInterval, runSettlementBotJob);
-
-  //cron.schedule(claimsTerminatedEarlyInterval, trackClaimsTerminatedEarlyJob);
+  cron.schedule(refreshEvidenceStatusInterval, refreshEvidenceStatusJob);
+  cron.schedule(syncDealsInterval, syncDealsJob);
+  cron.schedule(syncUrlFinderSliTargetsInterval, syncUrlFinderSliTargetsJob);
+  cron.schedule(sliInterval, setSliOracleJob);
+  cron.schedule(settlementBotInterval, runSettlementBotJob);
+  cron.schedule(claimsTerminatedEarlyInterval, trackClaimsTerminatedEarlyJob);
   //cron.schedule(terminateDealsInterval, trackTerminateDealJob);
 } catch (err: unknown) {
   if (err instanceof Error) {
