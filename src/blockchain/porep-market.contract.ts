@@ -8,7 +8,6 @@ import {
   EvidenceActivationDecision,
   OnChainTransactionResult,
   PorepMarketContractDealSli,
-  PorepMarketContractDealView,
 } from "../utils/types";
 import { POREP_MARKET_CONTRACT_ABI } from "./abis/porep-market-abi";
 import {
@@ -23,8 +22,6 @@ const childLogger = baseLogger.child(
   { msgPrefix: "[PoRep Market Contract] " },
 );
 
-const DEAL_VIEWS_PAGE_SIZE = 500n;
-
 type EvidenceTransactionFunctionName =
   | "submitEvidenceBatch"
   | "activateEvidence";
@@ -37,41 +34,6 @@ export interface PorepMarketEvidenceTransactionResult {
 export interface PorepMarketEvidenceStatusTransactionResult {
   status: DealEvidenceStatus;
   transactionResult: OnChainTransactionResult;
-}
-
-export async function getDealsFromPoRepMarketContract(): Promise<
-  PorepMarketContractDealView[]
-> {
-  childLogger.info("Fetching deal views...");
-
-  const rpcClient = getRpcClient();
-  const dealViews: PorepMarketContractDealView[] = [];
-
-  let offset = 0n;
-  let totalDeals: bigint | undefined;
-
-  do {
-    const [pageDealViews, total] = await rpcClient.readContract({
-      address: SERVICE_CONFIG.POREP_MARKET_CONTRACT_ADDRESS as Address,
-      abi: POREP_MARKET_CONTRACT_ABI,
-      functionName: "getDealViews",
-      args: [offset, DEAL_VIEWS_PAGE_SIZE],
-    });
-
-    totalDeals = total;
-    dealViews.push(...pageDealViews);
-    offset += BigInt(pageDealViews.length);
-
-    childLogger.info(`Fetched ${dealViews.length}/${totalDeals} deal views`);
-
-    if (pageDealViews.length === 0) {
-      break;
-    }
-  } while (offset < totalDeals);
-
-  childLogger.info(`Fetched ${dealViews.length} deal views from contract`);
-
-  return dealViews;
 }
 
 export async function getDealSLIsFromPoRepMarketContract(
@@ -197,6 +159,8 @@ export async function refreshEvidenceStatusOnPoRepMarketContract(
   const status = {
     activeCoveredBytes: result.activeCoveredBytes,
     lastEvidenceRefreshEpoch: result.lastEvidenceRefreshEpoch,
+    checkedClaims: result.checkedClaims,
+    totalClaims: result.totalClaims,
     reasonCode: BigInt(result.reasonCode),
     result: toPrismaEvidenceResult(result.result),
   };
@@ -228,51 +192,6 @@ export async function refreshEvidenceStatusOnPoRepMarketContract(
       functionName,
       receipt,
     },
-  };
-}
-
-export async function rejectExpiredDealOnPoRepMarketContract(
-  onChainDealId: bigint,
-): Promise<OnChainTransactionResult> {
-  childLogger.info(`Checking if deal with ID ${onChainDealId} is expired...`);
-
-  const functionName = "rejectExpiredDeal";
-
-  const porepMarketContractAddress =
-    SERVICE_CONFIG.POREP_MARKET_CONTRACT_ADDRESS as Address;
-
-  const rpcClient = getRpcClient();
-  const walletClient = getWalletClient(WalletAccountRole.ORACLE_ROLE);
-
-  childLogger.info(`${functionName}: Simulating request...`);
-
-  const { request } = await rpcClient.simulateContract({
-    address: porepMarketContractAddress,
-    abi: POREP_MARKET_CONTRACT_ABI,
-    functionName,
-    args: [onChainDealId],
-    account: walletClient.account,
-  });
-
-  childLogger.info(`${functionName}: Sending transaction...`);
-
-  const txHash = await walletClient.writeContract(request);
-
-  childLogger.info(
-    `${functionName}: Transaction sent: ${txHash}, waiting for confirmation...`,
-  );
-
-  const receipt = await waitForTransactionReceiptWithRetry(txHash);
-
-  childLogger.info(
-    `${functionName}: Transaction executed in block ${receipt?.blockNumber}`,
-  );
-
-  return {
-    success: true,
-    contractName: ContractName.PoRepMarket,
-    functionName,
-    receipt,
   };
 }
 

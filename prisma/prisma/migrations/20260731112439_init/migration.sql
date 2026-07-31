@@ -11,6 +11,9 @@ CREATE TYPE "DataCapAllocationStatus" AS ENUM ('None', 'Allocated', 'Claimed', '
 CREATE TYPE "EvidenceResult" AS ENUM ('None', 'Partial', 'Accepted', 'Rejected', 'Active', 'Inactive', 'CoveredBytesMismatch');
 
 -- CreateEnum
+CREATE TYPE "DealType" AS ENUM ('None', 'Public', 'Private');
+
+-- CreateEnum
 CREATE TYPE "ContractName" AS ENUM ('PoRepMarket', 'Client', 'SliOracle', 'SliScorer', 'SpRegistry', 'Validator', 'FilecoinPay');
 
 -- CreateTable
@@ -57,6 +60,7 @@ CREATE TABLE "porep_market_deal_payment" (
     "porepMarketDealId" UUID NOT NULL,
     "onChainDealId" BIGINT NOT NULL,
     "paymentToken" TEXT NOT NULL,
+    "payee" TEXT NOT NULL,
     "pricePer32GiBPerMonth" BIGINT NOT NULL,
     "billed32GiBUnits" BIGINT NOT NULL,
     "railMaxRatePerEpoch" BIGINT NOT NULL,
@@ -74,6 +78,8 @@ CREATE TABLE "porep_market_deal_evidence_status" (
     "activeCoveredBytes" BIGINT NOT NULL,
     "lastEvidenceRefreshEpoch" BIGINT NOT NULL,
     "reasonCode" BIGINT NOT NULL,
+    "checkedClaims" BIGINT NOT NULL,
+    "totalClaims" BIGINT NOT NULL,
     "result" "EvidenceResult" NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -116,6 +122,9 @@ CREATE TABLE "porep_market_deal" (
     "expiresAtEpoch" BIGINT,
     "serviceStartEpoch" BIGINT,
     "serviceEndEpoch" BIGINT,
+    "earlyTerminationEpoch" BIGINT,
+    "minTimeBetweenSettlementsInEpochs" BIGINT,
+    "lastSettledEpoch" BIGINT,
     "reservedBytes" BIGINT,
     "committedBytes" BIGINT,
     "allocationsRequiredCount" BIGINT,
@@ -125,6 +134,7 @@ CREATE TABLE "porep_market_deal" (
     "isRailTerminated" BOOLEAN NOT NULL,
     "dealStartEpoch" BIGINT,
     "dealEndEpoch" BIGINT,
+    "dealType" "DealType" NOT NULL,
     "allocationIds" BIGINT[],
     "proposedAtEpoch" BIGINT NOT NULL,
     "activatePaymentAt" TIMESTAMP(3),

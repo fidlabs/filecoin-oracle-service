@@ -1,5 +1,9 @@
-import { SectorStatus } from "../../../prisma/generated/client";
-import { DealState, PorepMarketContractDealState } from "../../utils/types";
+import { DealType, SectorStatus } from "../../../prisma/generated/client";
+import {
+  ContractDealType,
+  DealState,
+  PorepMarketContractDealState,
+} from "../../utils/types";
 
 export const getChainStateToDomain = (state: number): DealState => {
   switch (state) {
@@ -34,5 +38,18 @@ export const getChainSectorStatusToDomain = (status: number) => {
       return SectorStatus.Faulty;
     default:
       throw new Error(`Unknown sector status from chain: ${status}`);
+  }
+};
+
+export const getChainDealTypeToDomain = (dealType: ContractDealType) => {
+  switch (dealType) {
+    case ContractDealType.None:
+      return DealType.None;
+    case ContractDealType.Public:
+      return DealType.Public;
+    case ContractDealType.Private:
+      return DealType.Private;
+    default:
+      throw new Error(`Unknown deal type from chain: ${dealType}`);
   }
 };

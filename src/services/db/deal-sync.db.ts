@@ -49,6 +49,9 @@ const buildDealPersistenceData = (deal: PorepMarketDeal) => ({
   expiresAtEpoch: deal.expiresAtEpoch,
   serviceStartEpoch: deal.serviceStartEpoch,
   serviceEndEpoch: deal.serviceEndEpoch,
+  earlyTerminationEpoch: deal.earlyTerminationEpoch,
+  minTimeBetweenSettlementsInEpochs: deal.minTimeBetweenSettlementsInEpochs,
+  lastSettledEpoch: deal.lastSettledEpoch,
   reservedBytes: deal.reservedBytes,
   committedBytes: deal.committedBytes,
   allocationsRequiredCount: deal.allocationsRequiredCount,
@@ -59,6 +62,7 @@ const buildDealPersistenceData = (deal: PorepMarketDeal) => ({
       ? hasMatchedAllocations(deal)
       : undefined,
   dataCapAllocationStatus: deal.dataCapAllocationStatus,
+  dealType: deal.dealType,
   dealStartEpoch: deal.dealStartEpoch,
   dealEndEpoch: deal.dealEndEpoch,
   allocationIds: deal.allocationIds,
