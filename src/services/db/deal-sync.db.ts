@@ -34,6 +34,19 @@ const hasMatchedAllocations = ({
   allocationsMatchedCount !== null &&
   allocationsRequiredCount === allocationsMatchedCount;
 
+const buildClaimPersistenceData = (claim: PorepMarketDealClaim) => ({
+  claimId: claim.claimId,
+  sector: claim.sector,
+  provider: claim.provider,
+  client: claim.client,
+  data: claim.data,
+  size: claim.size,
+  term_min: claim.term_min,
+  term_max: claim.term_max,
+  term_start: claim.term_start,
+  // don't map the status field - is updated by the separately job
+});
+
 const buildDealPersistenceData = (deal: PorepMarketDeal) => ({
   onChainDealId: deal.dealId,
   client: deal.client,
@@ -194,17 +207,12 @@ async function syncDealClaims({
 }) {
   if (!claims?.length) return;
 
-  await tx.porep_market_deal_claim.deleteMany({
-    where: {
-      porepMarketDealId,
-    },
-  });
-
-  return tx.porep_market_deal_claim.createMany({
+  await tx.porep_market_deal_claim.createMany({
     data: claims.map((claim) => ({
       porepMarketDealId,
-      ...claim,
+      ...buildClaimPersistenceData(claim),
     })),
+    skipDuplicates: true,
   });
 }
 
