@@ -32,7 +32,6 @@ try {
     !SERVICE_CONFIG.TRIGGER_SETTLEMENT_BOT_JOB_INTERVAL_CRON ||
     !SERVICE_CONFIG.TRIGGER_TERMINATE_DEAL_JOB_INTERVAL_CRON ||
     !SERVICE_CONFIG.TRIGGER_SYNC_DEALS_JOB_INTERVAL_CRON ||
-    !SERVICE_CONFIG.TRIGGER_END_EPOCH_DEAL_JOB_INTERVAL_CRON ||
     !SERVICE_CONFIG.TRIGGER_REJECT_EXPIRED_DEAL_INTERVAL_CRON ||
     !SERVICE_CONFIG.TRIGGER_REFRESH_EVIDENCE_STATUS_INTERVAL_CRON
   ) {
@@ -51,8 +50,6 @@ try {
   const syncDealsInterval = SERVICE_CONFIG.TRIGGER_SYNC_DEALS_JOB_INTERVAL_CRON;
   const syncUrlFinderSliTargetsInterval =
     SERVICE_CONFIG.TRIGGER_SYNC_URL_FINDER_SLI_TARGETS_JOB_INTERVAL_CRON;
-  const trackDealEndEpochInterval =
-    SERVICE_CONFIG.TRIGGER_END_EPOCH_DEAL_JOB_INTERVAL_CRON;
   const rejectExpiredDealInterval =
     SERVICE_CONFIG.TRIGGER_REJECT_EXPIRED_DEAL_INTERVAL_CRON;
   const refreshEvidenceStatusInterval =
@@ -64,9 +61,6 @@ try {
     `Scheduling Sync URL Finder SLI Targets cron job "${syncUrlFinderSliTargetsInterval}"`,
   );
 
-  childLogger.info(
-    `Scheduling Track Deal End Epoch cron job "${trackDealEndEpochInterval}"`,
-  );
   childLogger.info(`Scheduling SLI cron job "${sliInterval}"`);
   childLogger.info(
     `Scheduling Terminations claims cron job "${claimsTerminatedEarlyInterval}"`,
