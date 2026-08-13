@@ -1,40 +1,44 @@
 import {
   DataCapAllocationStatus,
   DealState,
+  DealType,
+  EvidenceResult,
 } from "../../prisma/generated/client";
 import { PorepMarketDealDto } from "../../src/services/db/dto/porep-market-deal.dto";
 
-export function buildActivePorepMarketDeal(
+export function buildStagingPorepMarketDeal(
   overrides: Partial<PorepMarketDealDto> = {},
 ): PorepMarketDealDto {
-  const now = new Date("2026-07-14T00:00:00.000Z");
-
   return {
-    id: "00000000-0000-4000-8000-000000000001",
-    onChainDealId: 1n,
+    id: "c9708900-6887-4ef4-a645-ecae36ee08af",
+    onChainDealId: 3n,
     client: "0x33c6AE44A863D2aA04ab1B9a6DA9De6A8f484C44",
     provider: 1000n,
     offerId: 2n,
     railId: 0n,
-    state: DealState.Active,
+    state: DealState.Accepted,
+    dealType: DealType.Public,
     evidenceAdapterContractAddress:
-      "0xB4f1dfbe5579b77847E628721db55E1B09967292",
+      "0xfEBd13e0DecCD8B96c2781da32b30BbEB12884Db",
     validatorContractAddress: "0x0000000000000000000000000000000000000000",
-    providerOrganization: "0xe4Cd56f91Bc79cC610AEfB1bE92b07BB5b6F2e30",
+    providerOrganization: null,
 
     manifestHash:
-      "eabb4e8db257705471a1eba408e886edbe95686f881685aadc2ae390b523f573",
+      "0x8ec2dd3bafb218a5ffe1f95a82d4050078ffdb0334174467f43624e53f953557",
     manifestLocation:
-      "https://status.peertopool.fidl.tech/api/deals/70/manifest",
+      "https://gist.githubusercontent.com/Szooot/c7a98bc24bfaf70968feebed666a529b/raw/c9d0ecded4eb34c07a7339a0647dac63f96da722/test_manifest.json",
 
-    proposedAtEpoch: 3878683n,
-    expiresAtEpoch: 3884443n,
+    proposedAtEpoch: 3973257n,
+    expiresAtEpoch: null,
     serviceStartEpoch: 0n,
     serviceEndEpoch: 0n,
+    earlyTerminationEpoch: 0n,
+    minTimeBetweenSettlementsInEpochs: 86400n,
+    lastSettledEpoch: 0n,
     dealStartEpoch: null,
     dealEndEpoch: null,
 
-    reservedBytes: 34359738368n,
+    reservedBytes: 1073741824n,
     committedBytes: 0n,
 
     allocationsRequiredCount: null,
@@ -45,29 +49,43 @@ export function buildActivePorepMarketDeal(
     isRailTerminated: false,
 
     urlFinderSliTargetTriggeredAt: null,
-    createdAt: now,
-    updatedAt: now,
-    lastSyncedAt: now,
+    createdAt: new Date("2026-08-12T08:44:34.863Z"),
+    updatedAt: new Date("2026-08-13T01:00:00.627Z"),
+    lastSyncedAt: new Date("2026-08-13T01:00:00.567Z"),
 
     terms: {
-      requestedSizeBytes: 34359738368n,
+      requestedSizeBytes: 1073741824n,
       durationEpochs: 518400n,
     },
     requiredSLIs: {
-      retrievabilityBps: 0n,
-      bandwidthBytesPerSecond: 0n,
-      latencyMs: 0n,
-      indexingPct: 0n,
+      retrievabilityBps: 10000n,
+      bandwidthBytesPerSecond: 12500000n,
+      latencyMs: 1n,
+      indexingPct: 100n,
     },
     payment: {
       paymentToken: "0xb3042734b608a1B16e9e86B374A3f3e389B4cDf0",
-      pricePer32GiBPerMonth: 1n,
+      payee: "0x087Ea8b72CBf4B435023356776834eB10dd07f2a",
+      pricePer32GiBPerMonth: 31250000000000000n,
       billed32GiBUnits: 0n,
       railMaxRatePerEpoch: 0n,
     },
+    evidenceStatus: {
+      activeCoveredBytes: 0n,
+      lastEvidenceRefreshEpoch: 0n,
+      reasonCode: 0n,
+      checkedClaims: 0n,
+      totalClaims: 0n,
+      result: EvidenceResult.Inactive,
+    },
 
     score: [],
-    history: [],
+    history: [
+      {
+        state: DealState.Accepted,
+        createdAt: new Date("2026-08-12T08:44:34.863Z"),
+      },
+    ],
     settlement_history: [],
     claims: [],
 
