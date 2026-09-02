@@ -3,14 +3,13 @@ import cron from "node-cron";
 import { SERVICE_CONFIG } from "./config/env";
 import "./http-server/server";
 import { trackClaimsTerminatedEarlyJob } from "./jobs/claims-terminated-early-job";
+import { finalizeDealJob } from "./jobs/finalize-deal-job";
 import { refreshEvidenceStatusJob } from "./jobs/refresh-evidence-status-job";
 import { setSliOracleJob } from "./jobs/set-sli-job";
 import { runSettlementBotJob } from "./jobs/settlement-bot-job";
 import { syncDealsJob } from "./jobs/sync-deal-job";
 import { syncUrlFinderSliTargetsJob } from "./jobs/sync-url-finder-sli-targets-job";
 import { baseLogger } from "./utils/logger";
-import { finalize } from "zod/v4/core";
-import { finalizeDealJob } from "./jobs/finalize-deal-job";
 
 declare global {
   interface BigInt {
