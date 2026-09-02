@@ -9,6 +9,8 @@ import { runSettlementBotJob } from "./jobs/settlement-bot-job";
 import { syncDealsJob } from "./jobs/sync-deal-job";
 import { syncUrlFinderSliTargetsJob } from "./jobs/sync-url-finder-sli-targets-job";
 import { baseLogger } from "./utils/logger";
+import { finalize } from "zod/v4/core";
+import { finalizeDealJob } from "./jobs/finalize-deal-job";
 
 declare global {
   interface BigInt {
@@ -54,6 +56,8 @@ try {
     SERVICE_CONFIG.TRIGGER_REJECT_EXPIRED_DEAL_INTERVAL_CRON;
   const refreshEvidenceStatusInterval =
     SERVICE_CONFIG.TRIGGER_REFRESH_EVIDENCE_STATUS_INTERVAL_CRON;
+  const finalizeInterval =
+    SERVICE_CONFIG.TRIGGER_FINALIZE_DEAL_JOB_INTERVAL_CRON;
 
   childLogger.info(`Scheduling sync deals cron job "${syncDealsInterval}"`);
 
@@ -77,9 +81,11 @@ try {
   childLogger.info(
     `Scheduling Refresh Evidence Status cron job "${refreshEvidenceStatusInterval}"`,
   );
+  childLogger.info(`Scheduling Finalize Deal cron job "${finalizeInterval}"`);
 
   cron.schedule(refreshEvidenceStatusInterval, refreshEvidenceStatusJob);
   cron.schedule(syncDealsInterval, syncDealsJob);
+  cron.schedule(finalizeInterval, finalizeDealJob);
   cron.schedule(syncUrlFinderSliTargetsInterval, syncUrlFinderSliTargetsJob);
   cron.schedule(sliInterval, setSliOracleJob);
   cron.schedule(settlementBotInterval, runSettlementBotJob);
