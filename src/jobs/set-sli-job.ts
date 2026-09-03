@@ -6,6 +6,7 @@ import {
 } from "../services/db/db-service";
 import { baseLogger } from "../utils/logger";
 import { SliAttestation } from "../utils/types";
+import { parseLatencyMs } from "../utils/sli";
 import { calculateScoreJob } from "./calculate-score-job";
 
 const sliChildLogger = baseLogger.child(
@@ -65,7 +66,7 @@ export async function setSliOracleJob() {
     ).map(([onChainDealId, sliData]) => {
       const retrievabilityMetric = Number(sliData.RETRIEVABILITY_BPS ?? 0);
       const indexingMetric = Number(sliData.INDEXING_PCT ?? 0);
-      const latencyMetric = Number(sliData.LATENCY_MS ?? 0);
+      const latencyMetric = parseLatencyMs(sliData.LATENCY_MS);
       const bandwidthBytesPerSecondMetric = sliData.BANDWIDTH_MBPS ?? 0;
 
       const sliAttestation: SliAttestation = {
