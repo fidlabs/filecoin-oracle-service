@@ -5,7 +5,7 @@ export const CLAIM_INSPECTOR_CONTRACT_ABI = [
     type: "constructor",
     inputs: [
       {
-        name: "_clientContract",
+        name: "_dataCapEvidenceAdapter",
         type: "address",
         internalType: "address",
       },
@@ -19,13 +19,13 @@ export const CLAIM_INSPECTOR_CONTRACT_ABI = [
   },
   {
     type: "function",
-    name: "CLIENT_CONTRACT",
+    name: "DATA_CAP_EVIDENCE_ADAPTER",
     inputs: [],
     outputs: [
       {
         name: "",
         type: "address",
-        internalType: "contract IClient",
+        internalType: "contract IDataCapEvidenceAdapter",
       },
     ],
     stateMutability: "view",
@@ -213,11 +213,6 @@ export const CLAIM_INSPECTOR_CONTRACT_ABI = [
   },
   {
     type: "error",
-    name: "InvalidClientAddress",
-    inputs: [],
-  },
-  {
-    type: "error",
     name: "InvalidCodec",
     inputs: [
       {
@@ -226,6 +221,11 @@ export const CLAIM_INSPECTOR_CONTRACT_ABI = [
         internalType: "uint64",
       },
     ],
+  },
+  {
+    type: "error",
+    name: "InvalidDataCapEvidenceAdapterAddress",
+    inputs: [],
   },
   {
     type: "error",

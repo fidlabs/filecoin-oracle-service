@@ -21,19 +21,6 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
   },
   {
     type: "function",
-    name: "RESCUE_ROLE",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     name: "TERMINATION_ORACLE",
     inputs: [],
     outputs: [
@@ -225,10 +212,20 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
             type: "uint8",
             internalType: "uint8",
           },
+          {
+            name: "checkedClaims",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "totalClaims",
+            type: "uint256",
+            internalType: "uint256",
+          },
         ],
       },
     ],
-    stateMutability: "pure",
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -236,19 +233,6 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
     inputs: [],
     outputs: [],
     stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "evidenceType",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "uint8",
-        internalType: "uint8",
-      },
-    ],
-    stateMutability: "pure",
   },
   {
     type: "function",
@@ -371,6 +355,57 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
   },
   {
     type: "function",
+    name: "getEvidenceType",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint8",
+        internalType: "uint8",
+      },
+    ],
+    stateMutability: "pure",
+  },
+  {
+    type: "function",
+    name: "getExpiration",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "expiration",
+        type: "int64",
+        internalType: "CommonTypes.ChainEpoch",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getFailedClaimIds",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "failedClaimIds",
+        type: "uint64[]",
+        internalType: "CommonTypes.FilActorId[]",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "getPoRepMarketAddress",
     inputs: [],
     outputs: [
@@ -484,6 +519,25 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
   },
   {
     type: "function",
+    name: "hasSubmittedEvidence",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "initialize",
     inputs: [
       {
@@ -512,6 +566,25 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
   },
   {
     type: "function",
+    name: "isClaimTerminated",
+    inputs: [
+      {
+        name: "claimId",
+        type: "uint64",
+        internalType: "uint64",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "isDataCapPostingFinished",
     inputs: [
       {
@@ -528,25 +601,6 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
       },
     ],
     stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "isDataSizeMatching",
-    inputs: [
-      {
-        name: "dealId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
-    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -647,10 +701,20 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
             type: "uint8",
             internalType: "uint8",
           },
+          {
+            name: "checkedClaims",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "totalClaims",
+            type: "uint256",
+            internalType: "uint256",
+          },
         ],
       },
     ],
-    stateMutability: "pure",
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -665,60 +729,6 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
         name: "callerConfirmation",
         type: "address",
         internalType: "address",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "rescueDealAllocations",
-    inputs: [
-      {
-        name: "dealId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "params",
-        type: "tuple",
-        internalType: "struct DataCapTypes.TransferParams",
-        components: [
-          {
-            name: "to",
-            type: "tuple",
-            internalType: "struct CommonTypes.FilAddress",
-            components: [
-              {
-                name: "data",
-                type: "bytes",
-                internalType: "bytes",
-              },
-            ],
-          },
-          {
-            name: "amount",
-            type: "tuple",
-            internalType: "struct CommonTypes.BigInt",
-            components: [
-              {
-                name: "val",
-                type: "bytes",
-                internalType: "bytes",
-              },
-              {
-                name: "neg",
-                type: "bool",
-                internalType: "bool",
-              },
-            ],
-          },
-          {
-            name: "operator_data",
-            type: "bytes",
-            internalType: "bytes",
-          },
-        ],
       },
     ],
     outputs: [],
@@ -890,25 +900,6 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
   },
   {
     type: "function",
-    name: "terminatedClaims",
-    inputs: [
-      {
-        name: "claimId",
-        type: "uint64",
-        internalType: "uint64",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     name: "upgradeToAndCall",
     inputs: [
       {
@@ -994,31 +985,6 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
       },
       {
         name: "amount",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "DealAllocationsRescued",
-    inputs: [
-      {
-        name: "dealId",
-        type: "uint256",
-        indexed: true,
-        internalType: "uint256",
-      },
-      {
-        name: "rescuer",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-      {
-        name: "totalSize",
         type: "uint256",
         indexed: false,
         internalType: "uint256",
@@ -1195,6 +1161,16 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
   },
   {
     type: "error",
+    name: "AllocatedBytesExceededRequestedSize",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "AllocationOrClaimIdAssignedToAnotherDeal",
+    inputs: [],
+  },
+  {
+    type: "error",
     name: "CallerIsNotPoRepMarket",
     inputs: [],
   },
@@ -1247,6 +1223,11 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
   {
     type: "error",
     name: "InvalidAllocationSize",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidAllocationState",
     inputs: [],
   },
   {
@@ -1395,6 +1376,11 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
   },
   {
     type: "error",
+    name: "InvalidTransferDestination",
+    inputs: [],
+  },
+  {
+    type: "error",
     name: "MethodNotHandled",
     inputs: [
       {
@@ -1471,16 +1457,5 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
     type: "error",
     name: "UnsupportedType",
     inputs: [],
-  },
-  {
-    type: "error",
-    name: "ValidatorNotSet",
-    inputs: [
-      {
-        name: "dealId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
   },
 ] as const satisfies Abi;

@@ -564,6 +564,17 @@ export const SLI_ORACLE_CONTRACT_ABI = [
   },
   {
     type: "error",
+    name: "InvalidLatencyMs",
+    inputs: [
+      {
+        name: "value",
+        type: "uint16",
+        internalType: "uint16",
+      },
+    ],
+  },
+  {
+    type: "error",
     name: "InvalidOracle",
     inputs: [],
   },
