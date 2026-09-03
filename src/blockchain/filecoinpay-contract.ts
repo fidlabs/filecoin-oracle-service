@@ -9,7 +9,7 @@ import {
   getWalletClient,
   waitForTransactionReceiptWithRetry,
 } from "./blockchain-client";
-import { WalletAccountRole } from "./client-contract";
+import { WalletAccountRole } from "./blockchain-client";
 
 const childLogger = baseLogger.child(
   { avengers: "assemble" },

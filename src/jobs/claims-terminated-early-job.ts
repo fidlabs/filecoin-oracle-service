@@ -209,6 +209,7 @@ export async function trackClaimsTerminatedEarlyJob() {
     }
   } catch (err) {
     claimTrackingLogger.error({ err }, "Job failed");
+    throw err;
   } finally {
     claimTrackingLogger.info("Job finished");
   }

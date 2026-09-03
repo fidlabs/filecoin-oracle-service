@@ -1,72 +1,161 @@
 import { getAllClaimsFromClaimInspectorContract } from "../blockchain/claim-inspector-contract";
-import { getClientAllocationIdsPerDeal } from "../blockchain/client-contract";
-import { getDealsFromPoRepMarketContract } from "../blockchain/porep-market.contract";
 import {
+  getAllocationIdsPerDealFromDCEvidenceContract,
+  getClaimIdsPerDealFromDCEvidenceContract,
+  getDealAllocationStatusFromDCEvidenceContract,
+} from "../blockchain/datacap-evidence-adapter-contract";
+import { getDealsFromPoRepMarketViewContract } from "../blockchain/porep-market-view-helper-contract";
+import {
+  getChainDealTypeToDomain,
   getChainStateToDomain,
-  getDealByOnChainIdFromDb,
+  getDealsFromDb,
   syncPoRepMarketContractDealsWithDb,
+  toPrismaEvidenceResult,
 } from "../services/db/db-service";
 import { baseLogger } from "../utils/logger";
-import { PorepMarketDeal, PorepMarketDealClaim } from "../utils/types";
+import {
+  DealState,
+  PorepMarketContractDealView,
+  PorepMarketDeal,
+  PorepMarketDealClaim,
+} from "../utils/types";
 
 const syncDealLogger = baseLogger.child(
   { avengers: "assemble" },
   { msgPrefix: "[Sync Deal Job] " },
 );
 
-const isDealEligibleForSyncClaims = async (
-  porepMarketContractDealId: bigint,
+const getClaimsSyncDecision = (
+  contractState: DealState,
+  isAllocationsMatched?: boolean,
 ) => {
-  const dealExistInDb = await getDealByOnChainIdFromDb(
-    porepMarketContractDealId,
+  if (isAllocationsMatched === undefined) {
+    return {
+      shouldSync: true,
+      reason: "deal does not exist in database",
+    };
+  }
+
+  if (contractState !== DealState.Active) {
+    return {
+      shouldSync: false,
+      reason: `contract state is ${contractState}`,
+    };
+  }
+
+  if (isAllocationsMatched) {
+    return {
+      shouldSync: false,
+      reason: "allocations are already matched",
+    };
+  }
+
+  return {
+    shouldSync: true,
+    reason: "active deal has unmatched allocations",
+  };
+};
+
+async function prepareDealForSync(
+  dealView: PorepMarketContractDealView,
+  existingIsAllocationsMatched?: boolean,
+): Promise<PorepMarketDeal> {
+  const { deal } = dealView;
+  const dealId = deal.dealId;
+
+  const dataCapAllocationStatus =
+    await getDealAllocationStatusFromDCEvidenceContract(
+      dealId,
+      deal.evidenceAdapter,
+    );
+
+  let allocationIds: bigint[] | undefined;
+  let claims: PorepMarketDealClaim[] | undefined;
+
+  const contractState = getChainStateToDomain(deal.state);
+  const claimsSyncDecision = getClaimsSyncDecision(
+    contractState,
+    existingIsAllocationsMatched,
   );
 
-  if (!dealExistInDb) {
+  syncDealLogger.info(
+    `Claims sync for deal ${dealId}: ${claimsSyncDecision.shouldSync ? "required" : "skipped"} (${claimsSyncDecision.reason})`,
+  );
+
+  if (claimsSyncDecision.shouldSync) {
+    const [dealAllocationIds, dealClaimIds] = await Promise.all([
+      getAllocationIdsPerDealFromDCEvidenceContract(
+        dealId,
+        deal.evidenceAdapter,
+      ),
+      getClaimIdsPerDealFromDCEvidenceContract(dealId, deal.evidenceAdapter),
+    ]);
+
+    allocationIds = [...dealAllocationIds, ...dealClaimIds];
+
     syncDealLogger.info(
-      `Deal with ID ${porepMarketContractDealId} does not exist in database, will sync it`,
+      `Fetched ${allocationIds.length} required allocations for deal ${dealId} from client contract`,
     );
 
-    return true;
+    if (allocationIds.length) {
+      syncDealLogger.info(
+        `Fetching claims info for client ${deal.client} from deal inspector contract...`,
+      );
+
+      const [claimIds, matchedClaims] =
+        await getAllClaimsFromClaimInspectorContract(dealId);
+
+      claims = matchedClaims.map((claim, index) => ({
+        ...claim,
+        claimId: claimIds[index],
+      }));
+
+      syncDealLogger.info(
+        `Fetched claims info for deal ${dealId} from Deal Inspector contract, total success claims count: ${claims.length}`,
+      );
+    }
   }
 
-  if (
-    dealExistInDb &&
-    dealExistInDb.state === "Completed" &&
-    !dealExistInDb.isAllocationsMatched
-  ) {
-    syncDealLogger.info(
-      `Deal with ID ${porepMarketContractDealId} exists in database with Completed state, but isAllocationsMatched is not set, will sync it`,
-    );
-
-    return true;
-  }
-
-  if (dealExistInDb && dealExistInDb.state !== "Completed") {
-    syncDealLogger.info(
-      `Deal with ID ${porepMarketContractDealId} exists in database with state ${dealExistInDb.state}, will not sync it`,
-    );
-
-    return false;
-  }
-
-  if (
-    dealExistInDb &&
-    dealExistInDb.state === "Completed" &&
-    dealExistInDb.isAllocationsMatched
-  ) {
-    syncDealLogger.info(
-      `Deal with ID ${porepMarketContractDealId} exists in database and allocations are matched with claims, will not sync it`,
-    );
-  }
-
-  return false;
-};
+  return {
+    ...deal,
+    ...dealView.data,
+    ...dealView.service,
+    ...dealView.capacity,
+    validatorContractAddress: deal.validator,
+    evidenceAdapterContractAddress: deal.evidenceAdapter,
+    dealType: getChainDealTypeToDomain(deal.dealType),
+    state: contractState,
+    terms: {
+      requestedSizeBytes: dealView.terms.requestedSizeBytes,
+      durationEpochs: dealView.terms.durationEpochs,
+    },
+    payment: dealView.payment,
+    requiredSLIs: dealView.requiredSLIs,
+    evidenceStatus: {
+      activeCoveredBytes: dealView.evidenceStatus.activeCoveredBytes,
+      lastEvidenceRefreshEpoch:
+        dealView.evidenceStatus.lastEvidenceRefreshEpoch,
+      reasonCode: BigInt(dealView.evidenceStatus.reasonCode),
+      checkedClaims: dealView.evidenceStatus.checkedClaims,
+      totalClaims: dealView.evidenceStatus.totalClaims,
+      result: toPrismaEvidenceResult(dealView.evidenceStatus.result),
+    },
+    allocationsRequiredCount: allocationIds?.length
+      ? BigInt(allocationIds.length)
+      : undefined,
+    allocationsMatchedCount: claims ? BigInt(claims.length) : undefined,
+    dataCapAllocationStatus,
+    allocationIds,
+    claims,
+  };
+}
 
 export async function syncDealsJob() {
   try {
     syncDealLogger.info("Job started");
 
-    const contractAllDeals = await getDealsFromPoRepMarketContract();
+    const contractAllDeals: PorepMarketContractDealView[] =
+      await getDealsFromPoRepMarketViewContract();
 
     syncDealLogger.info(
       `Fetched ${contractAllDeals.length} deals from PoRep Market contract`,
@@ -79,151 +168,54 @@ export async function syncDealsJob() {
       return;
     }
 
-    const dealIdAllocationInfoMap: {
-      [dealId: string]: {
-        dealStartEpoch?: bigint;
-        dealEndEpoch?: bigint;
-        allocationsMatchedCount?: bigint;
-        requiredDealAllocationsCount?: bigint;
-        allocationIds?: bigint[];
-        claims?: PorepMarketDealClaim[];
-      };
-    } = {};
+    const existingDeals = await getDealsFromDb(
+      contractAllDeals.map(({ deal }) => deal.dealId),
+    );
 
-    for (const deal of contractAllDeals) {
-      const porepMarketContractDealId = deal.dealId;
+    const existingDealsMap = new Map(
+      existingDeals.map((deal) => [deal.onChainDealId.toString(), deal]),
+    );
 
-      const shouldSyncClaims = await isDealEligibleForSyncClaims(
-        porepMarketContractDealId,
-      );
+    const preparedDeals: PorepMarketDeal[] = [];
+    let failedDealsCount = 0;
 
-      if (shouldSyncClaims) {
-        let claimsInfo: {
-          minTermStart?: bigint;
-          maxTermMin?: bigint;
-          matchedClaims?: PorepMarketDealClaim[];
-        } = {};
+    for (const dealView of contractAllDeals) {
+      const dealId = dealView.deal.dealId;
 
-        let requiredAllocationsCount: bigint | undefined;
-        let requiredDealAllocations: bigint[] = [];
-
-        requiredDealAllocations = await getClientAllocationIdsPerDeal(
-          deal.dealId,
+      try {
+        const preparedDeal = await prepareDealForSync(
+          dealView,
+          existingDealsMap.get(dealId.toString())?.isAllocationsMatched,
         );
 
-        syncDealLogger.info(
-          `Fetched ${requiredDealAllocations?.length || 0} required allocations for deal ${deal.dealId} from client contract`,
+        preparedDeals.push(preparedDeal);
+      } catch (error) {
+        failedDealsCount += 1;
+        syncDealLogger.error(
+          { error, onChainDealId: dealId },
+          "Failed to prepare deal, skipping it",
         );
-
-        if (requiredDealAllocations.length) {
-          syncDealLogger.info(
-            `Fetching claims info for client ${deal.client} from deal inspector contract...`,
-          );
-
-          const claimsInfoFromDealInspectorContract =
-            await getAllClaimsFromClaimInspectorContract(deal.dealId);
-
-          syncDealLogger.info(
-            `Fetched claims info for deal ${deal.dealId} from Deal Inspector contract, total success claims count: ${claimsInfoFromDealInspectorContract[1].length}`,
-          );
-
-          requiredAllocationsCount = BigInt(requiredDealAllocations?.length);
-
-          const claimsCountFromContract = claimsInfoFromDealInspectorContract[1]
-            .length
-            ? BigInt(claimsInfoFromDealInspectorContract[1].length)
-            : BigInt(0);
-
-          // If the count of successful claims from the contract matches the count of required allocations,
-          // it means all required allocations have been successfully claimed.
-          if (
-            claimsCountFromContract &&
-            claimsCountFromContract === requiredAllocationsCount
-          ) {
-            // Get the min term start and max term min across all claims for the deal
-            // to calculate the deal start and end epoch
-            const termStart = claimsInfoFromDealInspectorContract[1]
-              .map((claim) => claim.term_start)
-              .reduce((a, b) => (a < b ? a : b));
-
-            const termMin = claimsInfoFromDealInspectorContract[1]
-              .map((claim) => claim.term_min)
-              .reduce((a, b) => (a > b ? a : b));
-
-            claimsInfo = {
-              minTermStart: termStart,
-              maxTermMin: termMin,
-            };
-          }
-
-          const claimIds = claimsInfoFromDealInspectorContract[0];
-
-          // get the matched claims from the helper contract
-          claimsInfo.matchedClaims = claimsInfoFromDealInspectorContract[1].map(
-            (claim, index) => ({
-              provider: claim.provider,
-              client: claim.client,
-              data: claim.data,
-              size: claim.size,
-              term_min: claim.term_min,
-              term_max: claim.term_max,
-              term_start: claim.term_start,
-              sector: claim.sector,
-              claimId: claimIds[index],
-            }),
-          );
-
-          dealIdAllocationInfoMap[porepMarketContractDealId.toString()] = {
-            dealStartEpoch: claimsInfo?.minTermStart,
-            dealEndEpoch:
-              claimsInfo?.minTermStart &&
-              claimsInfo?.maxTermMin &&
-              claimsInfo?.minTermStart + claimsInfo?.maxTermMin,
-            allocationsMatchedCount: BigInt(
-              claimsInfo?.matchedClaims?.length || 0,
-            ),
-            claims: claimsInfo?.matchedClaims,
-          };
-        }
-
-        dealIdAllocationInfoMap[porepMarketContractDealId.toString()] = {
-          ...dealIdAllocationInfoMap[porepMarketContractDealId.toString()],
-          requiredDealAllocationsCount: requiredAllocationsCount,
-          allocationIds: requiredDealAllocations,
-        };
       }
     }
 
-    const completedDealsWithAllocationInfo: PorepMarketDeal[] =
-      contractAllDeals.map((deal) => {
-        const allocationInfo = dealIdAllocationInfoMap[deal.dealId.toString()];
+    if (preparedDeals.length > 0) {
+      syncDealLogger.info(
+        `Syncing ${preparedDeals.length} prepared deals with database...`,
+      );
 
-        return {
-          ...deal,
-          proposedAtBlock: deal.proposedAtBlock,
-          validatorContractAddress: deal.validator,
-          state: getChainStateToDomain(deal.state),
-          dealStartEpoch: allocationInfo?.dealStartEpoch,
-          dealEndEpoch: allocationInfo?.dealEndEpoch,
-          allocationsRequiredCount:
-            allocationInfo?.requiredDealAllocationsCount,
-          allocationsMatchedCount: allocationInfo?.allocationsMatchedCount,
-          allocationIds: allocationInfo?.allocationIds,
-          claims: allocationInfo?.claims,
-        };
-      });
+      await syncPoRepMarketContractDealsWithDb(preparedDeals);
+
+      syncDealLogger.info(
+        `Successfully synced ${preparedDeals.length} deals with database`,
+      );
+    }
 
     syncDealLogger.info(
-      `Syncing ${completedDealsWithAllocationInfo.length} deals with database...`,
-    );
-
-    await syncPoRepMarketContractDealsWithDb(completedDealsWithAllocationInfo);
-
-    syncDealLogger.info(
-      `Successfully synced ${completedDealsWithAllocationInfo.length} deals with database`,
+      `Deal sync summary: fetched ${contractAllDeals.length}, prepared ${preparedDeals.length}, failed to prepare ${failedDealsCount}`,
     );
   } catch (error) {
     syncDealLogger.error({ error }, "Job failed");
+    throw error;
   } finally {
     syncDealLogger.info("Job finished");
   }
