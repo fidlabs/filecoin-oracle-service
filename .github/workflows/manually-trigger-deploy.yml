@@ -1,19 +1,20 @@
 name: Manually trigger deploy to staging or production
-run-name: "Manually deploy ${{ github.ref_name }} triggered by ${{ github.actor }}; version: ${{ inputs.version }}"
+run-name: "Manually deploy ${{ github.ref_name }} triggered by ${{ github.actor }}; environment: ${{ inputs.environment }}; version: ${{ inputs.version }}"
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Enter the version number"
+        description: "Image tag: main or 1.x.y for v1; v2 or 2.x.y for v2"
         required: true
-        default: "main"
+        default: ""
       environment:
-        required: false
+        required: true
         description: "Select the environment to deploy to"
         type: choice
         options:
           - production
+          - staging
         default: production
 
 permissions:
@@ -21,16 +22,39 @@ permissions:
   contents: read
 
 jobs:
-  trigger-production-deploy:
+  trigger-deploy:
     runs-on: ubuntu-latest
-    if: ${{ inputs.environment == 'production' }}
     steps:
-      - name: Trigger production deploy
+      - name: Validate deployment target
+        id: target
+        env:
+          VERSION: ${{ inputs.version }}
+          ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          if [[ "$VERSION" == "v2" || "$VERSION" =~ ^2\.[0-9]+\.[0-9]+$ ]]; then
+            repository="filecoin-oracle-service-v2"
+          elif [[ "$VERSION" == "main" || "$VERSION" =~ ^1\.[0-9]+\.[0-9]+$ ]]; then
+            repository="filecoin-oracle-service"
+          else
+            echo "Unsupported image tag: $VERSION. Use main, v2, 1.x.y or 2.x.y."
+            exit 1
+          fi
+          if [[ "$ENVIRONMENT" != "production" && "$ENVIRONMENT" != "staging" ]]; then
+            echo "Unsupported environment: $ENVIRONMENT"
+            exit 1
+          fi
+          if [[ "$ENVIRONMENT" == "staging" && "$repository" != "filecoin-oracle-service-v2" ]]; then
+            echo "Staging is available only for v2."
+            exit 1
+          fi
+          echo "repository=$repository" >> "$GITHUB_OUTPUT"
+
+      - name: Trigger deploy
         uses: neti-filplus-infra/filplus-deploy-action@main
         with:
           version: ${{ inputs.version }}
-          environment: production
-          ecr-repository: ${{ startsWith(inputs.version, '2.') && 'filecoin-oracle-service-v2' || 'filecoin-oracle-service' }}
+          environment: ${{ inputs.environment }}
+          ecr-repository: ${{ steps.target.outputs.repository }}
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_IMAGE_DEPLOYER }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_IMAGE_DEPLOYER }}
           aws-region: us-east-1

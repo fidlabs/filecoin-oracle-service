@@ -13,11 +13,6 @@ on:
       version:
         description: "Enter the version number"
         required: true
-      deploy-to-production:
-        description: "Deploy the new version on production?"
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   contents: write
@@ -129,21 +124,3 @@ jobs:
           TAG_NAME="v${{ inputs.version }}"
           git tag "$TAG_NAME"
           git push origin "$TAG_NAME"
-
-  trigger-production-deploy:
-    runs-on: ubuntu-latest
-    needs:
-      - code-check
-      - build-and-publish
-    if: ${{ inputs.version != '' && inputs.deploy-to-production == true && (github.ref_name == 'main' || github.ref_name == 'v2') }}
-    environment: production-fidl
-    steps:
-      - name: Trigger production deploy
-        uses: neti-filplus-infra/filplus-deploy-action@main
-        with:
-          version: ${{ inputs.version }}
-          environment: production
-          ecr-repository: ${{ github.ref_name == 'v2' && 'filecoin-oracle-service-v2' || 'filecoin-oracle-service' }}
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_IMAGE_DEPLOYER }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_IMAGE_DEPLOYER }}
-          aws-region: us-east-1
