@@ -5,7 +5,7 @@ export const baseLogger = pino({
     target: "pino-pretty",
     options: {
       messageFormat: "{msg}",
-      ignore: "hostname,pid,avengers",
+      ignore: "hostname,pid,avengers,reqId",
     },
   },
 });

@@ -13,7 +13,13 @@ import { privateKeyToAccount } from "viem/accounts";
 import { filecoin, filecoinCalibration } from "viem/chains";
 import { SERVICE_CONFIG } from "../config/env";
 import { baseLogger } from "../utils/logger";
-import { WalletAccountRole } from "./client-contract";
+
+export enum WalletAccountRole {
+  POREP_SERVICE_ROLE = "POREP_SERVICE_ROLE",
+  ORACLE_ROLE = "ORACLE_ROLE",
+  TERMINATION_ORACLE_ROLE = "TERMINATION_ORACLE_ROLE",
+  FILECOIN_PAY_ROLE = "FILECOIN_PAY_ROLE",
+}
 
 export const getChain = (chainId: number) => {
   switch (chainId) {

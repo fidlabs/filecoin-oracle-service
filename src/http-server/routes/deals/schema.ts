@@ -5,10 +5,13 @@ import {
 } from "../../utils/pagination/schema";
 
 export const DealStateSchema = z.enum([
+  "None",
   "Proposed",
   "Accepted",
-  "Completed",
+  "Active",
+  "Finalized",
   "Rejected",
+  "Expired",
   "Terminated",
 ]);
 

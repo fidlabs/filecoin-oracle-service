@@ -1,11 +1,11 @@
-import { getLastSliForProviderFromSliOracleContract } from "../blockchain/sli-oracle-contract";
+import { getLastSliForDealsFromSliOracleContract } from "../blockchain/sli-oracle-contract";
 import { calculateScoreOnSliScorerContract } from "../blockchain/sli-scorer-contract";
 import {
   getDealsToCalculateScoreFromDb,
-  storeProviderScoreToDb,
+  storeDealsScoreToDb,
 } from "../services/db/db-service";
 import { baseLogger } from "../utils/logger";
-import { ProviderScore } from "../utils/types";
+import { DealScore } from "../utils/types";
 
 const sliChildLogger = baseLogger.child(
   { avengers: "assemble" },
@@ -30,76 +30,78 @@ export async function calculateScoreJob() {
       `Found ${dealsToCalculateScore.length} deals in database to calculate score`,
     );
 
-    const providerScore: ProviderScore[] = [];
+    const dealScore: DealScore[] = [];
 
-    const uniqueProviders = [
-      ...new Set(dealsToCalculateScore.map((deal) => deal.provider)),
+    const uniqueDeals = [
+      ...new Set(dealsToCalculateScore.map((deal) => deal.onChainDealId)),
     ];
 
     sliChildLogger.info(
-      `Extracted ${uniqueProviders.length} unique providers from ${dealsToCalculateScore.length} deals get last attestations`,
+      `Extracted ${uniqueDeals.length} unique deals from ${dealsToCalculateScore.length} deals to calculate score for`,
     );
 
-    const lastSliForProvider =
-      await getLastSliForProviderFromSliOracleContract(uniqueProviders);
+    const lastSliForDeal =
+      await getLastSliForDealsFromSliOracleContract(uniqueDeals);
 
     for (const deal of dealsToCalculateScore) {
-      if (!deal.requirements) {
+      if (!deal.requiredSLIs) {
         sliChildLogger.warn(
-          `Deal ${deal.onChainDealId} does not have requirements data, skipping score calculation for this deal`,
+          `Deal ${deal.onChainDealId} does not have required SLIs data, skipping score calculation for this deal`,
         );
         continue;
       }
 
-      const lastSliForProviderValue = lastSliForProvider.find(
-        (sli) => sli.providerId === deal.provider,
+      const lastSliForDealValue = lastSliForDeal.find(
+        (sli) => sli.onChainDealIds === deal.onChainDealId,
       )?.sliAttestation;
 
-      if (!lastSliForProviderValue) {
+      if (!lastSliForDealValue) {
         sliChildLogger.warn(
-          `No SLI attestation found for provider ${deal.provider} on sli oracle contract, skipping score calculation for this deal`,
+          `No SLI attestation found for deal ${deal.id} on sli oracle contract, skipping score calculation for this deal`,
         );
         continue;
       }
 
       const scoreResult = await calculateScoreOnSliScorerContract(
-        deal.provider,
+        deal.onChainDealId,
         {
-          retrievabilityBps: Number(deal.requirements?.retrievabilityBps),
-          bandwidthMbps: Number(deal.requirements?.bandwidthMbps),
-          latencyMs: Number(deal.requirements?.latencyMs),
-          indexingPct: Number(deal.requirements?.indexingPct),
+          retrievabilityBps: Number(deal.requiredSLIs?.retrievabilityBps),
+          bandwidthBytesPerSecond: BigInt(
+            deal.requiredSLIs?.bandwidthBytesPerSecond,
+          ),
+          latencyMs: Number(deal.requiredSLIs?.latencyMs),
+          indexingPct: Number(deal.requiredSLIs?.indexingPct),
         },
       );
 
-      providerScore.push({
-        providerId: deal.provider,
+      dealScore.push({
         calculatedScore: scoreResult,
         porepMarketDealId: deal.id,
-        averageBandwidthMbps: lastSliForProviderValue?.bandwidthMbps
-          ? BigInt(lastSliForProviderValue.bandwidthMbps)
+        averageBandwidthMbps: lastSliForDealValue?.bandwidthBytesPerSecond
+          ? BigInt(lastSliForDealValue.bandwidthBytesPerSecond)
           : BigInt(0),
-        averageRetrievabilityBps: lastSliForProviderValue?.retrievabilityBps
-          ? BigInt(lastSliForProviderValue.retrievabilityBps)
+        averageRetrievabilityBps: lastSliForDealValue?.retrievabilityBps
+          ? BigInt(lastSliForDealValue.retrievabilityBps)
           : BigInt(0),
-        averageLatencyMs: lastSliForProviderValue?.latencyMs
-          ? BigInt(lastSliForProviderValue.latencyMs)
+        averageLatencyMs: lastSliForDealValue?.latencyMs
+          ? BigInt(lastSliForDealValue.latencyMs)
           : BigInt(0),
-        averageIndexingPct: lastSliForProviderValue?.indexingPct
-          ? BigInt(lastSliForProviderValue.indexingPct)
+        averageIndexingPct: lastSliForDealValue?.indexingPct
+          ? BigInt(lastSliForDealValue.indexingPct)
           : BigInt(0),
       });
     }
 
     sliChildLogger.info(
-      `Calculated score for ${providerScore.length} providers, storing results to DB...`,
+      `Calculated score for ${dealScore.length} deals, storing results to DB...`,
     );
 
-    await storeProviderScoreToDb(providerScore);
+    await storeDealsScoreToDb(dealScore);
 
-    sliChildLogger.info(`Stored provider scores to DB`);
+    sliChildLogger.info(`Stored deals scores to DB`);
   } catch (err) {
     sliChildLogger.error({ err }, "Failed");
+    throw err;
   } finally {
     sliChildLogger.info("Job finished");
   }

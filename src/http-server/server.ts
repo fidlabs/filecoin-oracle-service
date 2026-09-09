@@ -16,12 +16,15 @@ import { healthRoutes } from "./routes/health";
 import { onChainTransactionsRoutes } from "./routes/on-chain-transactions";
 import { responseCustomFormatterPlugin } from "./utils/response-formatter-plugin/response-plugin";
 
-export const httpLogger = baseLogger.child(
+const httpLogger = baseLogger.child(
   { avengers: "assemble" },
   { msgPrefix: "[HTTP] " },
 );
 
-const fastify = Fastify();
+const fastify = Fastify({
+  loggerInstance: httpLogger,
+  disableRequestLogging: true,
+});
 
 export const app = fastify.withTypeProvider<ZodTypeProvider>();
 
@@ -31,6 +34,13 @@ app.setSerializerCompiler(serializerCompiler);
 app.register(cors, {
   origin: "*",
   methods: ["GET", "POST"],
+});
+
+app.addHook("onResponse", (request, reply, done) => {
+  request.log.info(
+    `${request.method} ${request.url} → ${reply.statusCode} (${reply.elapsedTime.toFixed(2)} ms) [${request.id}]`,
+  );
+  done();
 });
 
 app.register(swagger, {
@@ -64,16 +74,14 @@ app.listen(
   { port: Number(SERVICE_CONFIG.APP_PORT), host: "0.0.0.0" },
   (error, address) => {
     if (error) {
-      httpLogger.error(
-        `Failed to start HTTP server: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      fastify.log.error({ err: error }, "Failed to start HTTP server");
       process.exit(1);
     }
 
-    httpLogger.info(`Oracle HTTP service listening on ${address}`);
-    httpLogger.info(`Health endpoint: GET /health`);
+    fastify.log.info(`Oracle HTTP service listening on ${address}`);
+    fastify.log.info("Health endpoint: GET /health");
 
-    httpLogger.info(
+    fastify.log.info(
       `Manual job trigger endpoint: POST /trigger-job?job=<job-name>`,
     );
   },

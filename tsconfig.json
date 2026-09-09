@@ -6,11 +6,12 @@
     "moduleResolution": "nodenext",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
+    "isolatedModules": true,
     "skipLibCheck": true,
     "outDir": "./dist",
     "inlineSourceMap": true,
     "strictPropertyInitialization": false
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "tests/**/*"],
   "exclude": ["node_modules"]
 }

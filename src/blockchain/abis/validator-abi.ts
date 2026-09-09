@@ -67,6 +67,19 @@ export const VALIDATOR_CONTRACT_ABI = [
   },
   {
     type: "function",
+    name: "getRailStatus",
+    inputs: [],
+    outputs: [
+      {
+        name: "railStatus",
+        type: "uint8",
+        internalType: "uint8",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "getRoleAdmin",
     inputs: [
       {
@@ -151,7 +164,7 @@ export const VALIDATOR_CONTRACT_ABI = [
         internalType: "address",
       },
       {
-        name: "_clientSC",
+        name: "_dataCapEvidenceAdapter",
         type: "address",
         internalType: "address",
       },
@@ -177,7 +190,13 @@ export const VALIDATOR_CONTRACT_ABI = [
   {
     type: "function",
     name: "modifyRailPayment",
-    inputs: [],
+    inputs: [
+      {
+        name: "newRate",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     outputs: [],
     stateMutability: "nonpayable",
   },
@@ -235,19 +254,6 @@ export const VALIDATOR_CONTRACT_ABI = [
         name: "account",
         type: "address",
         internalType: "address",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "setDealEndEpoch",
-    inputs: [
-      {
-        name: "endEpoch",
-        type: "int64",
-        internalType: "CommonTypes.ChainEpoch",
       },
     ],
     outputs: [],
@@ -360,25 +366,6 @@ export const VALIDATOR_CONTRACT_ABI = [
       },
     ],
     stateMutability: "nonpayable",
-  },
-  {
-    type: "event",
-    name: "DealEndEpochUpdated",
-    inputs: [
-      {
-        name: "dealId",
-        type: "uint256",
-        indexed: true,
-        internalType: "uint256",
-      },
-      {
-        name: "endEpoch",
-        type: "int64",
-        indexed: false,
-        internalType: "CommonTypes.ChainEpoch",
-      },
-    ],
-    anonymous: false,
   },
   {
     type: "event",
@@ -591,12 +578,17 @@ export const VALIDATOR_CONTRACT_ABI = [
   },
   {
     type: "error",
-    name: "CallerIsNotClientSC",
+    name: "CallerIsNotDataCapEvidenceAdapter",
     inputs: [],
   },
   {
     type: "error",
     name: "CallerIsNotFilecoinPay",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "CallerIsNotPoRepMarket",
     inputs: [],
   },
   {
@@ -612,17 +604,12 @@ export const VALIDATOR_CONTRACT_ABI = [
   },
   {
     type: "error",
-    name: "EndEpochInThePast",
-    inputs: [],
-  },
-  {
-    type: "error",
     name: "InvalidAdminAddress",
     inputs: [],
   },
   {
     type: "error",
-    name: "InvalidClientSCAddress",
+    name: "InvalidDataCapEvidenceAdapterAddress",
     inputs: [],
   },
   {
@@ -693,11 +680,6 @@ export const VALIDATOR_CONTRACT_ABI = [
   },
   {
     type: "error",
-    name: "InvalidSectorCount",
-    inputs: [],
-  },
-  {
-    type: "error",
     name: "InvalidZeroAmount",
     inputs: [],
   },
@@ -709,11 +691,6 @@ export const VALIDATOR_CONTRACT_ABI = [
   {
     type: "error",
     name: "MinEpochsBetweenSettlementsExceeded",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "NegativeEndEpoch",
     inputs: [],
   },
   {
