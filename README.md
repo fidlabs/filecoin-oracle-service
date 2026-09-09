@@ -1,7 +1,7 @@
 # Filecoin Oracle Service
 
 A backend service that automates PoRep Market operations on Filecoin. It synchronizes
-deals from smart contracts to PostgreSQL, fetches SLI data from CDP, publishes
+deals from smart contracts to PostgreSQL, fetches SLI measurements from URL Finder and indexing from CDP, publishes
 on-chain attestations, calculates deal scores, refreshes evidence, handles
 settlements, and exposes an API for reading state and manually triggering jobs.
 
@@ -12,7 +12,7 @@ Main responsibilities:
 - synchronizes deals, SLI requirements, payments, allocations, and claims from the blockchain;
 - can check DataCap posting completion and activate evidence when manually triggered;
 - periodically refreshes evidence status;
-- fetches average SLI metrics from CDP and stores them in the SLI Oracle contract;
+- averages URL Finder measurements over 30 days, combines them with CDP indexing, and stores them in the SLI Oracle contract;
 - calculates scores based on current SLI values and deal requirements;
 - detects sectors terminated before the expected end date;
 - contains inactive helpers for finalizing deals and terminating payment rails;
@@ -68,8 +68,8 @@ flowchart TD
     Accepted -->|no| Stop
 
     SliCron[Cron: set-sli] --> Active[Select active, matched, payment-activated deals]
-    Active --> CDP[Fetch average SLI values from CDP]
-    CDP --> SetSLI[Send one setSLI transaction per attestation]
+    Active --> Metrics[Average URL Finder measurements and fetch CDP indexing]
+    Metrics --> SetSLI[Send one setSLI transaction per attestation]
     SetSLI --> Score[Read attestations and calculate scores]
     Score --> StoreScore[Store transaction receipts and score history]
 
@@ -86,7 +86,7 @@ flowchart TD
 | `sync-deals`                  | cron + debug API | Reads paginated deal views, DataCap state, conditionally allocation/claim IDs and matched claims, then upserts each deal.             |
 | `sync-url-finder-sli-targets` | cron + debug API | PUTs active, not-yet-synced deal manifests, parameters, and SLI requirements to URL Finder; failures are retried later.               |
 | `datacap-posting-finished`    | debug API only   | For Accepted/Allocated deals, checks posting completion, submits evidence batches, activates evidence, and sets `activatePaymentAt`.  |
-| `set-sli`                     | cron + debug API | For active, allocation-matched, payment-activated deals, fetches CDP averages, sends one `setSLI` transaction per deal, then scores.  |
+| `set-sli`                     | cron + debug API | For active, allocation-matched, payment-activated deals, averages URL Finder measurements, adds CDP indexing, sends one `setSLI` transaction per deal, then scores.  |
 | `track-terminated-claims`     | cron + debug API | Resolves sector deadline/partition data with retries, validates batches through Sector Status Inspector, and marks dead claims in DB. |
 | `run-settlement`              | cron + debug API | First synchronizes eligible rail history from CDP, then settles rails due after 30 days and stores settlement/transaction records.    |
 | `sync-settlement-history`     | debug API only   | Fetches `settledUpTo` for eligible rails from CDP and stores local settlement history.                                                |
@@ -134,8 +134,8 @@ the receipt and stores its `transactionHash`, block number, addresses, and
 
 ## External integrations
 
-- **CDP Service** — provides average deal SLI data and Filecoin Pay rail state.
-- **URL Finder** — receives SLI targets and retrieval-related deal information.
+- **CDP Service** — provides average deal indexing and Filecoin Pay rail state.
+- **URL Finder** — receives SLI targets and provides raw deal measurements for retrievability, bandwidth, and latency. The measurement endpoint is a [proposed API contract](docs/url-finder-sli-api.md) and must be implemented before running the updated SLI job.
 - **Filecoin JSON-RPC / Lotus** — provides sector deadline and partition information.
 - **PostgreSQL / Prisma** — stores deals, state history, requirements, payments,
   claims, scores, settlements, and on-chain transaction logs.

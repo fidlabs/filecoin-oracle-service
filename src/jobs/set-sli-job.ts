@@ -7,6 +7,11 @@ import {
 import { baseLogger } from "../utils/logger";
 import { SliAttestation } from "../utils/types";
 import { parseLatencyMs } from "../utils/sli";
+import {
+  averageSliMeasurements,
+  getSliMeasurementsForDeal,
+  getSliPeriod,
+} from "../services/url-finder-sli-service";
 import { calculateScoreJob } from "./calculate-score-job";
 
 const sliChildLogger = baseLogger.child(
@@ -44,50 +49,67 @@ export async function setSliOracleJob() {
       `Extracted ${uniqueDealIds.length} unique of ${dealsToSetSli.length} all deals`,
     );
 
+    // Capture one shared window so every deal uses the same measurement period.
+    const period = getSliPeriod();
     const sliDataForDeals = await getSliForDeals(uniqueDealIds);
+    const buildedSliData: SliAttestation[] = [];
 
-    const dealsSlis = Object.values(sliDataForDeals?.data || {});
+    for (const onChainDealId of uniqueDealIds) {
+      const indexingValue =
+        sliDataForDeals?.data[onChainDealId.toString()]?.INDEXING_PCT;
 
-    if (dealsSlis.length === 0 || !sliDataForDeals) {
+      const indexingMetric = Number(indexingValue);
+      if (
+        indexingValue === null ||
+        indexingValue === undefined ||
+        (typeof indexingValue === "string" && indexingValue.trim() === "") ||
+        !Number.isFinite(indexingMetric) ||
+        indexingMetric < 0 ||
+        indexingMetric > 1
+      ) {
+        sliChildLogger.warn(
+          { onChainDealId },
+          "Missing or invalid CDP indexing metric; skipping SLI attestation",
+        );
+        continue;
+      }
+
+      const measurements = await getSliMeasurementsForDeal(
+        onChainDealId,
+        period,
+      );
+      const averages = averageSliMeasurements(measurements, period);
+      if (
+        averages.retrievabilityBps === null ||
+        averages.bandwidthMbps === null ||
+        averages.latencyMs === null
+      ) {
+        sliChildLogger.warn(
+          { onChainDealId },
+          "Incomplete URL Finder measurements for SLI period; skipping attestation",
+        );
+        continue;
+      }
+
+      buildedSliData.push({
+        onChainDealId,
+        slis: {
+          retrievabilityBps: Math.floor(averages.retrievabilityBps),
+          bandwidthBytesPerSecond: convertMbpsToBytesPerSecond(
+            averages.bandwidthMbps.toString(),
+          ),
+          indexingPct: Math.floor(indexingMetric * 100),
+          latencyMs: parseLatencyMs(averages.latencyMs),
+        },
+      });
+    }
+
+    if (buildedSliData.length === 0) {
       sliChildLogger.info(
-        "No SLI data fetched for any deals from CDP, skipping SLI update",
+        "No complete SLI attestations available for the measurement period",
       );
       return;
     }
-
-    sliChildLogger.info(
-      `Fetched SLI data for ${dealsSlis.length} providers from CDP`,
-    );
-
-    sliChildLogger.info(`Preparing SLI data for providers...`);
-
-    const buildedSliData: SliAttestation[] = Object.entries(
-      sliDataForDeals.data,
-    ).map(([onChainDealId, sliData]) => {
-      const retrievabilityMetric = Number(sliData.RETRIEVABILITY_BPS ?? 0);
-      const indexingMetric = Number(sliData.INDEXING_PCT ?? 0);
-      const latencyMetric = parseLatencyMs(sliData.LATENCY_MS);
-      const bandwidthBytesPerSecondMetric = sliData.BANDWIDTH_MBPS ?? 0;
-
-      const sliAttestation: SliAttestation = {
-        onChainDealId: BigInt(onChainDealId),
-        slis: {
-          retrievabilityBps:
-            retrievabilityMetric !== null
-              ? Math.floor(retrievabilityMetric * 10000)
-              : 0,
-          bandwidthBytesPerSecond: convertMbpsToBytesPerSecond(
-            bandwidthBytesPerSecondMetric.toString(),
-          ),
-          indexingPct: Math.floor(indexingMetric * 100),
-          latencyMs: latencyMetric,
-        },
-      };
-
-      return sliAttestation;
-    });
-
-    sliChildLogger.info(`Prepared SLI attestation for providers`);
 
     for (const sliAttestation of buildedSliData) {
       const transactionResult = await setSliOnOracleContract(sliAttestation);
