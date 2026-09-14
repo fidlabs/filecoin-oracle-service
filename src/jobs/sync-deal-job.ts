@@ -6,6 +6,7 @@ import {
 } from "../blockchain/datacap-evidence-adapter-contract";
 import { getDealsFromPoRepMarketViewContract } from "../blockchain/porep-market-view-helper-contract";
 import {
+  DataCapAllocationStatus,
   getChainDealTypeToDomain,
   getChainStateToDomain,
   getDealsFromDb,
@@ -14,7 +15,6 @@ import {
 } from "../services/db/db-service";
 import { baseLogger } from "../utils/logger";
 import {
-  DealState,
   PorepMarketContractDealView,
   PorepMarketDeal,
   PorepMarketDealClaim,
@@ -26,7 +26,7 @@ const syncDealLogger = baseLogger.child(
 );
 
 const getClaimsSyncDecision = (
-  contractState: DealState,
+  dataCapAllocationStatus: DataCapAllocationStatus,
   isAllocationsMatched?: boolean,
 ) => {
   if (isAllocationsMatched === undefined) {
@@ -36,10 +36,13 @@ const getClaimsSyncDecision = (
     };
   }
 
-  if (contractState !== DealState.Active) {
+  if (
+    dataCapAllocationStatus === DataCapAllocationStatus.Inactive ||
+    dataCapAllocationStatus === DataCapAllocationStatus.None
+  ) {
     return {
       shouldSync: false,
-      reason: `contract state is ${contractState}`,
+      reason: `contract state is ${dataCapAllocationStatus}`,
     };
   }
 
@@ -52,7 +55,7 @@ const getClaimsSyncDecision = (
 
   return {
     shouldSync: true,
-    reason: "active deal has unmatched allocations",
+    reason: "deal has unmatched allocations",
   };
 };
 
@@ -74,7 +77,7 @@ async function prepareDealForSync(
 
   const contractState = getChainStateToDomain(deal.state);
   const claimsSyncDecision = getClaimsSyncDecision(
-    contractState,
+    dataCapAllocationStatus,
     existingIsAllocationsMatched,
   );
 
