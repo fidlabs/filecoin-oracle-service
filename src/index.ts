@@ -70,6 +70,9 @@ try {
 
   childLogger.info(`Scheduling SLI cron job "${sliInterval}"`);
   childLogger.info(
+    `Scheduling Datacap Posting Finished cron job "${datacapPostingFinishedInterval}"`,
+  );
+  childLogger.info(
     `Scheduling Terminations claims cron job "${claimsTerminatedEarlyInterval}"`,
   );
   childLogger.info(
