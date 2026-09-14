@@ -3,6 +3,7 @@ import cron from "node-cron";
 import { SERVICE_CONFIG } from "./config/env";
 import "./http-server/server";
 import { trackClaimsTerminatedEarlyJob } from "./jobs/claims-terminated-early-job";
+import { dataCapPostingFinishedJob } from "./jobs/datacap-posting-finished-job";
 import { finalizeDealJob } from "./jobs/finalize-deal-job";
 import { refreshEvidenceStatusJob } from "./jobs/refresh-evidence-status-job";
 import { setSliOracleJob } from "./jobs/set-sli-job";
@@ -34,7 +35,8 @@ try {
     !SERVICE_CONFIG.TRIGGER_TERMINATE_DEAL_JOB_INTERVAL_CRON ||
     !SERVICE_CONFIG.TRIGGER_SYNC_DEALS_JOB_INTERVAL_CRON ||
     !SERVICE_CONFIG.TRIGGER_REJECT_EXPIRED_DEAL_INTERVAL_CRON ||
-    !SERVICE_CONFIG.TRIGGER_REFRESH_EVIDENCE_STATUS_INTERVAL_CRON
+    !SERVICE_CONFIG.TRIGGER_REFRESH_EVIDENCE_STATUS_INTERVAL_CRON ||
+    !SERVICE_CONFIG.TRIGGER_DATACAP_POSTING_FINISHED_JOB_INTERVAL_CRON
   ) {
     throw new Error(
       `Missing one or more required cron job intervals in environment variables. Please check the configuration.`,
@@ -42,6 +44,8 @@ try {
   }
 
   const sliInterval = SERVICE_CONFIG.TRIGGER_SLI_JOB_INTERVAL_CRON;
+  const datacapPostingFinishedInterval =
+    SERVICE_CONFIG.TRIGGER_DATACAP_POSTING_FINISHED_JOB_INTERVAL_CRON;
   const claimsTerminatedEarlyInterval =
     SERVICE_CONFIG.TRIGGER_CLAIMS_TRACKING_JOB_INTERVAL_CRON;
   const settlementBotInterval =
@@ -85,6 +89,7 @@ try {
   cron.schedule(refreshEvidenceStatusInterval, refreshEvidenceStatusJob);
   cron.schedule(syncDealsInterval, syncDealsJob);
   cron.schedule(finalizeInterval, finalizeDealJob);
+  cron.schedule(datacapPostingFinishedInterval, dataCapPostingFinishedJob);
   cron.schedule(syncUrlFinderSliTargetsInterval, syncUrlFinderSliTargetsJob);
   cron.schedule(sliInterval, setSliOracleJob);
   cron.schedule(settlementBotInterval, runSettlementBotJob);
