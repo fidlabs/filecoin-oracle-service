@@ -13,6 +13,11 @@ import {
   GetFilteredDealsQuerySchema,
 } from "./schema";
 
+const mapDealResponse = <T extends { claims: unknown[] }>(deal: T) => ({
+  ...deal,
+  claimsCount: deal.claims?.length,
+});
+
 export function dealRoutes(
   fastify: FastifyTypedInstance,
   options: FastifyPluginOptions,
@@ -54,7 +59,7 @@ export function dealRoutes(
         });
 
       return reply.success({
-        items: filteredDeals,
+        items: filteredDeals.map(mapDealResponse),
         total: totalDeals,
         page: pagination.page,
         limit: pagination.limit,
@@ -84,7 +89,7 @@ export function dealRoutes(
 
       const deal = await getDealByOnChainIdFromDb(BigInt(onChainDealId));
 
-      return reply.success(deal);
+      return reply.success(deal ? mapDealResponse(deal) : null);
     },
   );
 
