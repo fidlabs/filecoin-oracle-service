@@ -1,10 +1,10 @@
-import { getAllClaimsFromClaimInspectorContract } from "../blockchain/claim-inspector-contract";
 import {
   getAllocationIdsPerDealFromDCEvidenceContract,
   getClaimIdsPerDealFromDCEvidenceContract,
   getDealAllocationStatusFromDCEvidenceContract,
 } from "../blockchain/datacap-evidence-adapter-contract";
 import { getDealsFromPoRepMarketViewContract } from "../blockchain/porep-market-view-helper-contract";
+import { getAllClaimsFromSectorStatusInspectorContract } from "../blockchain/sector-status-inspector-contract";
 import {
   DataCapAllocationStatus,
   getChainDealTypeToDomain,
@@ -106,7 +106,7 @@ async function prepareDealForSync(
       );
 
       const [claimIds, matchedClaims] =
-        await getAllClaimsFromClaimInspectorContract(dealId);
+        await getAllClaimsFromSectorStatusInspectorContract(dealId);
 
       claims = matchedClaims.map((claim, index) => ({
         ...claim,

@@ -73,3 +73,24 @@ export const batchValidateSectorStatus = async (
 
   return results;
 };
+
+export const getAllClaimsFromSectorStatusInspectorContract = async (
+  onChainDealId: bigint,
+) => {
+  childLogger.info(`Fetching claims for deal ${onChainDealId}...`);
+
+  const rpcClient = getRpcClient();
+
+  const response = await rpcClient.readContract({
+    address: SERVICE_CONFIG.SECTOR_STATUS_INSPECTOR_CONTRACT_ADDRESS as Address,
+    abi: SECTOR_STATUS_INSPECTOR_ABI,
+    functionName: "getClaimForDeal",
+    args: [onChainDealId],
+  });
+
+  childLogger.info(
+    `Fetched ${response[1].length} success claims for deal ${onChainDealId} from contract`,
+  );
+
+  return response;
+};
