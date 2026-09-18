@@ -5,12 +5,30 @@ export const SECTOR_STATUS_INSPECTOR_ABI = [
     type: "constructor",
     inputs: [
       {
+        name: "_dataCapEvidenceAdapter",
+        type: "address",
+        internalType: "address",
+      },
+      {
         name: "_poRepMarketContract",
         type: "address",
         internalType: "address",
       },
     ],
     stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "DATA_CAP_EVIDENCE_ADAPTER",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "contract IDataCapEvidenceAdapter",
+      },
+    ],
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -21,6 +39,143 @@ export const SECTOR_STATUS_INSPECTOR_ABI = [
         name: "",
         type: "address",
         internalType: "contract IPoRepMarket",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getClaimForDeal",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "claimIds",
+        type: "uint64[]",
+        internalType: "CommonTypes.FilActorId[]",
+      },
+      {
+        name: "claims",
+        type: "tuple[]",
+        internalType: "struct VerifRegTypes.Claim[]",
+        components: [
+          {
+            name: "provider",
+            type: "uint64",
+            internalType: "CommonTypes.FilActorId",
+          },
+          {
+            name: "client",
+            type: "uint64",
+            internalType: "CommonTypes.FilActorId",
+          },
+          {
+            name: "data",
+            type: "bytes",
+            internalType: "bytes",
+          },
+          {
+            name: "size",
+            type: "uint64",
+            internalType: "uint64",
+          },
+          {
+            name: "term_min",
+            type: "int64",
+            internalType: "CommonTypes.ChainEpoch",
+          },
+          {
+            name: "term_max",
+            type: "int64",
+            internalType: "CommonTypes.ChainEpoch",
+          },
+          {
+            name: "term_start",
+            type: "int64",
+            internalType: "CommonTypes.ChainEpoch",
+          },
+          {
+            name: "sector",
+            type: "uint64",
+            internalType: "CommonTypes.FilActorId",
+          },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getClaimsForProvider",
+    inputs: [
+      {
+        name: "provider",
+        type: "uint64",
+        internalType: "CommonTypes.FilActorId",
+      },
+      {
+        name: "ids",
+        type: "uint64[]",
+        internalType: "CommonTypes.FilActorId[]",
+      },
+    ],
+    outputs: [
+      {
+        name: "claimIds",
+        type: "uint64[]",
+        internalType: "CommonTypes.FilActorId[]",
+      },
+      {
+        name: "claims",
+        type: "tuple[]",
+        internalType: "struct VerifRegTypes.Claim[]",
+        components: [
+          {
+            name: "provider",
+            type: "uint64",
+            internalType: "CommonTypes.FilActorId",
+          },
+          {
+            name: "client",
+            type: "uint64",
+            internalType: "CommonTypes.FilActorId",
+          },
+          {
+            name: "data",
+            type: "bytes",
+            internalType: "bytes",
+          },
+          {
+            name: "size",
+            type: "uint64",
+            internalType: "uint64",
+          },
+          {
+            name: "term_min",
+            type: "int64",
+            internalType: "CommonTypes.ChainEpoch",
+          },
+          {
+            name: "term_max",
+            type: "int64",
+            internalType: "CommonTypes.ChainEpoch",
+          },
+          {
+            name: "term_start",
+            type: "int64",
+            internalType: "CommonTypes.ChainEpoch",
+          },
+          {
+            name: "sector",
+            type: "uint64",
+            internalType: "CommonTypes.FilActorId",
+          },
+        ],
       },
     ],
     stateMutability: "view",
@@ -81,7 +236,12 @@ export const SECTOR_STATUS_INSPECTOR_ABI = [
         internalType: "bool",
       },
     ],
-    stateMutability: "view",
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "error",
+    name: "ActorNotFound",
+    inputs: [],
   },
   {
     type: "error",
@@ -96,7 +256,49 @@ export const SECTOR_STATUS_INSPECTOR_ABI = [
   },
   {
     type: "error",
+    name: "ClaimIdsMismatch",
+    inputs: [
+      {
+        name: "claimsLength",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "claimIdsLength",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+  },
+  {
+    type: "error",
+    name: "FailToCallActor",
+    inputs: [],
+  },
+  {
+    type: "error",
     name: "FailedCall",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "GetClaimsCallFailed",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidCodec",
+    inputs: [
+      {
+        name: "",
+        type: "uint64",
+        internalType: "uint64",
+      },
+    ],
+  },
+  {
+    type: "error",
+    name: "InvalidDataCapEvidenceAdapterAddress",
     inputs: [],
   },
   {
@@ -108,6 +310,27 @@ export const SECTOR_STATUS_INSPECTOR_ABI = [
     type: "error",
     name: "InvalidPoRepMarketAddress",
     inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidResponseLength",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "NotEnoughBalance",
+    inputs: [
+      {
+        name: "balance",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "value",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
   },
   {
     type: "error",
