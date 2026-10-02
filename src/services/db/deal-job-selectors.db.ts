@@ -1,13 +1,12 @@
 import { Prisma } from "../../../prisma/generated/client";
 import { DealState } from "../../utils/types";
 import { prismaClient } from "./db-client";
-import { DataCapAllocationStatus } from "./deal-status.db";
 import {
   porepMarkerDealSelect,
   PorepMarketDealDto,
 } from "./dto/porep-market-deal.dto";
 
-async function getDealsByWhereFromDb(
+export async function getDealsByWhereFromDb(
   where: Prisma.porep_market_dealWhereInput,
 ): Promise<PorepMarketDealDto[]> {
   const deals = await prismaClient.porep_market_deal.findMany({
@@ -25,7 +24,7 @@ export async function getCompletedDealsToSettleFromDb() {
     where: {
       state: DealState.Active,
       isRailTerminated: false,
-      isAllocationsMatched: true,
+      isEvidenceComplete: true,
       OR: [
         {
           AND: [
@@ -83,7 +82,7 @@ export async function getCompletedDealsToCheckClaimTerminationFromDb() {
       },
       state: DealState.Active,
       isRailTerminated: false,
-      isAllocationsMatched: true, // IMPORTANT: only consider deals with matching allocation count between expected and actual to avoid setting wrong deal end epoch
+      isEvidenceComplete: true, // IMPORTANT: only consider deals with matching allocation count between expected and actual to avoid setting wrong deal end epoch
     },
     include: {
       claims: true,
@@ -122,20 +121,7 @@ export async function getDealsToFinalizeFromDb(currentEpoch: bigint) {
 export async function getDealsToSetSliFromDb(): Promise<PorepMarketDealDto[]> {
   return await getDealsByWhereFromDb({
     state: DealState.Active,
-    isAllocationsMatched: true,
-    isRailTerminated: false,
-    activatePaymentAt: {
-      not: null,
-    },
-  });
-}
-
-export async function getDealsToRefreshEvidenceStatusFromDb(): Promise<
-  PorepMarketDealDto[]
-> {
-  return await getDealsByWhereFromDb({
-    state: DealState.Active,
-    isAllocationsMatched: true,
+    isEvidenceComplete: true,
     isRailTerminated: false,
     activatePaymentAt: {
       not: null,
@@ -149,15 +135,5 @@ export async function getDealsToSyncUrlFinderSliTargetsFromDb(): Promise<
   return await getDealsByWhereFromDb({
     state: DealState.Active,
     urlFinderSliTargetTriggeredAt: null,
-  });
-}
-
-export async function getDealsToActivateDCEvidenceFromDb(): Promise<
-  PorepMarketDealDto[]
-> {
-  return await getDealsByWhereFromDb({
-    dataCapAllocationStatus: DataCapAllocationStatus.Allocated,
-    state: DealState.Accepted,
-    isRailTerminated: false,
   });
 }

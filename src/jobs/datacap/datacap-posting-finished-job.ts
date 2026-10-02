@@ -1,23 +1,23 @@
 import { Address } from "viem";
-import { isDataCapPostingFinishedOnDCEvidenceContract } from "../blockchain/datacap-evidence-adapter-contract";
+import { isDataCapPostingFinishedOnDCEvidenceContract } from "../../blockchain/datacap-evidence-adapter-contract";
 import {
   activateEvidenceOnPoRepMarketContract,
   PorepMarketEvidenceTransactionResult,
   submitEvidenceBatchOnPoRepMarketContract,
-} from "../blockchain/porep-market.contract";
+} from "../../blockchain/porep-market.contract";
 import {
-  getDealsToActivateDCEvidenceFromDb,
+  getDataCapDealsToActivateEvidenceFromDb,
   setActivatePaymentAtInDb,
   storeOnChainTransactionToDb,
-} from "../services/db/db-service";
-import { PorepMarketDealDto } from "../services/db/dto/porep-market-deal.dto";
+} from "../../services/db/db-service";
+import { PorepMarketDealDto } from "../../services/db/dto/porep-market-deal.dto";
 import {
   encodeEvidenceBatchData,
   getEvidenceBatchSizes,
   NO_ADDITIONAL_EVIDENCE_DATA,
-} from "../utils/evidence-batch";
-import { baseLogger } from "../utils/logger";
-import { ContractEvidenceResult } from "../utils/types";
+} from "../../utils/evidence-batch";
+import { baseLogger } from "../../utils/logger";
+import { ContractEvidenceResult } from "../../utils/types";
 
 const datacapPostingFinishedLogger = baseLogger.child(
   { avengers: "assemble" },
@@ -29,7 +29,7 @@ export async function dataCapPostingFinishedJob() {
     datacapPostingFinishedLogger.info("Job started");
 
     const deals: PorepMarketDealDto[] =
-      await getDealsToActivateDCEvidenceFromDb();
+      await getDataCapDealsToActivateEvidenceFromDb();
 
     if (!deals.length) {
       datacapPostingFinishedLogger.info(

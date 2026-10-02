@@ -5,6 +5,8 @@ import {
   DealTerms,
   PorepMarketDeal,
   PorepMarketDealClaim,
+  PorepMarketDealSector,
+  SectorManifestReceipt,
   SLIThresholds,
 } from "../../utils/types";
 import { prismaClient } from "./db-client";
@@ -54,6 +56,8 @@ const buildDealPersistenceData = (deal: PorepMarketDeal) => ({
   offerId: deal.offerId,
   railId: deal.railId,
   evidenceAdapterContractAddress: deal.evidenceAdapterContractAddress,
+  evidenceAdapterType: deal.evidenceAdapterType,
+  isEvidenceComplete: deal.isEvidenceComplete,
   validatorContractAddress: deal.validatorContractAddress,
   providerOrganization: deal.providerOrganization,
   state: deal.state,
@@ -216,6 +220,55 @@ async function syncDealClaims({
   });
 }
 
+async function upsertDealSectorReceipt({
+  tx,
+  onChainDealId,
+  porepMarketDealId,
+  sectorReceipt,
+}: {
+  tx: Prisma.TransactionClient;
+  onChainDealId: bigint;
+  porepMarketDealId: string;
+  sectorReceipt?: SectorManifestReceipt;
+}) {
+  if (!sectorReceipt) return;
+
+  await tx.porep_market_deal_sector_receipt.upsert({
+    where: {
+      porepMarketDealId,
+    },
+    create: {
+      porepMarketDealId,
+      onChainDealId,
+      ...sectorReceipt,
+    },
+    update: sectorReceipt,
+  });
+}
+
+async function syncDealSectors({
+  tx,
+  onChainDealId,
+  porepMarketDealId,
+  sectors,
+}: {
+  tx: Prisma.TransactionClient;
+  onChainDealId: bigint;
+  porepMarketDealId: string;
+  sectors?: PorepMarketDealSector[];
+}) {
+  if (!sectors?.length) return;
+
+  await tx.porep_market_deal_sector.createMany({
+    data: sectors.map((sector) => ({
+      porepMarketDealId,
+      onChainDealId,
+      ...sector,
+    })),
+    skipDuplicates: true,
+  });
+}
+
 async function syncDealRelations({
   tx,
   deals,
@@ -257,6 +310,18 @@ async function syncDealRelations({
         tx,
         porepMarketDealId,
         claims: deal.claims,
+      }),
+      upsertDealSectorReceipt({
+        tx,
+        onChainDealId: deal.dealId,
+        porepMarketDealId,
+        sectorReceipt: deal.sectorReceipt,
+      }),
+      syncDealSectors({
+        tx,
+        onChainDealId: deal.dealId,
+        porepMarketDealId,
+        sectors: deal.sectors,
       }),
     ];
   });

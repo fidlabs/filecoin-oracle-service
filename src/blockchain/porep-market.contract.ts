@@ -136,6 +136,54 @@ export async function activateEvidenceOnPoRepMarketContract(
   });
 }
 
+export async function simulateActivateEvidenceOnPoRepMarketContract(
+  onChainDealId: bigint,
+  evidenceData: `0x${string}`,
+): Promise<EvidenceActivationDecision> {
+  const rpcClient = getRpcClient();
+  const walletClient = getWalletClient(WalletAccountRole.POREP_SERVICE_ROLE);
+
+  const { result: decision } = await rpcClient.simulateContract({
+    address: SERVICE_CONFIG.POREP_MARKET_CONTRACT_ADDRESS as Address,
+    abi: POREP_MARKET_CONTRACT_ABI,
+    functionName: "activateEvidence",
+    args: [onChainDealId, evidenceData],
+    account: walletClient.account,
+  });
+
+  childLogger.info(
+    { decision },
+    `activateEvidence: Simulation result for deal ${onChainDealId}`,
+  );
+
+  return decision as EvidenceActivationDecision;
+}
+
+export async function simulateRefreshEvidenceStatusOnPoRepMarketContract(
+  onChainDealId: bigint,
+  evidenceData: `0x${string}`,
+): Promise<DealEvidenceStatus> {
+  const rpcClient = getRpcClient();
+  const walletClient = getWalletClient(WalletAccountRole.POREP_SERVICE_ROLE);
+
+  const { result } = await rpcClient.simulateContract({
+    address: SERVICE_CONFIG.POREP_MARKET_CONTRACT_ADDRESS as Address,
+    abi: POREP_MARKET_CONTRACT_ABI,
+    functionName: "refreshEvidenceStatus",
+    args: [onChainDealId, evidenceData],
+    account: walletClient.account,
+  });
+
+  return {
+    activeCoveredBytes: result.activeCoveredBytes,
+    lastEvidenceRefreshEpoch: result.lastEvidenceRefreshEpoch,
+    checkedClaims: result.checkedClaims,
+    totalClaims: result.totalClaims,
+    reasonCode: BigInt(result.reasonCode),
+    result: toPrismaEvidenceResult(result.result),
+  };
+}
+
 export async function refreshEvidenceStatusOnPoRepMarketContract(
   onChainDealId: bigint,
   evidenceData: `0x${string}`,
