@@ -1,12 +1,7 @@
-import {
-  getAllocationIdsPerDealFromDCEvidenceContract,
-  getClaimIdsPerDealFromDCEvidenceContract,
-  getDealAllocationStatusFromDCEvidenceContract,
-} from "../blockchain/datacap-evidence-adapter-contract";
+import { getEvidenceAdapterTypeFromContract } from "../blockchain/evidence-adapter-contract";
 import { getDealsFromPoRepMarketViewContract } from "../blockchain/porep-market-view-helper-contract";
-import { getAllClaimsFromSectorStatusInspectorContract } from "../blockchain/sector-status-inspector-contract";
+import { EvidenceAdapterType } from "../../prisma/generated/client";
 import {
-  DataCapAllocationStatus,
   getChainDealTypeToDomain,
   getChainStateToDomain,
   getDealsFromDb,
@@ -15,109 +10,54 @@ import {
 } from "../services/db/db-service";
 import { baseLogger } from "../utils/logger";
 import {
+  DealEvidenceSyncData,
   PorepMarketContractDealView,
   PorepMarketDeal,
-  PorepMarketDealClaim,
 } from "../utils/types";
+import { prepareDataCapDealEvidenceForSync } from "./datacap/datacap-deal-sync";
+import { prepareSectorDealEvidenceForSync } from "./sector/sector-deal-sync";
 
 const syncDealLogger = baseLogger.child(
   { avengers: "assemble" },
   { msgPrefix: "[Sync Deal Job] " },
 );
 
-const getClaimsSyncDecision = (
-  dataCapAllocationStatus: DataCapAllocationStatus,
-  isAllocationsMatched?: boolean,
-) => {
-  if (isAllocationsMatched === undefined) {
-    return {
-      shouldSync: true,
-      reason: "deal does not exist in database",
-    };
-  }
+type ExistingDeal = Awaited<ReturnType<typeof getDealsFromDb>>[number];
 
-  if (
-    dataCapAllocationStatus === DataCapAllocationStatus.Inactive ||
-    dataCapAllocationStatus === DataCapAllocationStatus.None
-  ) {
-    return {
-      shouldSync: false,
-      reason: `contract state is ${dataCapAllocationStatus}`,
-    };
+async function prepareDealEvidenceForSync(
+  evidenceAdapterType: EvidenceAdapterType,
+  dealView: PorepMarketContractDealView,
+  existingDeal?: ExistingDeal,
+): Promise<DealEvidenceSyncData> {
+  switch (evidenceAdapterType) {
+    case EvidenceAdapterType.DataCap:
+      return prepareDataCapDealEvidenceForSync(
+        dealView,
+        existingDeal?.isAllocationsMatched,
+      );
+    case EvidenceAdapterType.Sector:
+      return prepareSectorDealEvidenceForSync(
+        dealView,
+        existingDeal?.sectorReceipt?.sectorCount,
+      );
   }
-
-  if (isAllocationsMatched) {
-    return {
-      shouldSync: false,
-      reason: "allocations are already matched",
-    };
-  }
-
-  return {
-    shouldSync: true,
-    reason: "deal has unmatched allocations",
-  };
-};
+}
 
 async function prepareDealForSync(
   dealView: PorepMarketContractDealView,
-  existingIsAllocationsMatched?: boolean,
+  existingDeal?: ExistingDeal,
 ): Promise<PorepMarketDeal> {
   const { deal } = dealView;
-  const dealId = deal.dealId;
 
-  const dataCapAllocationStatus =
-    await getDealAllocationStatusFromDCEvidenceContract(
-      dealId,
-      deal.evidenceAdapter,
-    );
-
-  let allocationIds: bigint[] | undefined;
-  let claims: PorepMarketDealClaim[] | undefined;
-
-  const contractState = getChainStateToDomain(deal.state);
-  const claimsSyncDecision = getClaimsSyncDecision(
-    dataCapAllocationStatus,
-    existingIsAllocationsMatched,
+  const evidenceAdapterType = await getEvidenceAdapterTypeFromContract(
+    deal.evidenceAdapter,
   );
 
-  syncDealLogger.info(
-    `Claims sync for deal ${dealId}: ${claimsSyncDecision.shouldSync ? "required" : "skipped"} (${claimsSyncDecision.reason})`,
+  const evidence = await prepareDealEvidenceForSync(
+    evidenceAdapterType,
+    dealView,
+    existingDeal,
   );
-
-  if (claimsSyncDecision.shouldSync) {
-    const [dealAllocationIds, dealClaimIds] = await Promise.all([
-      getAllocationIdsPerDealFromDCEvidenceContract(
-        dealId,
-        deal.evidenceAdapter,
-      ),
-      getClaimIdsPerDealFromDCEvidenceContract(dealId, deal.evidenceAdapter),
-    ]);
-
-    allocationIds = [...dealAllocationIds, ...dealClaimIds];
-
-    syncDealLogger.info(
-      `Fetched ${allocationIds.length} required allocations for deal ${dealId} from client contract`,
-    );
-
-    if (allocationIds.length) {
-      syncDealLogger.info(
-        `Fetching claims info for client ${deal.client} from deal inspector contract...`,
-      );
-
-      const [claimIds, matchedClaims] =
-        await getAllClaimsFromSectorStatusInspectorContract(dealId);
-
-      claims = matchedClaims.map((claim, index) => ({
-        ...claim,
-        claimId: claimIds[index],
-      }));
-
-      syncDealLogger.info(
-        `Fetched claims info for deal ${dealId} from Deal Inspector contract, total success claims count: ${claims.length}`,
-      );
-    }
-  }
 
   return {
     ...deal,
@@ -126,8 +66,9 @@ async function prepareDealForSync(
     ...dealView.capacity,
     validatorContractAddress: deal.validator,
     evidenceAdapterContractAddress: deal.evidenceAdapter,
+    evidenceAdapterType,
     dealType: getChainDealTypeToDomain(deal.dealType),
-    state: contractState,
+    state: getChainStateToDomain(deal.state),
     terms: {
       requestedSizeBytes: dealView.terms.requestedSizeBytes,
       durationEpochs: dealView.terms.durationEpochs,
@@ -143,13 +84,7 @@ async function prepareDealForSync(
       totalClaims: dealView.evidenceStatus.totalClaims,
       result: toPrismaEvidenceResult(dealView.evidenceStatus.result),
     },
-    allocationsRequiredCount: allocationIds?.length
-      ? BigInt(allocationIds.length)
-      : undefined,
-    allocationsMatchedCount: claims ? BigInt(claims.length) : undefined,
-    dataCapAllocationStatus,
-    allocationIds,
-    claims,
+    ...evidence,
   };
 }
 
@@ -188,7 +123,7 @@ export async function syncDealsJob() {
       try {
         const preparedDeal = await prepareDealForSync(
           dealView,
-          existingDealsMap.get(dealId.toString())?.isAllocationsMatched,
+          existingDealsMap.get(dealId.toString()),
         );
 
         preparedDeals.push(preparedDeal);

@@ -24,6 +24,8 @@ export const porepMarkerDealSelect =
     lastSyncedAt: true,
     proposedAtEpoch: true,
     evidenceAdapterContractAddress: true,
+    evidenceAdapterType: true,
+    isEvidenceComplete: true,
     manifestHash: true,
     expiresAtEpoch: true,
     serviceStartEpoch: true,
@@ -92,6 +94,17 @@ export const porepMarkerDealSelect =
         term_min: true,
         term_max: true,
         term_start: true,
+      },
+    },
+    sectorReceipt: {
+      select: {
+        providerActorId: true,
+        pieceCount: true,
+        acceptedPieceCount: true,
+        acceptedBytes: true,
+        minimumCommitmentEpoch: true,
+        activated: true,
+        sectorCount: true,
       },
     },
     payment: {

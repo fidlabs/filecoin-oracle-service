@@ -2,10 +2,12 @@ import "dotenv/config";
 import cron from "node-cron";
 import { SERVICE_CONFIG } from "./config/env";
 import "./http-server/server";
-import { trackClaimsTerminatedEarlyJob } from "./jobs/claims-terminated-early-job";
-import { dataCapPostingFinishedJob } from "./jobs/datacap-posting-finished-job";
+import { trackClaimsTerminatedEarlyJob } from "./jobs/datacap/claims-terminated-early-job";
+import { dataCapPostingFinishedJob } from "./jobs/datacap/datacap-posting-finished-job";
+import { refreshDataCapEvidenceStatusJob } from "./jobs/datacap/datacap-refresh-evidence-status-job";
 import { finalizeDealJob } from "./jobs/finalize-deal-job";
-import { refreshEvidenceStatusJob } from "./jobs/refresh-evidence-status-job";
+import { sectorActivateEvidenceJob } from "./jobs/sector/sector-activate-evidence-job";
+import { sectorRefreshEvidenceStatusJob } from "./jobs/sector/sector-refresh-evidence-status-job";
 import { setSliOracleJob } from "./jobs/set-sli-job";
 import { runSettlementBotJob } from "./jobs/settlement-bot-job";
 import { syncDealsJob } from "./jobs/sync-deal-job";
@@ -61,6 +63,10 @@ try {
     SERVICE_CONFIG.TRIGGER_REFRESH_EVIDENCE_STATUS_INTERVAL_CRON;
   const finalizeInterval =
     SERVICE_CONFIG.TRIGGER_FINALIZE_DEAL_JOB_INTERVAL_CRON;
+  const sectorActivateEvidenceInterval =
+    SERVICE_CONFIG.TRIGGER_SECTOR_ACTIVATE_EVIDENCE_JOB_INTERVAL_CRON;
+  const sectorRefreshEvidenceStatusInterval =
+    SERVICE_CONFIG.TRIGGER_SECTOR_REFRESH_EVIDENCE_STATUS_JOB_INTERVAL_CRON;
 
   childLogger.info(`Scheduling sync deals cron job "${syncDealsInterval}"`);
 
@@ -88,8 +94,14 @@ try {
     `Scheduling Refresh Evidence Status cron job "${refreshEvidenceStatusInterval}"`,
   );
   childLogger.info(`Scheduling Finalize Deal cron job "${finalizeInterval}"`);
+  childLogger.info(
+    `Scheduling Sector Activate Evidence cron job "${sectorActivateEvidenceInterval}"`,
+  );
+  childLogger.info(
+    `Scheduling Sector Refresh Evidence Status cron job "${sectorRefreshEvidenceStatusInterval}"`,
+  );
 
-  cron.schedule(refreshEvidenceStatusInterval, refreshEvidenceStatusJob);
+  cron.schedule(refreshEvidenceStatusInterval, refreshDataCapEvidenceStatusJob);
   cron.schedule(syncDealsInterval, syncDealsJob);
   cron.schedule(finalizeInterval, finalizeDealJob);
   cron.schedule(datacapPostingFinishedInterval, dataCapPostingFinishedJob);
@@ -97,6 +109,11 @@ try {
   cron.schedule(sliInterval, setSliOracleJob);
   cron.schedule(settlementBotInterval, runSettlementBotJob);
   cron.schedule(claimsTerminatedEarlyInterval, trackClaimsTerminatedEarlyJob);
+  cron.schedule(sectorActivateEvidenceInterval, sectorActivateEvidenceJob);
+  cron.schedule(
+    sectorRefreshEvidenceStatusInterval,
+    sectorRefreshEvidenceStatusJob,
+  );
   //cron.schedule(terminateDealsInterval, trackTerminateDealJob);
 } catch (err: unknown) {
   if (err instanceof Error) {

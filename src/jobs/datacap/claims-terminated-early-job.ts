@@ -1,12 +1,12 @@
-import { batchValidateSectorStatus } from "../blockchain/sector-status-inspector-contract";
+import { batchValidateSectorStatus } from "../../blockchain/sector-status-inspector-contract";
 import {
-  getCompletedDealsToCheckClaimTerminationFromDb,
+  getDataCapDealsToCheckClaimTerminationFromDb,
   updateClaimSectorStatusInDb,
-} from "../services/db/db-service";
-import { fetchStateSectorPartition } from "../services/filecoin-api-service";
-import { baseLogger } from "../utils/logger";
-import { ChainSectorStatus, SectorStatus } from "../utils/types";
-import { sleep } from "../utils/utils";
+} from "../../services/db/db-service";
+import { fetchStateSectorPartition } from "../../services/filecoin-api-service";
+import { baseLogger } from "../../utils/logger";
+import { ChainSectorStatus, SectorStatus } from "../../utils/types";
+import { sleep } from "../../utils/utils";
 
 const claimTrackingLogger = baseLogger.child(
   { avengers: "assemble" },
@@ -80,8 +80,7 @@ export async function trackClaimsTerminatedEarlyJob() {
   try {
     claimTrackingLogger.info("Job started");
 
-    const completedDeals =
-      await getCompletedDealsToCheckClaimTerminationFromDb();
+    const completedDeals = await getDataCapDealsToCheckClaimTerminationFromDb();
 
     if (completedDeals.length === 0) {
       claimTrackingLogger.info(
