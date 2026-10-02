@@ -5,9 +5,11 @@ import {
   FastifyRequest,
 } from "fastify";
 import { SERVICE_CONFIG } from "../../../config/env";
-import { trackClaimsTerminatedEarlyJob } from "../../../jobs/claims-terminated-early-job";
-import { dataCapPostingFinishedJob } from "../../../jobs/datacap-posting-finished-job";
-import { refreshEvidenceStatusJob } from "../../../jobs/refresh-evidence-status-job";
+import { trackClaimsTerminatedEarlyJob } from "../../../jobs/datacap/claims-terminated-early-job";
+import { dataCapPostingFinishedJob } from "../../../jobs/datacap/datacap-posting-finished-job";
+import { refreshDataCapEvidenceStatusJob } from "../../../jobs/datacap/datacap-refresh-evidence-status-job";
+import { sectorActivateEvidenceJob } from "../../../jobs/sector/sector-activate-evidence-job";
+import { sectorRefreshEvidenceStatusJob } from "../../../jobs/sector/sector-refresh-evidence-status-job";
 import { setSliOracleJob } from "../../../jobs/set-sli-job";
 import { runSettlementBotJob } from "../../../jobs/settlement-bot-job";
 import { syncDealsJob } from "../../../jobs/sync-deal-job";
@@ -75,7 +77,13 @@ export function debugRoutes(
             await syncSettlementHistoryJob();
             break;
           case "refresh-evidence-status":
-            await refreshEvidenceStatusJob();
+            await refreshDataCapEvidenceStatusJob();
+            break;
+          case "sector-activate-evidence":
+            await sectorActivateEvidenceJob();
+            break;
+          case "sector-refresh-evidence-status":
+            await sectorRefreshEvidenceStatusJob();
             break;
           case "track-terminated-deals":
             await trackTerminateDealJob();

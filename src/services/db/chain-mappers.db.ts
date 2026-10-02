@@ -1,6 +1,11 @@
-import { DealType, SectorStatus } from "../../../prisma/generated/client";
+import {
+  DealType,
+  EvidenceAdapterType,
+  SectorStatus,
+} from "../../../prisma/generated/client";
 import {
   ContractDealType,
+  ContractEvidenceAdapterType,
   DealState,
   PorepMarketContractDealState,
 } from "../../utils/types";
@@ -51,5 +56,20 @@ export const getChainDealTypeToDomain = (dealType: ContractDealType) => {
       return DealType.Private;
     default:
       throw new Error(`Unknown deal type from chain: ${dealType}`);
+  }
+};
+
+export const getChainEvidenceAdapterTypeToDomain = (
+  evidenceType: number,
+): EvidenceAdapterType => {
+  switch (evidenceType) {
+    case ContractEvidenceAdapterType.DataCap:
+      return EvidenceAdapterType.DataCap;
+    case ContractEvidenceAdapterType.Sector:
+      return EvidenceAdapterType.Sector;
+    default:
+      throw new Error(
+        `Unknown evidence adapter type from chain: ${evidenceType}`,
+      );
   }
 };

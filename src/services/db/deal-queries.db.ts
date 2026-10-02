@@ -23,7 +23,7 @@ export async function getCountOfCompletedDealsFromDb() {
   const count = await prismaClient.porep_market_deal.count({
     where: {
       state: DealState.Active,
-      isAllocationsMatched: true,
+      isEvidenceComplete: true,
     },
   });
 
@@ -84,6 +84,13 @@ export async function getDealsFromDb(dealIds: bigint[]) {
     where: {
       onChainDealId: {
         in: dealIds,
+      },
+    },
+    include: {
+      sectorReceipt: {
+        select: {
+          sectorCount: true,
+        },
       },
     },
   });
