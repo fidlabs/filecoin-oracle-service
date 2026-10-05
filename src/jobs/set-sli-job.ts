@@ -1,12 +1,10 @@
 import { setSliOnOracleContract } from "../blockchain/sli-oracle-contract";
-import { getSliForDeals } from "../services/cdp-fetch-service";
 import {
   getDealsToSetSliFromDb,
   storeOnChainTransactionToDb,
 } from "../services/db/db-service";
 import { baseLogger } from "../utils/logger";
 import { SliAttestation } from "../utils/types";
-import { parseLatencyMs } from "../utils/sli";
 import { calculateScoreJob } from "./calculate-score-job";
 
 const sliChildLogger = baseLogger.child(
@@ -14,15 +12,12 @@ const sliChildLogger = baseLogger.child(
   { msgPrefix: "[SLI Job] " },
 );
 
-function convertMbpsToBytesPerSecond(bandwidthMbps?: string): bigint {
-  const parsedBandwidthMbps = Number(bandwidthMbps);
-
-  if (!Number.isFinite(parsedBandwidthMbps)) {
-    return 0n;
-  }
-
-  return BigInt(Math.floor((parsedBandwidthMbps * 1_000_000) / 8));
-}
+const FULL_SCORE_SLI_VALUES = {
+  retrievabilityBps: 10_000,
+  bandwidthBytesPerSecond: 2n ** 64n - 1n,
+  latencyMs: 0,
+  indexingPct: 100,
+};
 
 export async function setSliOracleJob() {
   try {
@@ -44,50 +39,18 @@ export async function setSliOracleJob() {
       `Extracted ${uniqueDealIds.length} unique of ${dealsToSetSli.length} all deals`,
     );
 
-    const sliDataForDeals = await getSliForDeals(uniqueDealIds);
-
-    const dealsSlis = Object.values(sliDataForDeals?.data || {});
-
-    if (dealsSlis.length === 0 || !sliDataForDeals) {
-      sliChildLogger.info(
-        "No SLI data fetched for any deals from CDP, skipping SLI update",
-      );
-      return;
-    }
-
     sliChildLogger.info(
-      `Fetched SLI data for ${dealsSlis.length} providers from CDP`,
+      `Preparing hardcoded full-score SLI data for ${uniqueDealIds.length} deals...`,
     );
 
-    sliChildLogger.info(`Preparing SLI data for providers...`);
-
-    const buildedSliData: SliAttestation[] = Object.entries(
-      sliDataForDeals.data,
-    ).map(([onChainDealId, sliData]) => {
-      const retrievabilityMetric = Number(sliData.RETRIEVABILITY_BPS ?? 0);
-      const indexingMetric = Number(sliData.INDEXING_PCT ?? 0);
-      const latencyMetric = parseLatencyMs(sliData.LATENCY_MS);
-      const bandwidthBytesPerSecondMetric = sliData.BANDWIDTH_MBPS ?? 0;
-
-      const sliAttestation: SliAttestation = {
+    const buildedSliData: SliAttestation[] = uniqueDealIds.map(
+      (onChainDealId) => ({
         onChainDealId: BigInt(onChainDealId),
-        slis: {
-          retrievabilityBps:
-            retrievabilityMetric !== null
-              ? Math.floor(retrievabilityMetric * 10000)
-              : 0,
-          bandwidthBytesPerSecond: convertMbpsToBytesPerSecond(
-            bandwidthBytesPerSecondMetric.toString(),
-          ),
-          indexingPct: Math.floor(indexingMetric * 100),
-          latencyMs: latencyMetric,
-        },
-      };
+        slis: FULL_SCORE_SLI_VALUES,
+      }),
+    );
 
-      return sliAttestation;
-    });
-
-    sliChildLogger.info(`Prepared SLI attestation for providers`);
+    sliChildLogger.info(`Prepared SLI attestations for deals`);
 
     for (const sliAttestation of buildedSliData) {
       const transactionResult = await setSliOnOracleContract(sliAttestation);
@@ -99,12 +62,12 @@ export async function setSliOracleJob() {
     }
 
     sliChildLogger.info(
-      `Finished setting SLI on oracle contract for providers, starting score calculation for providers based on new set SLI values...`,
+      `Finished setting SLI on oracle contract for deals, starting score calculation for deals based on new set SLI values...`,
     );
 
     await calculateScoreJob();
 
-    sliChildLogger.info(`Finished calculating score for providers`);
+    sliChildLogger.info(`Finished calculating score for deals`);
   } catch (err) {
     sliChildLogger.error({ err }, "Failed");
     throw err;
