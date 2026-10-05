@@ -14,7 +14,7 @@ const sliChildLogger = baseLogger.child(
 
 const FULL_SCORE_SLI_VALUES = {
   retrievabilityBps: 10_000,
-  bandwidthBytesPerSecond: 2n ** 64n - 1n,
+  bandwidthBytesPerSecond: 2n ** 63n - 1n,
   latencyMs: 1,
   indexingPct: 100,
 };
