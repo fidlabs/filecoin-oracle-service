@@ -1,5 +1,9 @@
 import { Address, TransactionReceipt } from "viem";
-import { ContractName, DealType } from "../../prisma/generated/client";
+import {
+  ContractName,
+  DealType,
+  EvidenceAdapterType,
+} from "../../prisma/generated/client";
 import {
   DataCapAllocationStatus,
   EvidenceResult,
@@ -177,6 +181,42 @@ export enum ContractDataCapAllocationStatus {
   Inactive = 30,
 }
 
+export enum ContractEvidenceAdapterType {
+  DataCap = 10,
+  Sector = 20,
+}
+
+export interface SectorManifestReceipt {
+  providerActorId: bigint;
+  pieceCount: bigint;
+  acceptedPieceCount: bigint;
+  acceptedBytes: bigint;
+  minimumCommitmentEpoch: bigint;
+  activated: boolean;
+  sectorCount: bigint;
+}
+
+export interface SectorRefreshState {
+  nextSectorIndex: bigint;
+  pendingCoveredBytes: bigint;
+  sweepStartEpoch: bigint;
+  pendingMinimumExpiration: bigint;
+  lastCompletedEpoch: bigint;
+  completedExpiration: bigint;
+  completedResult: number;
+}
+
+export interface SectorLocation {
+  deadline: bigint;
+  partition: bigint;
+}
+
+export interface PorepMarketDealSector {
+  sectorIndex: bigint;
+  sectorNumber: bigint;
+  coveredBytes: bigint;
+}
+
 export enum ContractDealType {
   None = 0,
   Public = 10,
@@ -260,6 +300,8 @@ export interface PorepMarketDeal {
   offerId?: bigint;
   validatorContractAddress: Address;
   evidenceAdapterContractAddress: Address;
+  evidenceAdapterType: EvidenceAdapterType;
+  isEvidenceComplete?: boolean;
   railId: bigint;
   providerOrganization?: Address;
   dealStartEpoch?: bigint;
@@ -283,6 +325,8 @@ export interface PorepMarketDeal {
   activatePaymentAt?: Date | null;
   allocationIds?: bigint[];
   claims?: PorepMarketDealClaim[];
+  sectorReceipt?: SectorManifestReceipt;
+  sectors?: PorepMarketDealSector[];
   isRailTerminated?: boolean;
   terms: DealTerms;
   payment: DealPayment;
@@ -290,6 +334,18 @@ export interface PorepMarketDeal {
   evidenceStatus: DealEvidenceStatus;
   proposedAtEpoch: bigint;
 }
+
+export type DealEvidenceSyncData = Pick<
+  PorepMarketDeal,
+  | "isEvidenceComplete"
+  | "allocationsRequiredCount"
+  | "allocationsMatchedCount"
+  | "dataCapAllocationStatus"
+  | "allocationIds"
+  | "claims"
+  | "sectorReceipt"
+  | "sectors"
+>;
 
 export interface DealScore {
   calculatedScore: bigint;

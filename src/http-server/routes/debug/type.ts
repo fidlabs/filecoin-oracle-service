@@ -11,6 +11,8 @@ export type DebugJob =
   | "run-settlement"
   | "sync-settlement-history"
   | "refresh-evidence-status"
+  | "sector-activate-evidence"
+  | "sector-refresh-evidence-status"
   | "track-terminated-deals"
   | "reject-expired-deal";
 

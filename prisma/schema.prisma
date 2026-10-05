@@ -52,6 +52,11 @@ enum DealType {
   Private
 }
 
+enum EvidenceAdapterType {
+  DataCap
+  Sector
+}
+
 enum ContractName {
   PoRepMarket
   Client
@@ -151,6 +156,36 @@ model porep_market_deal_claim {
   @@index([porepMarketDealId])
 }
 
+model porep_market_deal_sector_receipt {
+  id                     String            @id @default(uuid()) @db.Uuid
+  porepMarketDealId      String            @unique @db.Uuid
+  onChainDealId          BigInt            @unique // external deal ID - from chain
+  providerActorId        BigInt
+  pieceCount             BigInt
+  acceptedPieceCount     BigInt
+  acceptedBytes          BigInt
+  minimumCommitmentEpoch BigInt
+  activated              Boolean
+  sectorCount            BigInt
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+  deal                   porep_market_deal @relation(fields: [porepMarketDealId], references: [id])
+}
+
+model porep_market_deal_sector {
+  id                String            @id @default(uuid()) @db.Uuid
+  porepMarketDealId String            @db.Uuid
+  onChainDealId     BigInt
+  sectorIndex       BigInt
+  sectorNumber      BigInt
+  coveredBytes      BigInt
+  createdAt         DateTime          @default(now())
+  deal              porep_market_deal @relation(fields: [porepMarketDealId], references: [id])
+
+  @@unique([porepMarketDealId, sectorIndex])
+  @@index([porepMarketDealId])
+}
+
 model porep_market_deal {
   id                                String                                   @id @default(uuid()) @db.Uuid
   onChainDealId                     BigInt                                   @unique // external deal ID - from chain
@@ -159,6 +194,8 @@ model porep_market_deal {
   offerId                           BigInt?
   railId                            BigInt
   evidenceAdapterContractAddress    String
+  evidenceAdapterType               EvidenceAdapterType
+  isEvidenceComplete                Boolean                                  @default(false)
   validatorContractAddress          String
   providerOrganization              String?
   state                             DealState
@@ -186,6 +223,8 @@ model porep_market_deal {
   dealType                          DealType
   allocationIds                     BigInt[]
   claims                            porep_market_deal_claim[]
+  sectorReceipt                     porep_market_deal_sector_receipt?
+  sectors                           porep_market_deal_sector[]
   history                           porep_market_deal_history[]
   settlement_history                porep_market_deal_settlement_history[]
   transactions                      porep_market_deal_on_chain_transaction[]

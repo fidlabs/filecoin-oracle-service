@@ -1,29 +1,29 @@
 import {
   PorepMarketEvidenceStatusTransactionResult,
   refreshEvidenceStatusOnPoRepMarketContract,
-} from "../blockchain/porep-market.contract";
+} from "../../blockchain/porep-market.contract";
 import {
-  getDealsToRefreshEvidenceStatusFromDb,
+  getDataCapDealsToRefreshEvidenceStatusFromDb,
   storeOnChainTransactionToDb,
   upsertEvidenceStatusInDb,
-} from "../services/db/db-service";
-import { EvidenceResult } from "../services/db/deal-status.db";
+} from "../../services/db/db-service";
+import { EvidenceResult } from "../../services/db/deal-status.db";
 import {
   encodeEvidenceBatchData,
   getEvidenceBatchSizes,
-} from "../utils/evidence-batch";
-import { baseLogger } from "../utils/logger";
+} from "../../utils/evidence-batch";
+import { baseLogger } from "../../utils/logger";
 
 const refreshEvidenceStatusLogger = baseLogger.child(
   { avengers: "assemble" },
-  { msgPrefix: "[Refresh Evidence Status Job] " },
+  { msgPrefix: "[DataCap Refresh Evidence Status Job] " },
 );
 
-export async function refreshEvidenceStatusJob() {
+export async function refreshDataCapEvidenceStatusJob() {
   try {
     refreshEvidenceStatusLogger.info("Job started");
 
-    const deals = await getDealsToRefreshEvidenceStatusFromDb();
+    const deals = await getDataCapDealsToRefreshEvidenceStatusFromDb();
 
     if (!deals.length) {
       refreshEvidenceStatusLogger.info(
