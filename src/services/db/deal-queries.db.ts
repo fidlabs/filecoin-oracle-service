@@ -2,21 +2,21 @@ import { DealState } from "../../utils/types";
 import { prismaClient } from "./db-client";
 import {
   porepMarkerDealSelect,
-  PorepMarketDealDto,
+  PorepMarketDealResponseDto,
+  toPorepMarketDealResponseDto,
 } from "./dto/porep-market-deal.dto";
 
 export async function getDealByOnChainIdFromDb(
   onChainDealId: bigint,
-): Promise<PorepMarketDealDto | null> {
-  const deal: PorepMarketDealDto | null =
-    await prismaClient.porep_market_deal.findUnique({
-      where: {
-        onChainDealId,
-      },
-      select: porepMarkerDealSelect,
-    });
+): Promise<PorepMarketDealResponseDto | null> {
+  const deal = await prismaClient.porep_market_deal.findUnique({
+    where: {
+      onChainDealId,
+    },
+    select: porepMarkerDealSelect,
+  });
 
-  return deal;
+  return deal ? toPorepMarketDealResponseDto(deal) : null;
 }
 
 export async function getCountOfCompletedDealsFromDb() {
@@ -41,7 +41,7 @@ export async function getPaginatedDealsByStateFromDb({
 }) {
   const offset = (page - 1) * limit;
 
-  const [filteredDeals, totalDeals] = await Promise.all([
+  const [deals, totalDeals] = await Promise.all([
     prismaClient.porep_market_deal.findMany({
       where: {
         state: state ? state : undefined,
@@ -60,23 +60,24 @@ export async function getPaginatedDealsByStateFromDb({
     }),
   ]);
 
+  const filteredDeals = deals.map(toPorepMarketDealResponseDto);
+
   return { filteredDeals, totalDeals };
 }
 
 export async function getDealsByStateFromDb(
   states: DealState[],
-): Promise<PorepMarketDealDto[]> {
-  const dealsByState: PorepMarketDealDto[] =
-    await prismaClient.porep_market_deal.findMany({
-      where: {
-        state: {
-          in: states,
-        },
+): Promise<PorepMarketDealResponseDto[]> {
+  const dealsByState = await prismaClient.porep_market_deal.findMany({
+    where: {
+      state: {
+        in: states,
       },
-      select: porepMarkerDealSelect,
-    });
+    },
+    select: porepMarkerDealSelect,
+  });
 
-  return dealsByState;
+  return dealsByState.map(toPorepMarketDealResponseDto);
 }
 
 export async function getDealsFromDb(dealIds: bigint[]) {
@@ -87,6 +88,11 @@ export async function getDealsFromDb(dealIds: bigint[]) {
       },
     },
     include: {
+      dataCapEvidence: {
+        select: {
+          isAllocationsMatched: true,
+        },
+      },
       sectorReceipt: {
         select: {
           sectorCount: true,

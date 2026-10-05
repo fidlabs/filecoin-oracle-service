@@ -138,7 +138,7 @@ model porep_market_deal_evidence_status {
 
 model porep_market_deal_claim {
   id                String        @id @default(uuid()) @db.Uuid
-  porepMarketDealId String        @db.Uuid
+  dataCapEvidenceId String        @db.Uuid
   claimId           BigInt
   sector            BigInt
   provider          BigInt
@@ -150,10 +150,26 @@ model porep_market_deal_claim {
   term_start        BigInt
   status            SectorStatus?
 
-  deal porep_market_deal @relation(fields: [porepMarketDealId], references: [id])
+  dataCapEvidence porep_market_deal_datacap_evidence @relation(fields: [dataCapEvidenceId], references: [id])
 
   @@unique([claimId, sector, provider])
-  @@index([porepMarketDealId])
+  @@index([dataCapEvidenceId])
+}
+
+model porep_market_deal_datacap_evidence {
+  id                       String                  @id @default(uuid()) @db.Uuid
+  porepMarketDealId        String                  @unique @db.Uuid
+  onChainDealId            BigInt                  @unique // external deal ID - from chain
+  allocationsRequiredCount BigInt?
+  allocationsMatchedCount  BigInt?
+  isAllocationsMatched     Boolean
+  dataCapAllocationStatus  DataCapAllocationStatus @default(None)
+  allocationIds            BigInt[]
+  createdAt                DateTime                @default(now())
+  updatedAt                DateTime                @updatedAt
+
+  deal   porep_market_deal         @relation(fields: [porepMarketDealId], references: [id])
+  claims porep_market_deal_claim[]
 }
 
 model porep_market_deal_sector_receipt {
@@ -213,16 +229,11 @@ model porep_market_deal {
   lastSettledEpoch                  BigInt?
   reservedBytes                     BigInt?
   committedBytes                    BigInt?
-  allocationsRequiredCount          BigInt?
-  allocationsMatchedCount           BigInt?
-  isAllocationsMatched              Boolean
-  dataCapAllocationStatus           DataCapAllocationStatus                  @default(None)
   isRailTerminated                  Boolean
   dealStartEpoch                    BigInt?
   dealEndEpoch                      BigInt?
   dealType                          DealType
-  allocationIds                     BigInt[]
-  claims                            porep_market_deal_claim[]
+  dataCapEvidence                   porep_market_deal_datacap_evidence?
   sectorReceipt                     porep_market_deal_sector_receipt?
   sectors                           porep_market_deal_sector[]
   history                           porep_market_deal_history[]
