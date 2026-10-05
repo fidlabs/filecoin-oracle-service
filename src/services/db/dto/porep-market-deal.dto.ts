@@ -11,11 +11,6 @@ export const porepMarkerDealSelect =
     dealStartEpoch: true,
     dealEndEpoch: true,
     state: true,
-    allocationsRequiredCount: true,
-    allocationsMatchedCount: true,
-    isAllocationsMatched: true,
-    dataCapAllocationStatus: true,
-    allocationIds: true,
     isRailTerminated: true,
     manifestLocation: true,
     urlFinderSliTargetTriggeredAt: true,
@@ -82,18 +77,27 @@ export const porepMarkerDealSelect =
         settlementAt: "desc",
       },
     },
-    claims: {
+    dataCapEvidence: {
       select: {
-        claimId: true,
-        sector: true,
-        status: true,
-        provider: true,
-        client: true,
-        data: true,
-        size: true,
-        term_min: true,
-        term_max: true,
-        term_start: true,
+        allocationsRequiredCount: true,
+        allocationsMatchedCount: true,
+        isAllocationsMatched: true,
+        dataCapAllocationStatus: true,
+        allocationIds: true,
+        claims: {
+          select: {
+            claimId: true,
+            sector: true,
+            status: true,
+            provider: true,
+            client: true,
+            data: true,
+            size: true,
+            term_min: true,
+            term_max: true,
+            term_start: true,
+          },
+        },
       },
     },
     sectorReceipt: {
@@ -131,3 +135,36 @@ export const porepMarkerDealSelect =
 export type PorepMarketDealDto = Prisma.porep_market_dealGetPayload<{
   select: typeof porepMarkerDealSelect;
 }>;
+
+export type PorepMarketDealResponseDto = Omit<
+  PorepMarketDealDto,
+  "dataCapEvidence"
+> & {
+  dataCapEvidence: PorepMarketDealDto["dataCapEvidence"];
+  allocationsRequiredCount: bigint | null;
+  allocationsMatchedCount: bigint | null;
+  isAllocationsMatched: boolean;
+  dataCapAllocationStatus:
+    | NonNullable<
+        PorepMarketDealDto["dataCapEvidence"]
+      >["dataCapAllocationStatus"]
+    | undefined;
+  allocationIds: bigint[];
+  claimsCount: number;
+};
+
+export function toPorepMarketDealResponseDto(
+  deal: PorepMarketDealDto,
+): PorepMarketDealResponseDto {
+  return {
+    ...deal,
+    allocationsRequiredCount:
+      deal.dataCapEvidence?.allocationsRequiredCount ?? null,
+    allocationsMatchedCount:
+      deal.dataCapEvidence?.allocationsMatchedCount ?? null,
+    isAllocationsMatched: deal.dataCapEvidence?.isAllocationsMatched ?? false,
+    dataCapAllocationStatus: deal.dataCapEvidence?.dataCapAllocationStatus,
+    allocationIds: deal.dataCapEvidence?.allocationIds ?? [],
+    claimsCount: deal.dataCapEvidence?.claims.length ?? 0,
+  };
+}

@@ -44,11 +44,14 @@ export function buildStagingPorepMarketDeal(
     reservedBytes: 1073741824n,
     committedBytes: 0n,
 
-    allocationsRequiredCount: null,
-    allocationsMatchedCount: null,
-    isAllocationsMatched: false,
-    dataCapAllocationStatus: DataCapAllocationStatus.None,
-    allocationIds: [],
+    dataCapEvidence: {
+      allocationsRequiredCount: null,
+      allocationsMatchedCount: null,
+      isAllocationsMatched: false,
+      dataCapAllocationStatus: DataCapAllocationStatus.None,
+      allocationIds: [],
+      claims: [],
+    },
     isRailTerminated: false,
 
     urlFinderSliTargetTriggeredAt: null,
@@ -90,7 +93,6 @@ export function buildStagingPorepMarketDeal(
       },
     ],
     settlement_history: [],
-    claims: [],
     sectorReceipt: null,
 
     ...overrides,

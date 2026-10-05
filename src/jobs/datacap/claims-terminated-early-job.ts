@@ -113,7 +113,7 @@ export async function trackClaimsTerminatedEarlyJob() {
       provider: bigint;
       sector: bigint;
     }[] = completedDeals.flatMap((deal) =>
-      deal.claims.map((claim) => ({
+      (deal.dataCapEvidence?.claims ?? []).map((claim) => ({
         claimId: claim.claimId,
         onChainDealId: deal.onChainDealId,
         provider: deal.provider,
