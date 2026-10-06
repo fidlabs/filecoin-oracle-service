@@ -1,10 +1,5 @@
-import { Address } from "viem";
 import { getRpcClient } from "../../blockchain/blockchain-client";
-import {
-  activateEvidenceOnPoRepMarketContract,
-  simulateActivateEvidenceOnPoRepMarketContract,
-} from "../../blockchain/porep-market.contract";
-import { getManifestReceiptFromSectorEvidenceContract } from "../../blockchain/sector-evidence-adapter-contract";
+import { activateEvidenceOnPoRepMarketContract } from "../../blockchain/porep-market.contract";
 import {
   getSectorDealsToActivateEvidenceFromDb,
   setActivatePaymentAtInDb,
@@ -40,55 +35,56 @@ export async function sectorActivateEvidenceJob() {
 
     for (const deal of deals) {
       try {
-        const receipt = await getManifestReceiptFromSectorEvidenceContract(
-          deal.onChainDealId,
-          deal.evidenceAdapterContractAddress as Address,
-        );
+        const receipt = deal.sectorAdapter?.receipt;
+
+        if (!receipt || !deal.terms) {
+          sectorActivateEvidenceLogger.warn(
+            `Deal ${deal.onChainDealId} is missing local Sector receipt or terms, skipping activateEvidence`,
+          );
+          continue;
+        }
 
         if (
           receipt.pieceCount === 0n ||
-          receipt.acceptedPieceCount < receipt.pieceCount
+          receipt.acceptedPieceCount < receipt.pieceCount ||
+          receipt.acceptedBytes !== deal.terms.requestedSizeBytes
         ) {
           sectorActivateEvidenceLogger.info(
-            `Deal ${deal.onChainDealId} has ${receipt.acceptedPieceCount}/${receipt.pieceCount} pieces placed, waiting for the provider`,
+            `Deal ${deal.onChainDealId} local Sector evidence is incomplete (${receipt.acceptedPieceCount}/${receipt.pieceCount} pieces, ${receipt.acceptedBytes}/${deal.terms.requestedSizeBytes} bytes), waiting for next sync`,
           );
           continue;
         }
 
-        if (deal.terms) {
-          const commitmentMarginEpochs =
-            receipt.minimumCommitmentEpoch -
-            (currentEpoch + deal.terms.durationEpochs);
+        const commitmentMarginEpochs =
+          receipt.minimumCommitmentEpoch -
+          (currentEpoch + deal.terms.durationEpochs);
 
-          if (commitmentMarginEpochs < 0n) {
-            sectorActivateEvidenceLogger.warn(
-              `Deal ${deal.onChainDealId} minimum sector commitment epoch ${receipt.minimumCommitmentEpoch} no longer covers the deal duration from epoch ${currentEpoch}, evidence cannot be activated`,
-            );
-            continue;
-          }
-
-          sectorActivateEvidenceLogger.info(
-            `Deal ${deal.onChainDealId} sector commitment margin: ${commitmentMarginEpochs} epochs`,
+        if (commitmentMarginEpochs < 0n) {
+          sectorActivateEvidenceLogger.warn(
+            `Deal ${deal.onChainDealId} minimum sector commitment epoch ${receipt.minimumCommitmentEpoch} no longer covers the deal duration from epoch ${currentEpoch}, evidence cannot be activated`,
           );
+          continue;
         }
 
-        const decision = await simulateActivateEvidenceOnPoRepMarketContract(
-          deal.onChainDealId,
-          NO_ADDITIONAL_EVIDENCE_DATA,
+        sectorActivateEvidenceLogger.info(
+          `Deal ${deal.onChainDealId} sector commitment margin: ${commitmentMarginEpochs} epochs`,
         );
-
-        if (decision.result !== ContractEvidenceResult.Accepted) {
-          sectorActivateEvidenceLogger.info(
-            `Sector evidence for deal ${deal.onChainDealId} was not accepted (result ${decision.result}), skipping activateEvidence`,
-          );
-          continue;
-        }
 
         const activateEvidenceResult =
           await activateEvidenceOnPoRepMarketContract(
             deal.onChainDealId,
             NO_ADDITIONAL_EVIDENCE_DATA,
           );
+
+        if (
+          activateEvidenceResult.decision?.result !==
+          ContractEvidenceResult.Accepted
+        ) {
+          sectorActivateEvidenceLogger.info(
+            `Sector evidence for deal ${deal.onChainDealId} was not accepted (result ${activateEvidenceResult.decision?.result}), skipping activateEvidence`,
+          );
+          continue;
+        }
 
         await storeOnChainTransactionToDb(
           deal.onChainDealId,
