@@ -77,7 +77,7 @@ export const porepMarkerDealSelect =
         settlementAt: "desc",
       },
     },
-    dataCapEvidence: {
+    dataCapAdapter: {
       select: {
         allocationsRequiredCount: true,
         allocationsMatchedCount: true,
@@ -100,15 +100,19 @@ export const porepMarkerDealSelect =
         },
       },
     },
-    sectorReceipt: {
+    sectorAdapter: {
       select: {
-        providerActorId: true,
-        pieceCount: true,
-        acceptedPieceCount: true,
-        acceptedBytes: true,
-        minimumCommitmentEpoch: true,
-        activated: true,
-        sectorCount: true,
+        receipt: {
+          select: {
+            providerActorId: true,
+            pieceCount: true,
+            acceptedPieceCount: true,
+            acceptedBytes: true,
+            minimumCommitmentEpoch: true,
+            activated: true,
+            sectorCount: true,
+          },
+        },
       },
     },
     payment: {
@@ -138,15 +142,16 @@ export type PorepMarketDealDto = Prisma.porep_market_dealGetPayload<{
 
 export type PorepMarketDealResponseDto = Omit<
   PorepMarketDealDto,
-  "dataCapEvidence"
+  "dataCapAdapter"
 > & {
-  dataCapEvidence: PorepMarketDealDto["dataCapEvidence"];
+  dataCapAdapter: PorepMarketDealDto["dataCapAdapter"];
+  sectorReceipt: NonNullable<PorepMarketDealDto["sectorAdapter"]>["receipt"];
   allocationsRequiredCount: bigint | null;
   allocationsMatchedCount: bigint | null;
   isAllocationsMatched: boolean;
   dataCapAllocationStatus:
     | NonNullable<
-        PorepMarketDealDto["dataCapEvidence"]
+        PorepMarketDealDto["dataCapAdapter"]
       >["dataCapAllocationStatus"]
     | undefined;
   allocationIds: bigint[];
@@ -159,12 +164,13 @@ export function toPorepMarketDealResponseDto(
   return {
     ...deal,
     allocationsRequiredCount:
-      deal.dataCapEvidence?.allocationsRequiredCount ?? null,
+      deal.dataCapAdapter?.allocationsRequiredCount ?? null,
     allocationsMatchedCount:
-      deal.dataCapEvidence?.allocationsMatchedCount ?? null,
-    isAllocationsMatched: deal.dataCapEvidence?.isAllocationsMatched ?? false,
-    dataCapAllocationStatus: deal.dataCapEvidence?.dataCapAllocationStatus,
-    allocationIds: deal.dataCapEvidence?.allocationIds ?? [],
-    claimsCount: deal.dataCapEvidence?.claims.length ?? 0,
+      deal.dataCapAdapter?.allocationsMatchedCount ?? null,
+    isAllocationsMatched: deal.dataCapAdapter?.isAllocationsMatched ?? false,
+    dataCapAllocationStatus: deal.dataCapAdapter?.dataCapAllocationStatus,
+    allocationIds: deal.dataCapAdapter?.allocationIds ?? [],
+    claimsCount: deal.dataCapAdapter?.claims.length ?? 0,
+    sectorReceipt: deal.sectorAdapter?.receipt ?? null,
   };
 }

@@ -17,29 +17,26 @@ export interface DealEvidenceAdapter {
   ) => Promise<DealEvidenceSyncData>;
 }
 
-const dataCapEvidenceAdapter: DealEvidenceAdapter = {
+const dataCapAdapter: DealEvidenceAdapter = {
   type: EvidenceAdapterType.DataCap,
   prepareEvidenceForSync: (dealView, existingDeal) =>
     prepareDataCapDealEvidenceForSync(
       dealView,
-      existingDeal?.dataCapEvidence?.isAllocationsMatched,
+      existingDeal?.dataCapAdapter?.isAllocationsMatched,
     ),
 };
 
-const sectorEvidenceAdapter: DealEvidenceAdapter = {
+const sectorAdapter: DealEvidenceAdapter = {
   type: EvidenceAdapterType.Sector,
   prepareEvidenceForSync: (dealView, existingDeal) =>
     prepareSectorDealEvidenceForSync(
       dealView,
-      existingDeal?.sectorReceipt?.sectorCount,
+      existingDeal?.sectorAdapter?.receipt?.sectorCount,
     ),
 };
 
 const evidenceAdapters = new Map<EvidenceAdapterType, DealEvidenceAdapter>(
-  [dataCapEvidenceAdapter, sectorEvidenceAdapter].map((adapter) => [
-    adapter.type,
-    adapter,
-  ]),
+  [dataCapAdapter, sectorAdapter].map((adapter) => [adapter.type, adapter]),
 );
 
 export function getEvidenceAdapter(type: EvidenceAdapterType) {

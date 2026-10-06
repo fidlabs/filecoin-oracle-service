@@ -61,7 +61,7 @@ export async function dataCapPostingFinishedJob() {
       }
 
       const batchSizes = getEvidenceBatchSizes(
-        deal.dataCapEvidence?.allocationsRequiredCount,
+        deal.dataCapAdapter?.allocationsRequiredCount,
       );
 
       if (!batchSizes.length) {
