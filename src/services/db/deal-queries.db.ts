@@ -88,14 +88,18 @@ export async function getDealsFromDb(dealIds: bigint[]) {
       },
     },
     include: {
-      dataCapEvidence: {
+      dataCapAdapter: {
         select: {
           isAllocationsMatched: true,
         },
       },
-      sectorReceipt: {
+      sectorAdapter: {
         select: {
-          sectorCount: true,
+          receipt: {
+            select: {
+              sectorCount: true,
+            },
+          },
         },
       },
     },
