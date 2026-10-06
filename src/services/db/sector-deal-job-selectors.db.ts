@@ -9,9 +9,26 @@ export async function getSectorDealsToActivateEvidenceFromDb(): Promise<
   return await getDealsByWhereFromDb({
     evidenceAdapterType: EvidenceAdapterType.Sector,
     state: DealState.Accepted,
+    isEvidenceComplete: true,
     isRailTerminated: false,
     railId: {
       gt: 0,
+    },
+    terms: {
+      isNot: null,
+    },
+    sectorAdapter: {
+      is: {
+        receipt: {
+          is: {
+            pieceCount: {
+              gt: 0,
+            },
+            activated: false,
+          },
+          isNot: null,
+        },
+      },
     },
   });
 }
