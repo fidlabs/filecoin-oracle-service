@@ -83,7 +83,7 @@ export async function getCompletedDealsToTerminateFromDb(blockNumber: bigint) {
       },
       state: DealState.Active,
       isRailTerminated: false,
-      dataCapEvidence: {
+      dataCapAdapter: {
         is: {
           isAllocationsMatched: true, // IMPORTANT: only consider deals with matching allocation count between expected and actual to avoid setting wrong deal end epoch
         },

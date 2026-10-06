@@ -121,7 +121,7 @@ export async function prepareDataCapDealEvidenceForSync(
       allocationsMatchedCount !== undefined
         ? allocationsRequiredCount === allocationsMatchedCount
         : undefined,
-    dataCapEvidence: {
+    dataCapAdapter: {
       allocationsRequiredCount,
       allocationsMatchedCount,
       dataCapAllocationStatus,

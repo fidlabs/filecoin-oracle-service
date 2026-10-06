@@ -44,7 +44,7 @@ export function buildStagingPorepMarketDeal(
     reservedBytes: 1073741824n,
     committedBytes: 0n,
 
-    dataCapEvidence: {
+    dataCapAdapter: {
       allocationsRequiredCount: null,
       allocationsMatchedCount: null,
       isAllocationsMatched: false,
@@ -93,7 +93,7 @@ export function buildStagingPorepMarketDeal(
       },
     ],
     settlement_history: [],
-    sectorReceipt: null,
+    sectorAdapter: null,
 
     ...overrides,
   };

@@ -293,13 +293,18 @@ export interface PorepMarketDealClaim {
   term_start: bigint;
 }
 
-export interface PorepMarketDealDataCapEvidence {
+export interface PorepMarketDealDataCapAdapter {
   allocationsRequiredCount?: bigint;
   allocationsMatchedCount?: bigint;
   isAllocationsMatched?: boolean;
   dataCapAllocationStatus: DataCapAllocationStatus;
   allocationIds?: bigint[];
   claims?: PorepMarketDealClaim[];
+}
+
+export interface PorepMarketDealSectorAdapter {
+  receipt?: SectorManifestReceipt;
+  sectors?: PorepMarketDealSector[];
 }
 
 export interface PorepMarketDeal {
@@ -328,9 +333,8 @@ export interface PorepMarketDeal {
   state: DealState;
   dealType: DealType;
   activatePaymentAt?: Date | null;
-  dataCapEvidence?: PorepMarketDealDataCapEvidence;
-  sectorReceipt?: SectorManifestReceipt;
-  sectors?: PorepMarketDealSector[];
+  dataCapAdapter?: PorepMarketDealDataCapAdapter;
+  sectorAdapter?: PorepMarketDealSectorAdapter;
   isRailTerminated?: boolean;
   terms: DealTerms;
   payment: DealPayment;
@@ -341,7 +345,7 @@ export interface PorepMarketDeal {
 
 export type DealEvidenceSyncData = Pick<
   PorepMarketDeal,
-  "isEvidenceComplete" | "dataCapEvidence" | "sectorReceipt" | "sectors"
+  "isEvidenceComplete" | "dataCapAdapter" | "sectorAdapter"
 >;
 
 export interface DealScore {

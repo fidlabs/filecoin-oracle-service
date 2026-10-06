@@ -14,14 +14,14 @@ export async function getDataCapDealsToCheckClaimTerminationFromDb() {
       },
       state: DealState.Active,
       isRailTerminated: false,
-      dataCapEvidence: {
+      dataCapAdapter: {
         is: {
           isAllocationsMatched: true, // IMPORTANT: only consider deals with matching allocation count between expected and actual to avoid setting wrong deal end epoch
         },
       },
     },
     include: {
-      dataCapEvidence: {
+      dataCapAdapter: {
         include: {
           claims: true,
         },
@@ -38,7 +38,7 @@ export async function getDataCapDealsToRefreshEvidenceStatusFromDb(): Promise<
   return await getDealsByWhereFromDb({
     evidenceAdapterType: EvidenceAdapterType.DataCap,
     state: DealState.Active,
-    dataCapEvidence: {
+    dataCapAdapter: {
       is: {
         isAllocationsMatched: true,
       },
@@ -55,7 +55,7 @@ export async function getDataCapDealsToActivateEvidenceFromDb(): Promise<
 > {
   return await getDealsByWhereFromDb({
     evidenceAdapterType: EvidenceAdapterType.DataCap,
-    dataCapEvidence: {
+    dataCapAdapter: {
       is: {
         dataCapAllocationStatus: DataCapAllocationStatus.Allocated,
       },
