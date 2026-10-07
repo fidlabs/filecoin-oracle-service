@@ -8,45 +8,6 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
   },
   {
     type: "function",
-    name: "DEFAULT_ADMIN_ROLE",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "TERMINATION_ORACLE",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "UPGRADER_ROLE",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     name: "UPGRADE_INTERFACE_VERSION",
     inputs: [],
     outputs: [
@@ -54,6 +15,19 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
         name: "",
         type: "string",
         internalType: "string",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "accessManager",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
       },
     ],
     stateMutability: "view",
@@ -213,12 +187,12 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
             internalType: "uint8",
           },
           {
-            name: "checkedClaims",
+            name: "checkedItems",
             type: "uint256",
             internalType: "uint256",
           },
           {
-            name: "totalClaims",
+            name: "totalItems",
             type: "uint256",
             internalType: "uint256",
           },
@@ -419,43 +393,6 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
   },
   {
     type: "function",
-    name: "getRoleAdmin",
-    inputs: [
-      {
-        name: "role",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "grantRole",
-    inputs: [
-      {
-        name: "role",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-      {
-        name: "account",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
     name: "handle_filecoin_method",
     inputs: [
       {
@@ -495,30 +432,6 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
   },
   {
     type: "function",
-    name: "hasRole",
-    inputs: [
-      {
-        name: "role",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-      {
-        name: "account",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     name: "hasSubmittedEvidence",
     inputs: [
       {
@@ -541,12 +454,7 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
     name: "initialize",
     inputs: [
       {
-        name: "admin",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "terminationOracle",
+        name: "_accessManager",
         type: "address",
         internalType: "address",
       },
@@ -702,54 +610,18 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
             internalType: "uint8",
           },
           {
-            name: "checkedClaims",
+            name: "checkedItems",
             type: "uint256",
             internalType: "uint256",
           },
           {
-            name: "totalClaims",
+            name: "totalItems",
             type: "uint256",
             internalType: "uint256",
           },
         ],
       },
     ],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "renounceRole",
-    inputs: [
-      {
-        name: "role",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-      {
-        name: "callerConfirmation",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "revokeRole",
-    inputs: [
-      {
-        name: "role",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-      {
-        name: "account",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [],
     stateMutability: "nonpayable",
   },
   {
@@ -881,25 +753,6 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
   },
   {
     type: "function",
-    name: "supportsInterface",
-    inputs: [
-      {
-        name: "interfaceId",
-        type: "bytes4",
-        internalType: "bytes4",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     name: "upgradeToAndCall",
     inputs: [
       {
@@ -1026,81 +879,6 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
   },
   {
     type: "event",
-    name: "RoleAdminChanged",
-    inputs: [
-      {
-        name: "role",
-        type: "bytes32",
-        indexed: true,
-        internalType: "bytes32",
-      },
-      {
-        name: "previousAdminRole",
-        type: "bytes32",
-        indexed: true,
-        internalType: "bytes32",
-      },
-      {
-        name: "newAdminRole",
-        type: "bytes32",
-        indexed: true,
-        internalType: "bytes32",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "RoleGranted",
-    inputs: [
-      {
-        name: "role",
-        type: "bytes32",
-        indexed: true,
-        internalType: "bytes32",
-      },
-      {
-        name: "account",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-      {
-        name: "sender",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "RoleRevoked",
-    inputs: [
-      {
-        name: "role",
-        type: "bytes32",
-        indexed: true,
-        internalType: "bytes32",
-      },
-      {
-        name: "account",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-      {
-        name: "sender",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
     name: "Upgraded",
     inputs: [
       {
@@ -1111,11 +889,6 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
       },
     ],
     anonymous: false,
-  },
-  {
-    type: "error",
-    name: "AccessControlBadConfirmation",
-    inputs: [],
   },
   {
     type: "error",
@@ -1207,8 +980,14 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
   },
   {
     type: "error",
-    name: "InvalidAdminAddress",
-    inputs: [],
+    name: "InvalidAccessManager",
+    inputs: [
+      {
+        name: "manager",
+        type: "address",
+        internalType: "address",
+      },
+    ],
   },
   {
     type: "error",
@@ -1357,11 +1136,6 @@ export const DATACAP_EVIDENCE_ADAPTER_CONTRACT_ABI = [
   {
     type: "error",
     name: "InvalidSecondElement",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "InvalidTerminationOracleAddress",
     inputs: [],
   },
   {

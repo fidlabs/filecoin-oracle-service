@@ -271,12 +271,12 @@ export const POREP_MARKET_VIEW_CONTRACT_ABI = [
                 internalType: "uint8",
               },
               {
-                name: "checkedClaims",
+                name: "checkedItems",
                 type: "uint256",
                 internalType: "uint256",
               },
               {
-                name: "totalClaims",
+                name: "totalItems",
                 type: "uint256",
                 internalType: "uint256",
               },
@@ -538,12 +538,12 @@ export const POREP_MARKET_VIEW_CONTRACT_ABI = [
                 internalType: "uint8",
               },
               {
-                name: "checkedClaims",
+                name: "checkedItems",
                 type: "uint256",
                 internalType: "uint256",
               },
               {
-                name: "totalClaims",
+                name: "totalItems",
                 type: "uint256",
                 internalType: "uint256",
               },
@@ -820,12 +820,12 @@ export const POREP_MARKET_VIEW_CONTRACT_ABI = [
                 internalType: "uint8",
               },
               {
-                name: "checkedClaims",
+                name: "checkedItems",
                 type: "uint256",
                 internalType: "uint256",
               },
               {
-                name: "totalClaims",
+                name: "totalItems",
                 type: "uint256",
                 internalType: "uint256",
               },

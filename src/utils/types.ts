@@ -143,8 +143,8 @@ export interface DealPayment {
 export interface DealEvidenceStatus {
   activeCoveredBytes: bigint;
   lastEvidenceRefreshEpoch: bigint;
-  checkedClaims: bigint;
-  totalClaims: bigint;
+  checkedItems: bigint;
+  totalItems: bigint;
   reasonCode: bigint;
   result: EvidenceResult;
 }
@@ -275,8 +275,8 @@ export interface PorepMarketContractDealView {
     lastEvidenceRefreshEpoch: bigint;
     reasonCode: number;
     result: number;
-    checkedClaims: bigint;
-    totalClaims: bigint;
+    checkedItems: bigint;
+    totalItems: bigint;
   };
 }
 

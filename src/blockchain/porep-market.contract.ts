@@ -177,8 +177,8 @@ export async function simulateRefreshEvidenceStatusOnPoRepMarketContract(
   return {
     activeCoveredBytes: result.activeCoveredBytes,
     lastEvidenceRefreshEpoch: result.lastEvidenceRefreshEpoch,
-    checkedClaims: result.checkedClaims,
-    totalClaims: result.totalClaims,
+    checkedItems: result.checkedItems,
+    totalItems: result.totalItems,
     reasonCode: BigInt(result.reasonCode),
     result: toPrismaEvidenceResult(result.result),
   };
@@ -207,8 +207,8 @@ export async function refreshEvidenceStatusOnPoRepMarketContract(
   const status = {
     activeCoveredBytes: result.activeCoveredBytes,
     lastEvidenceRefreshEpoch: result.lastEvidenceRefreshEpoch,
-    checkedClaims: result.checkedClaims,
-    totalClaims: result.totalClaims,
+    checkedItems: result.checkedItems,
+    totalItems: result.totalItems,
     reasonCode: BigInt(result.reasonCode),
     result: toPrismaEvidenceResult(result.result),
   };
