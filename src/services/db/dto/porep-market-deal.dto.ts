@@ -114,8 +114,8 @@ export const porepMarkerDealSelect =
         activeCoveredBytes: true,
         lastEvidenceRefreshEpoch: true,
         reasonCode: true,
-        checkedClaims: true,
-        totalClaims: true,
+        checkedItems: true,
+        totalItems: true,
         result: true,
       },
     },
@@ -124,20 +124,3 @@ export const porepMarkerDealSelect =
 export type PorepMarketDealDto = Prisma.porep_market_dealGetPayload<{
   select: typeof porepMarkerDealSelect;
 }>;
-
-export type PorepMarketDealResponseDto = Omit<
-  PorepMarketDealDto,
-  "dataCapAdapter"
-> & {
-  dataCapAdapter: PorepMarketDealDto["dataCapAdapter"];
-  sectorReceipt: NonNullable<PorepMarketDealDto["sectorAdapter"]>["receipt"];
-};
-
-export function toPorepMarketDealResponseDto(
-  deal: PorepMarketDealDto,
-): PorepMarketDealResponseDto {
-  return {
-    ...deal,
-    sectorReceipt: deal.sectorAdapter?.receipt ?? null,
-  };
-}

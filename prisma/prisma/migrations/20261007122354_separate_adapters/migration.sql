@@ -1,3 +1,13 @@
+CREATE TYPE "EvidenceAdapterType" AS ENUM ('DataCap', 'Sector');
+
+ALTER TABLE "porep_market_deal"
+  ADD COLUMN "evidenceAdapterType" "EvidenceAdapterType" NOT NULL DEFAULT 'DataCap',
+  ADD COLUMN "isEvidenceComplete" BOOLEAN NOT NULL DEFAULT false;
+
+UPDATE "porep_market_deal" SET "isEvidenceComplete" = "isAllocationsMatched";
+
+ALTER TABLE "porep_market_deal" ALTER COLUMN "evidenceAdapterType" DROP DEFAULT;
+
 CREATE TABLE "datacap_adapter" (
     "id" UUID NOT NULL,
     "porepMarketDealId" UUID NOT NULL,
@@ -69,68 +79,36 @@ CREATE TABLE "sector_adapter_sector" (
     CONSTRAINT "sector_adapter_sector_pkey" PRIMARY KEY ("id")
 );
 
+-- 3. Migracja danych: deal -> datacap_adapter
 INSERT INTO "datacap_adapter" (
-    "id",
-    "porepMarketDealId",
-    "onChainDealId",
-    "allocationsRequiredCount",
-    "allocationsMatchedCount",
-    "isAllocationsMatched",
-    "dataCapAllocationStatus",
-    "allocationIds",
-    "createdAt",
-    "updatedAt"
+    "id", "porepMarketDealId", "onChainDealId",
+    "allocationsRequiredCount", "allocationsMatchedCount", "isAllocationsMatched",
+    "dataCapAllocationStatus", "allocationIds", "createdAt", "updatedAt"
 )
 SELECT
-    deal."id",
-    deal."id",
-    deal."onChainDealId",
-    deal."allocationsRequiredCount",
-    deal."allocationsMatchedCount",
-    deal."isAllocationsMatched",
-    deal."dataCapAllocationStatus",
-    deal."allocationIds",
-    deal."createdAt",
-    deal."updatedAt"
+    deal."id", deal."id", deal."onChainDealId",
+    deal."allocationsRequiredCount", deal."allocationsMatchedCount", deal."isAllocationsMatched",
+    deal."dataCapAllocationStatus", deal."allocationIds", deal."createdAt", deal."updatedAt"
 FROM "porep_market_deal" deal
 WHERE deal."evidenceAdapterType" = 'DataCap'
    OR EXISTS (
-       SELECT 1
-       FROM "porep_market_deal_claim" claim
+       SELECT 1 FROM "porep_market_deal_claim" claim
        WHERE claim."porepMarketDealId" = deal."id"
    );
 
+-- 4. Migracja danych: claims -> datacap_adapter_claim
 INSERT INTO "datacap_adapter_claim" (
-    "id",
-    "dataCapAdapterId",
-    "claimId",
-    "sector",
-    "provider",
-    "client",
-    "data",
-    "size",
-    "term_min",
-    "term_max",
-    "term_start",
-    "status"
+    "id", "dataCapAdapterId", "claimId", "sector", "provider", "client",
+    "data", "size", "term_min", "term_max", "term_start", "status"
 )
 SELECT
-    claim."id",
-    adapter."id",
-    claim."claimId",
-    claim."sector",
-    claim."provider",
-    claim."client",
-    claim."data",
-    claim."size",
-    claim."term_min",
-    claim."term_max",
-    claim."term_start",
-    claim."status"
+    claim."id", adapter."id", claim."claimId", claim."sector", claim."provider", claim."client",
+    claim."data", claim."size", claim."term_min", claim."term_max", claim."term_start", claim."status"
 FROM "porep_market_deal_claim" claim
 JOIN "datacap_adapter" adapter
   ON adapter."porepMarketDealId" = claim."porepMarketDealId";
 
+-- 5. Indeksy
 CREATE UNIQUE INDEX "datacap_adapter_porepMarketDealId_key" ON "datacap_adapter"("porepMarketDealId");
 CREATE UNIQUE INDEX "datacap_adapter_onChainDealId_key" ON "datacap_adapter"("onChainDealId");
 CREATE INDEX "datacap_adapter_claim_dataCapAdapterId_idx" ON "datacap_adapter_claim"("dataCapAdapterId");
@@ -150,8 +128,6 @@ ALTER TABLE "sector_adapter_receipt" ADD CONSTRAINT "sector_adapter_receipt_sect
 ALTER TABLE "sector_adapter_sector" ADD CONSTRAINT "sector_adapter_sector_sectorAdapterId_fkey" FOREIGN KEY ("sectorAdapterId") REFERENCES "sector_adapter"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 DROP TABLE "porep_market_deal_claim";
-DROP TABLE "porep_market_deal_sector";
-DROP TABLE "porep_market_deal_sector_receipt";
 
 ALTER TABLE "porep_market_deal"
   DROP COLUMN "allocationsRequiredCount",

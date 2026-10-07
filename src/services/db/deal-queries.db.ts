@@ -2,13 +2,12 @@ import { DealState } from "../../utils/types";
 import { prismaClient } from "./db-client";
 import {
   porepMarkerDealSelect,
-  PorepMarketDealResponseDto,
-  toPorepMarketDealResponseDto,
+  PorepMarketDealDto,
 } from "./dto/porep-market-deal.dto";
 
 export async function getDealByOnChainIdFromDb(
   onChainDealId: bigint,
-): Promise<PorepMarketDealResponseDto | null> {
+): Promise<PorepMarketDealDto | null> {
   const deal = await prismaClient.porep_market_deal.findUnique({
     where: {
       onChainDealId,
@@ -16,7 +15,7 @@ export async function getDealByOnChainIdFromDb(
     select: porepMarkerDealSelect,
   });
 
-  return deal ? toPorepMarketDealResponseDto(deal) : null;
+  return deal;
 }
 
 export async function getCountOfCompletedDealsFromDb() {
@@ -60,14 +59,12 @@ export async function getPaginatedDealsByStateFromDb({
     }),
   ]);
 
-  const filteredDeals = deals.map(toPorepMarketDealResponseDto);
-
-  return { filteredDeals, totalDeals };
+  return { filteredDeals: deals, totalDeals };
 }
 
 export async function getDealsByStateFromDb(
   states: DealState[],
-): Promise<PorepMarketDealResponseDto[]> {
+): Promise<PorepMarketDealDto[]> {
   const dealsByState = await prismaClient.porep_market_deal.findMany({
     where: {
       state: {
@@ -77,7 +74,7 @@ export async function getDealsByStateFromDb(
     select: porepMarkerDealSelect,
   });
 
-  return dealsByState.map(toPorepMarketDealResponseDto);
+  return dealsByState;
 }
 
 export async function getDealAllocationIdsByOnChainIdFromDb(

@@ -126,8 +126,8 @@ model porep_market_deal_evidence_status {
   activeCoveredBytes       BigInt
   lastEvidenceRefreshEpoch BigInt
   reasonCode               BigInt
-  checkedClaims            BigInt
-  totalClaims              BigInt
+  checkedItems             BigInt
+  totalItems               BigInt
   result                   EvidenceResult
   createdAt                DateTime          @default(now())
   updatedAt                DateTime          @updatedAt
@@ -137,18 +137,18 @@ model porep_market_deal_evidence_status {
 }
 
 model datacap_adapter_claim {
-  id                String        @id @default(uuid()) @db.Uuid
-  dataCapAdapterId  String        @db.Uuid
-  claimId           BigInt
-  sector            BigInt
-  provider          BigInt
-  client            BigInt
-  data              String
-  size              BigInt
-  term_min          BigInt
-  term_max          BigInt
-  term_start        BigInt
-  status            SectorStatus?
+  id               String        @id @default(uuid()) @db.Uuid
+  dataCapAdapterId String        @db.Uuid
+  claimId          BigInt
+  sector           BigInt
+  provider         BigInt
+  client           BigInt
+  data             String
+  size             BigInt
+  term_min         BigInt
+  term_max         BigInt
+  term_start       BigInt
+  status           SectorStatus?
 
   dataCapAdapter datacap_adapter @relation(fields: [dataCapAdapterId], references: [id])
 
@@ -168,7 +168,7 @@ model datacap_adapter {
   createdAt                DateTime                @default(now())
   updatedAt                DateTime                @updatedAt
 
-  deal   porep_market_deal     @relation(fields: [porepMarketDealId], references: [id])
+  deal   porep_market_deal       @relation(fields: [porepMarketDealId], references: [id])
   claims datacap_adapter_claim[]
 }
 
@@ -195,20 +195,20 @@ model sector_adapter {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  deal    porep_market_deal      @relation(fields: [porepMarketDealId], references: [id])
+  deal    porep_market_deal       @relation(fields: [porepMarketDealId], references: [id])
   receipt sector_adapter_receipt?
   sectors sector_adapter_sector[]
 }
 
 model sector_adapter_sector {
-  id               String                  @id @default(uuid()) @db.Uuid
-  sectorAdapterId  String                  @db.Uuid
-  onChainDealId    BigInt
-  sectorIndex      BigInt
-  sectorNumber     BigInt
-  coveredBytes     BigInt
-  createdAt        DateTime                @default(now())
-  sectorAdapter    sector_adapter          @relation(fields: [sectorAdapterId], references: [id])
+  id              String         @id @default(uuid()) @db.Uuid
+  sectorAdapterId String         @db.Uuid
+  onChainDealId   BigInt
+  sectorIndex     BigInt
+  sectorNumber    BigInt
+  coveredBytes    BigInt
+  createdAt       DateTime       @default(now())
+  sectorAdapter   sector_adapter @relation(fields: [sectorAdapterId], references: [id])
 
   @@unique([sectorAdapterId, sectorIndex])
   @@index([sectorAdapterId])

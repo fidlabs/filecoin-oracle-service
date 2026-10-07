@@ -88,7 +88,7 @@ export function dealRoutes(
         BigInt(onChainDealId),
       );
 
-      return reply.success(allocationIds);
+      return reply.success({ count: allocationIds.length, allocationIds });
     },
   );
 
@@ -116,7 +116,7 @@ export function dealRoutes(
         BigInt(onChainDealId),
       );
 
-      return reply.success(claims);
+      return reply.success({ count: claims.length, claims });
     },
   );
 

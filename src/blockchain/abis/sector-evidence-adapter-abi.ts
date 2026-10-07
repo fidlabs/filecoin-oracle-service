@@ -1,7 +1,11 @@
 import { Abi } from "viem";
 
 export const SECTOR_EVIDENCE_ADAPTER_CONTRACT_ABI = [
-  { type: "constructor", inputs: [], stateMutability: "nonpayable" },
+  {
+    type: "constructor",
+    inputs: [],
+    stateMutability: "nonpayable",
+  },
   {
     type: "function",
     name: "POREP_MARKET",
@@ -19,14 +23,26 @@ export const SECTOR_EVIDENCE_ADAPTER_CONTRACT_ABI = [
     type: "function",
     name: "UPGRADE_INTERFACE_VERSION",
     inputs: [],
-    outputs: [{ name: "", type: "string", internalType: "string" }],
+    outputs: [
+      {
+        name: "",
+        type: "string",
+        internalType: "string",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "accessManager",
     inputs: [],
-    outputs: [{ name: "", type: "address", internalType: "address" }],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
     stateMutability: "view",
   },
   {
@@ -38,14 +54,26 @@ export const SECTOR_EVIDENCE_ADAPTER_CONTRACT_ABI = [
         type: "tuple",
         internalType: "struct SharedTypes.ActivationContext",
         components: [
-          { name: "dealId", type: "uint256", internalType: "uint256" },
+          {
+            name: "dealId",
+            type: "uint256",
+            internalType: "uint256",
+          },
           {
             name: "requestedSizeBytes",
             type: "uint256",
             internalType: "uint256",
           },
-          { name: "client", type: "address", internalType: "address" },
-          { name: "durationEpochs", type: "uint64", internalType: "uint64" },
+          {
+            name: "client",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "durationEpochs",
+            type: "uint64",
+            internalType: "uint64",
+          },
           {
             name: "activationToleranceBps",
             type: "uint16",
@@ -58,7 +86,11 @@ export const SECTOR_EVIDENCE_ADAPTER_CONTRACT_ABI = [
           },
         ],
       },
-      { name: "", type: "bytes", internalType: "bytes" },
+      {
+        name: "",
+        type: "bytes",
+        internalType: "bytes",
+      },
     ],
     outputs: [
       {
@@ -66,9 +98,21 @@ export const SECTOR_EVIDENCE_ADAPTER_CONTRACT_ABI = [
         type: "tuple",
         internalType: "struct SharedTypes.ActivationDecision",
         components: [
-          { name: "coveredBytes", type: "uint256", internalType: "uint256" },
-          { name: "reasonCode", type: "uint16", internalType: "uint16" },
-          { name: "result", type: "uint8", internalType: "uint8" },
+          {
+            name: "coveredBytes",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "reasonCode",
+            type: "uint16",
+            internalType: "uint16",
+          },
+          {
+            name: "result",
+            type: "uint8",
+            internalType: "uint8",
+          },
         ],
       },
     ],
@@ -83,14 +127,26 @@ export const SECTOR_EVIDENCE_ADAPTER_CONTRACT_ABI = [
         type: "tuple",
         internalType: "struct SharedTypes.ActivationContext",
         components: [
-          { name: "dealId", type: "uint256", internalType: "uint256" },
+          {
+            name: "dealId",
+            type: "uint256",
+            internalType: "uint256",
+          },
           {
             name: "requestedSizeBytes",
             type: "uint256",
             internalType: "uint256",
           },
-          { name: "client", type: "address", internalType: "address" },
-          { name: "durationEpochs", type: "uint64", internalType: "uint64" },
+          {
+            name: "client",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "durationEpochs",
+            type: "uint64",
+            internalType: "uint64",
+          },
           {
             name: "activationToleranceBps",
             type: "uint16",
@@ -120,10 +176,26 @@ export const SECTOR_EVIDENCE_ADAPTER_CONTRACT_ABI = [
             type: "int64",
             internalType: "CommonTypes.ChainEpoch",
           },
-          { name: "reasonCode", type: "uint16", internalType: "uint16" },
-          { name: "result", type: "uint8", internalType: "uint8" },
-          { name: "checkedClaims", type: "uint256", internalType: "uint256" },
-          { name: "totalClaims", type: "uint256", internalType: "uint256" },
+          {
+            name: "reasonCode",
+            type: "uint16",
+            internalType: "uint16",
+          },
+          {
+            name: "result",
+            type: "uint8",
+            internalType: "uint8",
+          },
+          {
+            name: "checkedItems",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "totalItems",
+            type: "uint256",
+            internalType: "uint256",
+          },
         ],
       },
     ],
@@ -131,15 +203,34 @@ export const SECTOR_EVIDENCE_ADAPTER_CONTRACT_ABI = [
   },
   {
     type: "function",
+    name: "disableAdapter",
+    inputs: [],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "getEvidenceType",
     inputs: [],
-    outputs: [{ name: "", type: "uint8", internalType: "uint8" }],
+    outputs: [
+      {
+        name: "",
+        type: "uint8",
+        internalType: "uint8",
+      },
+    ],
     stateMutability: "pure",
   },
   {
     type: "function",
     name: "getExpiration",
-    inputs: [{ name: "dealId", type: "uint256", internalType: "uint256" }],
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     outputs: [
       {
         name: "expiration",
@@ -152,27 +243,49 @@ export const SECTOR_EVIDENCE_ADAPTER_CONTRACT_ABI = [
   {
     type: "function",
     name: "getManifestReceipt",
-    inputs: [{ name: "dealId", type: "uint256", internalType: "uint256" }],
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     outputs: [
       {
         name: "receipt",
         type: "tuple",
         internalType: "struct SectorEvidenceAdapter.ManifestReceipt",
         components: [
-          { name: "providerActorId", type: "uint64", internalType: "uint64" },
-          { name: "pieceCount", type: "uint32", internalType: "uint32" },
+          {
+            name: "providerActorId",
+            type: "uint64",
+            internalType: "uint64",
+          },
+          {
+            name: "pieceCount",
+            type: "uint32",
+            internalType: "uint32",
+          },
           {
             name: "acceptedPieceCount",
             type: "uint32",
             internalType: "uint32",
           },
-          { name: "activated", type: "bool", internalType: "bool" },
+          {
+            name: "activated",
+            type: "bool",
+            internalType: "bool",
+          },
           {
             name: "minimumCommitmentEpoch",
             type: "int64",
             internalType: "int64",
           },
-          { name: "acceptedBytes", type: "uint256", internalType: "uint256" },
+          {
+            name: "acceptedBytes",
+            type: "uint256",
+            internalType: "uint256",
+          },
         ],
       },
     ],
@@ -182,8 +295,16 @@ export const SECTOR_EVIDENCE_ADAPTER_CONTRACT_ABI = [
     type: "function",
     name: "getPiecePlacement",
     inputs: [
-      { name: "dealId", type: "uint256", internalType: "uint256" },
-      { name: "pieceIndex", type: "uint32", internalType: "uint32" },
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "pieceIndex",
+        type: "uint32",
+        internalType: "uint32",
+      },
     ],
     outputs: [
       {
@@ -191,15 +312,31 @@ export const SECTOR_EVIDENCE_ADAPTER_CONTRACT_ABI = [
         type: "tuple",
         internalType: "struct SectorEvidenceAdapter.PiecePlacement",
         components: [
-          { name: "pieceCidDigest", type: "bytes32", internalType: "bytes32" },
-          { name: "sectorNumber", type: "uint64", internalType: "uint64" },
-          { name: "paddedSize", type: "uint64", internalType: "uint64" },
+          {
+            name: "pieceCidDigest",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "sectorNumber",
+            type: "uint64",
+            internalType: "uint64",
+          },
+          {
+            name: "paddedSize",
+            type: "uint64",
+            internalType: "uint64",
+          },
           {
             name: "minimumCommitmentEpoch",
             type: "int64",
             internalType: "int64",
           },
-          { name: "accepted", type: "bool", internalType: "bool" },
+          {
+            name: "accepted",
+            type: "bool",
+            internalType: "bool",
+          },
         ],
       },
     ],
@@ -210,35 +347,65 @@ export const SECTOR_EVIDENCE_ADAPTER_CONTRACT_ABI = [
     name: "getPoRepMarketAddress",
     inputs: [],
     outputs: [
-      { name: "marketAddress", type: "address", internalType: "address" },
+      {
+        name: "marketAddress",
+        type: "address",
+        internalType: "address",
+      },
     ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "getRefreshState",
-    inputs: [{ name: "dealId", type: "uint256", internalType: "uint256" }],
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     outputs: [
       {
         name: "state",
         type: "tuple",
         internalType: "struct SectorEvidenceAdapter.DealRefreshState",
         components: [
-          { name: "nextSectorIndex", type: "uint256", internalType: "uint256" },
+          {
+            name: "nextSectorIndex",
+            type: "uint256",
+            internalType: "uint256",
+          },
           {
             name: "pendingCoveredBytes",
             type: "uint256",
             internalType: "uint256",
           },
-          { name: "sweepStartEpoch", type: "int64", internalType: "int64" },
+          {
+            name: "sweepStartEpoch",
+            type: "int64",
+            internalType: "int64",
+          },
           {
             name: "pendingMinimumExpiration",
             type: "int64",
             internalType: "int64",
           },
-          { name: "lastCompletedEpoch", type: "int64", internalType: "int64" },
-          { name: "completedExpiration", type: "int64", internalType: "int64" },
-          { name: "completedResult", type: "uint8", internalType: "uint8" },
+          {
+            name: "lastCompletedEpoch",
+            type: "int64",
+            internalType: "int64",
+          },
+          {
+            name: "completedExpiration",
+            type: "int64",
+            internalType: "int64",
+          },
+          {
+            name: "completedResult",
+            type: "uint8",
+            internalType: "uint8",
+          },
         ],
       },
     ],
@@ -247,58 +414,142 @@ export const SECTOR_EVIDENCE_ADAPTER_CONTRACT_ABI = [
   {
     type: "function",
     name: "getSectorCount",
-    inputs: [{ name: "dealId", type: "uint256", internalType: "uint256" }],
-    outputs: [{ name: "count", type: "uint256", internalType: "uint256" }],
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "count",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "getSectorCoveredBytes",
     inputs: [
-      { name: "dealId", type: "uint256", internalType: "uint256" },
-      { name: "sectorNumber", type: "uint64", internalType: "uint64" },
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "sectorNumber",
+        type: "uint64",
+        internalType: "uint64",
+      },
     ],
-    outputs: [{ name: "coveredBytes", type: "uint64", internalType: "uint64" }],
+    outputs: [
+      {
+        name: "coveredBytes",
+        type: "uint64",
+        internalType: "uint64",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "getSectorNumber",
     inputs: [
-      { name: "dealId", type: "uint256", internalType: "uint256" },
-      { name: "sectorIndex", type: "uint256", internalType: "uint256" },
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "sectorIndex",
+        type: "uint256",
+        internalType: "uint256",
+      },
     ],
-    outputs: [{ name: "sectorNumber", type: "uint64", internalType: "uint64" }],
+    outputs: [
+      {
+        name: "sectorNumber",
+        type: "uint64",
+        internalType: "uint64",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "handle_filecoin_method",
     inputs: [
-      { name: "method", type: "uint64", internalType: "uint64" },
-      { name: "codec", type: "uint64", internalType: "uint64" },
-      { name: "", type: "bytes", internalType: "bytes" },
+      {
+        name: "method",
+        type: "uint64",
+        internalType: "uint64",
+      },
+      {
+        name: "codec",
+        type: "uint64",
+        internalType: "uint64",
+      },
+      {
+        name: "",
+        type: "bytes",
+        internalType: "bytes",
+      },
     ],
     outputs: [
-      { name: "exitCode", type: "uint32", internalType: "uint32" },
-      { name: "returnCodec", type: "uint64", internalType: "uint64" },
-      { name: "returnData", type: "bytes", internalType: "bytes" },
+      {
+        name: "exitCode",
+        type: "uint32",
+        internalType: "uint32",
+      },
+      {
+        name: "returnCodec",
+        type: "uint64",
+        internalType: "uint64",
+      },
+      {
+        name: "returnData",
+        type: "bytes",
+        internalType: "bytes",
+      },
     ],
     stateMutability: "nonpayable",
   },
   {
     type: "function",
     name: "hasSubmittedEvidence",
-    inputs: [{ name: "dealId", type: "uint256", internalType: "uint256" }],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "initialize",
     inputs: [
-      { name: "manager", type: "address", internalType: "address" },
-      { name: "poRepMarketAddress", type: "address", internalType: "address" },
+      {
+        name: "manager",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "poRepMarketAddress",
+        type: "address",
+        internalType: "address",
+      },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -307,30 +558,78 @@ export const SECTOR_EVIDENCE_ADAPTER_CONTRACT_ABI = [
     type: "function",
     name: "isOperational",
     inputs: [],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
-    stateMutability: "pure",
+    outputs: [
+      {
+        name: "",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "view",
   },
   {
     type: "function",
     name: "isPieceAccepted",
     inputs: [
-      { name: "dealId", type: "uint256", internalType: "uint256" },
-      { name: "pieceIndex", type: "uint32", internalType: "uint32" },
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "pieceIndex",
+        type: "uint32",
+        internalType: "uint32",
+      },
     ],
-    outputs: [{ name: "accepted", type: "bool", internalType: "bool" }],
+    outputs: [
+      {
+        name: "accepted",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "processPieceNotification",
     inputs: [
-      { name: "payloadBytes", type: "bytes", internalType: "bytes" },
-      { name: "canonicalPieceCid", type: "bool", internalType: "bool" },
-      { name: "providerActorId", type: "uint64", internalType: "uint64" },
-      { name: "pieceDigest", type: "bytes32", internalType: "bytes32" },
-      { name: "paddedSize", type: "uint64", internalType: "uint64" },
-      { name: "sectorNumber", type: "uint64", internalType: "uint64" },
-      { name: "minimumCommitmentEpoch", type: "int64", internalType: "int64" },
+      {
+        name: "payloadBytes",
+        type: "bytes",
+        internalType: "bytes",
+      },
+      {
+        name: "canonicalPieceCid",
+        type: "bool",
+        internalType: "bool",
+      },
+      {
+        name: "providerActorId",
+        type: "uint64",
+        internalType: "uint64",
+      },
+      {
+        name: "pieceDigest",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "paddedSize",
+        type: "uint64",
+        internalType: "uint64",
+      },
+      {
+        name: "sectorNumber",
+        type: "uint64",
+        internalType: "uint64",
+      },
+      {
+        name: "minimumCommitmentEpoch",
+        type: "int64",
+        internalType: "int64",
+      },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -339,7 +638,13 @@ export const SECTOR_EVIDENCE_ADAPTER_CONTRACT_ABI = [
     type: "function",
     name: "proxiableUUID",
     inputs: [],
-    outputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
+    outputs: [
+      {
+        name: "",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
     stateMutability: "view",
   },
   {
@@ -351,14 +656,26 @@ export const SECTOR_EVIDENCE_ADAPTER_CONTRACT_ABI = [
         type: "tuple",
         internalType: "struct SharedTypes.ActivationContext",
         components: [
-          { name: "dealId", type: "uint256", internalType: "uint256" },
+          {
+            name: "dealId",
+            type: "uint256",
+            internalType: "uint256",
+          },
           {
             name: "requestedSizeBytes",
             type: "uint256",
             internalType: "uint256",
           },
-          { name: "client", type: "address", internalType: "address" },
-          { name: "durationEpochs", type: "uint64", internalType: "uint64" },
+          {
+            name: "client",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "durationEpochs",
+            type: "uint64",
+            internalType: "uint64",
+          },
           {
             name: "activationToleranceBps",
             type: "uint16",
@@ -371,7 +688,11 @@ export const SECTOR_EVIDENCE_ADAPTER_CONTRACT_ABI = [
           },
         ],
       },
-      { name: "evidenceData", type: "bytes", internalType: "bytes" },
+      {
+        name: "evidenceData",
+        type: "bytes",
+        internalType: "bytes",
+      },
     ],
     outputs: [
       {
@@ -389,10 +710,26 @@ export const SECTOR_EVIDENCE_ADAPTER_CONTRACT_ABI = [
             type: "int64",
             internalType: "CommonTypes.ChainEpoch",
           },
-          { name: "reasonCode", type: "uint16", internalType: "uint16" },
-          { name: "result", type: "uint8", internalType: "uint8" },
-          { name: "checkedClaims", type: "uint256", internalType: "uint256" },
-          { name: "totalClaims", type: "uint256", internalType: "uint256" },
+          {
+            name: "reasonCode",
+            type: "uint16",
+            internalType: "uint16",
+          },
+          {
+            name: "result",
+            type: "uint8",
+            internalType: "uint8",
+          },
+          {
+            name: "checkedItems",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "totalItems",
+            type: "uint256",
+            internalType: "uint256",
+          },
         ],
       },
     ],
@@ -407,14 +744,26 @@ export const SECTOR_EVIDENCE_ADAPTER_CONTRACT_ABI = [
         type: "tuple",
         internalType: "struct SharedTypes.ActivationContext",
         components: [
-          { name: "dealId", type: "uint256", internalType: "uint256" },
+          {
+            name: "dealId",
+            type: "uint256",
+            internalType: "uint256",
+          },
           {
             name: "requestedSizeBytes",
             type: "uint256",
             internalType: "uint256",
           },
-          { name: "client", type: "address", internalType: "address" },
-          { name: "durationEpochs", type: "uint64", internalType: "uint64" },
+          {
+            name: "client",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "durationEpochs",
+            type: "uint64",
+            internalType: "uint64",
+          },
           {
             name: "activationToleranceBps",
             type: "uint16",
@@ -427,7 +776,11 @@ export const SECTOR_EVIDENCE_ADAPTER_CONTRACT_ABI = [
           },
         ],
       },
-      { name: "", type: "bytes", internalType: "bytes" },
+      {
+        name: "",
+        type: "bytes",
+        internalType: "bytes",
+      },
     ],
     outputs: [
       {
@@ -435,9 +788,21 @@ export const SECTOR_EVIDENCE_ADAPTER_CONTRACT_ABI = [
         type: "tuple",
         internalType: "struct SharedTypes.ActivationDecision",
         components: [
-          { name: "coveredBytes", type: "uint256", internalType: "uint256" },
-          { name: "reasonCode", type: "uint16", internalType: "uint16" },
-          { name: "result", type: "uint8", internalType: "uint8" },
+          {
+            name: "coveredBytes",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "reasonCode",
+            type: "uint16",
+            internalType: "uint16",
+          },
+          {
+            name: "result",
+            type: "uint8",
+            internalType: "uint8",
+          },
         ],
       },
     ],
@@ -447,11 +812,38 @@ export const SECTOR_EVIDENCE_ADAPTER_CONTRACT_ABI = [
     type: "function",
     name: "upgradeToAndCall",
     inputs: [
-      { name: "newImplementation", type: "address", internalType: "address" },
-      { name: "data", type: "bytes", internalType: "bytes" },
+      {
+        name: "newImplementation",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "data",
+        type: "bytes",
+        internalType: "bytes",
+      },
     ],
     outputs: [],
     stateMutability: "payable",
+  },
+  {
+    type: "event",
+    name: "AdapterNonOperational",
+    inputs: [
+      {
+        name: "account",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "setAtBlock",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
   },
   {
     type: "event",
@@ -463,7 +855,12 @@ export const SECTOR_EVIDENCE_ADAPTER_CONTRACT_ABI = [
         indexed: true,
         internalType: "uint256",
       },
-      { name: "result", type: "uint8", indexed: true, internalType: "uint8" },
+      {
+        name: "result",
+        type: "uint8",
+        indexed: true,
+        internalType: "uint8",
+      },
       {
         name: "activeCoveredBytes",
         type: "uint256",
@@ -657,190 +1054,469 @@ export const SECTOR_EVIDENCE_ADAPTER_CONTRACT_ABI = [
     type: "error",
     name: "AccessControlUnauthorizedAccount",
     inputs: [
-      { name: "account", type: "address", internalType: "address" },
-      { name: "neededRole", type: "bytes32", internalType: "bytes32" },
+      {
+        name: "account",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "neededRole",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
     ],
   },
   {
     type: "error",
+    name: "AdapterAlreadyNonOperational",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "AdapterNotOperational",
+    inputs: [],
+  },
+  {
+    type: "error",
     name: "AddressEmptyCode",
-    inputs: [{ name: "target", type: "address", internalType: "address" }],
+    inputs: [
+      {
+        name: "target",
+        type: "address",
+        internalType: "address",
+      },
+    ],
   },
   {
     type: "error",
     name: "CallerIsNotMiner",
-    inputs: [{ name: "actorId", type: "uint64", internalType: "uint64" }],
+    inputs: [
+      {
+        name: "actorId",
+        type: "uint64",
+        internalType: "uint64",
+      },
+    ],
   },
-  { type: "error", name: "CborLengthTooLarge", inputs: [] },
+  {
+    type: "error",
+    name: "CborLengthTooLarge",
+    inputs: [],
+  },
   {
     type: "error",
     name: "ConflictingPiecePlacement",
     inputs: [
-      { name: "dealId", type: "uint256", internalType: "uint256" },
-      { name: "pieceIndex", type: "uint32", internalType: "uint32" },
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "pieceIndex",
+        type: "uint32",
+        internalType: "uint32",
+      },
+    ],
+  },
+  {
+    type: "error",
+    name: "DealNotAccepted",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "state",
+        type: "uint8",
+        internalType: "uint8",
+      },
     ],
   },
   {
     type: "error",
     name: "ERC1967InvalidImplementation",
     inputs: [
-      { name: "implementation", type: "address", internalType: "address" },
+      {
+        name: "implementation",
+        type: "address",
+        internalType: "address",
+      },
     ],
   },
-  { type: "error", name: "ERC1967NonPayable", inputs: [] },
-  { type: "error", name: "FailedCall", inputs: [] },
+  {
+    type: "error",
+    name: "ERC1967NonPayable",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "FailedCall",
+    inputs: [],
+  },
   {
     type: "error",
     name: "GetNominalSectorExpirationFailed",
-    inputs: [{ name: "exitCode", type: "int256", internalType: "int256" }],
+    inputs: [
+      {
+        name: "exitCode",
+        type: "int256",
+        internalType: "int256",
+      },
+    ],
   },
   {
     type: "error",
     name: "InsufficientCommitmentEpoch",
     inputs: [
-      { name: "required", type: "int64", internalType: "int64" },
-      { name: "actual", type: "int64", internalType: "int64" },
+      {
+        name: "required",
+        type: "int64",
+        internalType: "int64",
+      },
+      {
+        name: "actual",
+        type: "int64",
+        internalType: "int64",
+      },
     ],
   },
   {
     type: "error",
     name: "InvalidAccessManager",
-    inputs: [{ name: "manager", type: "address", internalType: "address" }],
+    inputs: [
+      {
+        name: "manager",
+        type: "address",
+        internalType: "address",
+      },
+    ],
   },
-  { type: "error", name: "InvalidCidTag", inputs: [] },
-  { type: "error", name: "InvalidInitialization", inputs: [] },
-  { type: "error", name: "InvalidPaddedSize", inputs: [] },
+  {
+    type: "error",
+    name: "InvalidCidTag",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidInitialization",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidPaddedSize",
+    inputs: [],
+  },
   {
     type: "error",
     name: "InvalidPayloadLength",
-    inputs: [{ name: "length", type: "uint256", internalType: "uint256" }],
+    inputs: [
+      {
+        name: "length",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
   },
-  { type: "error", name: "InvalidPoRepMarketAddress", inputs: [] },
+  {
+    type: "error",
+    name: "InvalidPoRepMarketAddress",
+    inputs: [],
+  },
   {
     type: "error",
     name: "InvalidProofLength",
     inputs: [
-      { name: "expected", type: "uint256", internalType: "uint256" },
-      { name: "actual", type: "uint256", internalType: "uint256" },
+      {
+        name: "expected",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "actual",
+        type: "uint256",
+        internalType: "uint256",
+      },
     ],
   },
   {
     type: "error",
     name: "InvalidSectorExpiration",
-    inputs: [{ name: "expiration", type: "uint64", internalType: "uint64" }],
+    inputs: [
+      {
+        name: "expiration",
+        type: "uint64",
+        internalType: "uint64",
+      },
+    ],
   },
   {
     type: "error",
     name: "InvalidSectorLocationCount",
     inputs: [
-      { name: "provided", type: "uint256", internalType: "uint256" },
-      { name: "remaining", type: "uint256", internalType: "uint256" },
+      {
+        name: "provided",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "remaining",
+        type: "uint256",
+        internalType: "uint256",
+      },
     ],
   },
   {
     type: "error",
     name: "IsMinerFailed",
-    inputs: [{ name: "exitCode", type: "int256", internalType: "int256" }],
+    inputs: [
+      {
+        name: "exitCode",
+        type: "int256",
+        internalType: "int256",
+      },
+    ],
   },
-  { type: "error", name: "NotInitializing", inputs: [] },
+  {
+    type: "error",
+    name: "NotInitializing",
+    inputs: [],
+  },
   {
     type: "error",
     name: "NotMaskedIdAddress",
-    inputs: [{ name: "addr", type: "address", internalType: "address" }],
+    inputs: [
+      {
+        name: "addr",
+        type: "address",
+        internalType: "address",
+      },
+    ],
   },
-  { type: "error", name: "OnlyPoRepMarket", inputs: [] },
-  { type: "error", name: "OnlySelf", inputs: [] },
+  {
+    type: "error",
+    name: "OnlyPoRepMarket",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "OnlySelf",
+    inputs: [],
+  },
   {
     type: "error",
     name: "PieceIndexOutOfBounds",
     inputs: [
-      { name: "pieceIndex", type: "uint32", internalType: "uint32" },
-      { name: "pieceCount", type: "uint32", internalType: "uint32" },
+      {
+        name: "pieceIndex",
+        type: "uint32",
+        internalType: "uint32",
+      },
+      {
+        name: "pieceCount",
+        type: "uint32",
+        internalType: "uint32",
+      },
     ],
   },
   {
     type: "error",
     name: "RefreshCoveredBytesMismatch",
     inputs: [
-      { name: "expected", type: "uint256", internalType: "uint256" },
-      { name: "actual", type: "uint256", internalType: "uint256" },
+      {
+        name: "expected",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "actual",
+        type: "uint256",
+        internalType: "uint256",
+      },
     ],
   },
   {
     type: "error",
     name: "RefreshUnavailable",
-    inputs: [{ name: "dealId", type: "uint256", internalType: "uint256" }],
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
   },
   {
     type: "error",
     name: "SectorStatusUnavailable",
-    inputs: [{ name: "sectorNumber", type: "uint64", internalType: "uint64" }],
+    inputs: [
+      {
+        name: "sectorNumber",
+        type: "uint64",
+        internalType: "uint64",
+      },
+    ],
   },
-  { type: "error", name: "UUPSUnauthorizedCallContext", inputs: [] },
+  {
+    type: "error",
+    name: "UUPSUnauthorizedCallContext",
+    inputs: [],
+  },
   {
     type: "error",
     name: "UUPSUnsupportedProxiableUUID",
-    inputs: [{ name: "slot", type: "bytes32", internalType: "bytes32" }],
+    inputs: [
+      {
+        name: "slot",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
   },
   {
     type: "error",
     name: "UnexpectedCborMajorType",
     inputs: [
-      { name: "expected", type: "uint8", internalType: "uint8" },
-      { name: "actual", type: "uint8", internalType: "uint8" },
+      {
+        name: "expected",
+        type: "uint8",
+        internalType: "uint8",
+      },
+      {
+        name: "actual",
+        type: "uint8",
+        internalType: "uint8",
+      },
     ],
   },
   {
     type: "error",
     name: "UnexpectedCodec",
-    inputs: [{ name: "codec", type: "uint64", internalType: "uint64" }],
+    inputs: [
+      {
+        name: "codec",
+        type: "uint64",
+        internalType: "uint64",
+      },
+    ],
   },
   {
     type: "error",
     name: "UnexpectedEvidenceAdapter",
     inputs: [
-      { name: "dealId", type: "uint256", internalType: "uint256" },
-      { name: "actual", type: "address", internalType: "address" },
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "actual",
+        type: "address",
+        internalType: "address",
+      },
     ],
   },
   {
     type: "error",
     name: "UnexpectedMethod",
-    inputs: [{ name: "method", type: "uint64", internalType: "uint64" }],
+    inputs: [
+      {
+        name: "method",
+        type: "uint64",
+        internalType: "uint64",
+      },
+    ],
   },
-  { type: "error", name: "UnexpectedPieceCidHeader", inputs: [] },
-  { type: "error", name: "UnexpectedPieceSetCommitment", inputs: [] },
+  {
+    type: "error",
+    name: "UnexpectedPieceCidHeader",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "UnexpectedPieceSetCommitment",
+    inputs: [],
+  },
   {
     type: "error",
     name: "UnexpectedProvider",
     inputs: [
-      { name: "expected", type: "uint64", internalType: "uint64" },
-      { name: "actual", type: "uint64", internalType: "uint64" },
+      {
+        name: "expected",
+        type: "uint64",
+        internalType: "uint64",
+      },
+      {
+        name: "actual",
+        type: "uint64",
+        internalType: "uint64",
+      },
     ],
   },
   {
     type: "error",
     name: "UnexpectedReceiptPieceCount",
     inputs: [
-      { name: "expected", type: "uint32", internalType: "uint32" },
-      { name: "actual", type: "uint32", internalType: "uint32" },
+      {
+        name: "expected",
+        type: "uint32",
+        internalType: "uint32",
+      },
+      {
+        name: "actual",
+        type: "uint32",
+        internalType: "uint32",
+      },
     ],
   },
   {
     type: "error",
     name: "UnexpectedReceiptProvider",
     inputs: [
-      { name: "expected", type: "uint64", internalType: "uint64" },
-      { name: "actual", type: "uint64", internalType: "uint64" },
+      {
+        name: "expected",
+        type: "uint64",
+        internalType: "uint64",
+      },
+      {
+        name: "actual",
+        type: "uint64",
+        internalType: "uint64",
+      },
     ],
   },
   {
     type: "error",
     name: "UnexpectedStructLength",
     inputs: [
-      { name: "expected", type: "uint256", internalType: "uint256" },
-      { name: "actual", type: "uint256", internalType: "uint256" },
+      {
+        name: "expected",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "actual",
+        type: "uint256",
+        internalType: "uint256",
+      },
     ],
   },
-  { type: "error", name: "ZeroPieceCount", inputs: [] },
+  {
+    type: "error",
+    name: "ValidateSectorStatusFailed",
+    inputs: [
+      {
+        name: "exitCode",
+        type: "int256",
+        internalType: "int256",
+      },
+    ],
+  },
+  {
+    type: "error",
+    name: "ZeroPieceCount",
+    inputs: [],
+  },
 ] as const satisfies Abi;

@@ -80,8 +80,8 @@ export function buildStagingPorepMarketDeal(
       activeCoveredBytes: 0n,
       lastEvidenceRefreshEpoch: 0n,
       reasonCode: 0n,
-      checkedClaims: 0n,
-      totalClaims: 0n,
+      checkedItems: 0n,
+      totalItems: 0n,
       result: EvidenceResult.Inactive,
     },
 

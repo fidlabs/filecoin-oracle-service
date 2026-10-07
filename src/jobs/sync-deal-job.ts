@@ -53,8 +53,8 @@ async function prepareDealForSync(
       lastEvidenceRefreshEpoch:
         dealView.evidenceStatus.lastEvidenceRefreshEpoch,
       reasonCode: BigInt(dealView.evidenceStatus.reasonCode),
-      checkedClaims: dealView.evidenceStatus.checkedClaims,
-      totalClaims: dealView.evidenceStatus.totalClaims,
+      checkedItems: dealView.evidenceStatus.checkedItems,
+      totalItems: dealView.evidenceStatus.totalItems,
       result: toPrismaEvidenceResult(dealView.evidenceStatus.result),
     },
     ...evidence,
