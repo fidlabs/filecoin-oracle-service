@@ -1,7 +1,9 @@
 import { FastifyPluginOptions } from "fastify";
 import {
   getCountOfCompletedDealsFromDb,
+  getDealAllocationIdsByOnChainIdFromDb,
   getDealByOnChainIdFromDb,
+  getDealClaimsByOnChainIdFromDb,
   getDealScoreByOnChainDealIdFromDb,
   getPaginatedDealsByStateFromDb,
 } from "../../../services/db/db-service";
@@ -59,6 +61,62 @@ export function dealRoutes(
         page: pagination.page,
         limit: pagination.limit,
       });
+    },
+  );
+
+  fastify.get(
+    "/:onChainDealId/allocations",
+    {
+      preParsing: async (request) => {
+        const { onChainDealId } = request.params as {
+          onChainDealId: string;
+        };
+
+        if (!/^\d+$/.test(onChainDealId)) {
+          throw new Error("Invalid onChainDealId format");
+        }
+      },
+      schema: {
+        description: "Get DataCap allocation IDs by on-chain deal ID",
+        params: GetDealByIdRequestSchema,
+      },
+    },
+    async (request, reply) => {
+      const { onChainDealId } = request.params;
+
+      const allocationIds = await getDealAllocationIdsByOnChainIdFromDb(
+        BigInt(onChainDealId),
+      );
+
+      return reply.success(allocationIds);
+    },
+  );
+
+  fastify.get(
+    "/:onChainDealId/claims",
+    {
+      preParsing: async (request) => {
+        const { onChainDealId } = request.params as {
+          onChainDealId: string;
+        };
+
+        if (!/^\d+$/.test(onChainDealId)) {
+          throw new Error("Invalid onChainDealId format");
+        }
+      },
+      schema: {
+        description: "Get DataCap claims by on-chain deal ID",
+        params: GetDealByIdRequestSchema,
+      },
+    },
+    async (request, reply) => {
+      const { onChainDealId } = request.params;
+
+      const claims = await getDealClaimsByOnChainIdFromDb(
+        BigInt(onChainDealId),
+      );
+
+      return reply.success(claims);
     },
   );
 
