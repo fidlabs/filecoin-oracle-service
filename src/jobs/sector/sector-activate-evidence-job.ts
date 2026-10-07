@@ -35,36 +35,12 @@ export async function sectorActivateEvidenceJob() {
 
     for (const deal of deals) {
       try {
-        const receipt = deal.sectorAdapter?.receipt;
-
-        if (!receipt || !deal.terms) {
-          sectorActivateEvidenceLogger.warn(
-            `Deal ${deal.onChainDealId} is missing local Sector receipt or terms, skipping activateEvidence`,
-          );
-          continue;
-        }
-
-        if (
-          receipt.pieceCount === 0n ||
-          receipt.acceptedPieceCount < receipt.pieceCount ||
-          receipt.acceptedBytes !== deal.terms.requestedSizeBytes
-        ) {
-          sectorActivateEvidenceLogger.info(
-            `Deal ${deal.onChainDealId} local Sector evidence is incomplete (${receipt.acceptedPieceCount}/${receipt.pieceCount} pieces, ${receipt.acceptedBytes}/${deal.terms.requestedSizeBytes} bytes), waiting for next sync`,
-          );
-          continue;
-        }
+        const receipt = deal.sectorAdapter!.receipt!;
+        const terms = deal.terms!;
 
         const commitmentMarginEpochs =
           receipt.minimumCommitmentEpoch -
-          (currentEpoch + deal.terms.durationEpochs);
-
-        if (commitmentMarginEpochs < 0n) {
-          sectorActivateEvidenceLogger.warn(
-            `Deal ${deal.onChainDealId} minimum sector commitment epoch ${receipt.minimumCommitmentEpoch} no longer covers the deal duration from epoch ${currentEpoch}, evidence cannot be activated`,
-          );
-          continue;
-        }
+          (currentEpoch + terms.durationEpochs);
 
         sectorActivateEvidenceLogger.info(
           `Deal ${deal.onChainDealId} sector commitment margin: ${commitmentMarginEpochs} epochs`,

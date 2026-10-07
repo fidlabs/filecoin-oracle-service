@@ -80,6 +80,47 @@ export async function getDealsByStateFromDb(
   return dealsByState.map(toPorepMarketDealResponseDto);
 }
 
+export async function getDealAllocationIdsByOnChainIdFromDb(
+  onChainDealId: bigint,
+) {
+  const dataCapAdapter = await prismaClient.datacap_adapter.findUnique({
+    where: {
+      onChainDealId,
+    },
+    select: {
+      allocationIds: true,
+    },
+  });
+
+  return dataCapAdapter?.allocationIds ?? [];
+}
+
+export async function getDealClaimsByOnChainIdFromDb(onChainDealId: bigint) {
+  const dataCapAdapter = await prismaClient.datacap_adapter.findUnique({
+    where: {
+      onChainDealId,
+    },
+    select: {
+      claims: {
+        select: {
+          claimId: true,
+          sector: true,
+          status: true,
+          provider: true,
+          client: true,
+          data: true,
+          size: true,
+          term_min: true,
+          term_max: true,
+          term_start: true,
+        },
+      },
+    },
+  });
+
+  return dataCapAdapter?.claims ?? [];
+}
+
 export async function getDealsFromDb(dealIds: bigint[]) {
   const deals = await prismaClient.porep_market_deal.findMany({
     where: {

@@ -83,21 +83,6 @@ export const porepMarkerDealSelect =
         allocationsMatchedCount: true,
         isAllocationsMatched: true,
         dataCapAllocationStatus: true,
-        allocationIds: true,
-        claims: {
-          select: {
-            claimId: true,
-            sector: true,
-            status: true,
-            provider: true,
-            client: true,
-            data: true,
-            size: true,
-            term_min: true,
-            term_max: true,
-            term_start: true,
-          },
-        },
       },
     },
     sectorAdapter: {
@@ -146,16 +131,6 @@ export type PorepMarketDealResponseDto = Omit<
 > & {
   dataCapAdapter: PorepMarketDealDto["dataCapAdapter"];
   sectorReceipt: NonNullable<PorepMarketDealDto["sectorAdapter"]>["receipt"];
-  allocationsRequiredCount: bigint | null;
-  allocationsMatchedCount: bigint | null;
-  isAllocationsMatched: boolean;
-  dataCapAllocationStatus:
-    | NonNullable<
-        PorepMarketDealDto["dataCapAdapter"]
-      >["dataCapAllocationStatus"]
-    | undefined;
-  allocationIds: bigint[];
-  claimsCount: number;
 };
 
 export function toPorepMarketDealResponseDto(
@@ -163,14 +138,6 @@ export function toPorepMarketDealResponseDto(
 ): PorepMarketDealResponseDto {
   return {
     ...deal,
-    allocationsRequiredCount:
-      deal.dataCapAdapter?.allocationsRequiredCount ?? null,
-    allocationsMatchedCount:
-      deal.dataCapAdapter?.allocationsMatchedCount ?? null,
-    isAllocationsMatched: deal.dataCapAdapter?.isAllocationsMatched ?? false,
-    dataCapAllocationStatus: deal.dataCapAdapter?.dataCapAllocationStatus,
-    allocationIds: deal.dataCapAdapter?.allocationIds ?? [],
-    claimsCount: deal.dataCapAdapter?.claims.length ?? 0,
     sectorReceipt: deal.sectorAdapter?.receipt ?? null,
   };
 }
