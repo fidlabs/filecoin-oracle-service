@@ -116,15 +116,17 @@ export async function prepareDataCapDealEvidenceForSync(
   const allocationsMatchedCount = claims ? BigInt(claims.length) : undefined;
 
   return {
-    allocationsRequiredCount,
-    allocationsMatchedCount,
     isEvidenceComplete:
       allocationsRequiredCount !== undefined &&
       allocationsMatchedCount !== undefined
         ? allocationsRequiredCount === allocationsMatchedCount
         : undefined,
-    dataCapAllocationStatus,
-    allocationIds,
-    claims,
+    dataCapAdapter: {
+      allocationsRequiredCount,
+      allocationsMatchedCount,
+      dataCapAllocationStatus,
+      allocationIds,
+      claims,
+    },
   };
 }

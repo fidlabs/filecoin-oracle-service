@@ -1,6 +1,5 @@
 import { getEvidenceAdapterTypeFromContract } from "../blockchain/evidence-adapter-contract";
 import { getDealsFromPoRepMarketViewContract } from "../blockchain/porep-market-view-helper-contract";
-import { EvidenceAdapterType } from "../../prisma/generated/client";
 import {
   getChainDealTypeToDomain,
   getChainStateToDomain,
@@ -9,13 +8,8 @@ import {
   toPrismaEvidenceResult,
 } from "../services/db/db-service";
 import { baseLogger } from "../utils/logger";
-import {
-  DealEvidenceSyncData,
-  PorepMarketContractDealView,
-  PorepMarketDeal,
-} from "../utils/types";
-import { prepareDataCapDealEvidenceForSync } from "./datacap/datacap-deal-sync";
-import { prepareSectorDealEvidenceForSync } from "./sector/sector-deal-sync";
+import { PorepMarketContractDealView, PorepMarketDeal } from "../utils/types";
+import { getEvidenceAdapter } from "./evidence-adapters";
 
 const syncDealLogger = baseLogger.child(
   { avengers: "assemble" },
@@ -23,25 +17,6 @@ const syncDealLogger = baseLogger.child(
 );
 
 type ExistingDeal = Awaited<ReturnType<typeof getDealsFromDb>>[number];
-
-async function prepareDealEvidenceForSync(
-  evidenceAdapterType: EvidenceAdapterType,
-  dealView: PorepMarketContractDealView,
-  existingDeal?: ExistingDeal,
-): Promise<DealEvidenceSyncData> {
-  switch (evidenceAdapterType) {
-    case EvidenceAdapterType.DataCap:
-      return prepareDataCapDealEvidenceForSync(
-        dealView,
-        existingDeal?.isAllocationsMatched,
-      );
-    case EvidenceAdapterType.Sector:
-      return prepareSectorDealEvidenceForSync(
-        dealView,
-        existingDeal?.sectorReceipt?.sectorCount,
-      );
-  }
-}
 
 async function prepareDealForSync(
   dealView: PorepMarketContractDealView,
@@ -53,11 +28,9 @@ async function prepareDealForSync(
     deal.evidenceAdapter,
   );
 
-  const evidence = await prepareDealEvidenceForSync(
+  const evidence = await getEvidenceAdapter(
     evidenceAdapterType,
-    dealView,
-    existingDeal,
-  );
+  ).prepareEvidenceForSync(dealView, existingDeal);
 
   return {
     ...deal,
@@ -80,8 +53,8 @@ async function prepareDealForSync(
       lastEvidenceRefreshEpoch:
         dealView.evidenceStatus.lastEvidenceRefreshEpoch,
       reasonCode: BigInt(dealView.evidenceStatus.reasonCode),
-      checkedClaims: dealView.evidenceStatus.checkedClaims,
-      totalClaims: dealView.evidenceStatus.totalClaims,
+      checkedItems: dealView.evidenceStatus.checkedItems,
+      totalItems: dealView.evidenceStatus.totalItems,
       result: toPrismaEvidenceResult(dealView.evidenceStatus.result),
     },
     ...evidence,

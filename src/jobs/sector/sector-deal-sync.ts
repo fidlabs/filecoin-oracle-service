@@ -48,7 +48,9 @@ export async function prepareSectorDealEvidenceForSync(
 
   return {
     isEvidenceComplete,
-    sectorReceipt,
-    sectors,
+    sectorAdapter: {
+      receipt: sectorReceipt,
+      sectors,
+    },
   };
 }

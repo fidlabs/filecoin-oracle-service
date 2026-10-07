@@ -12,7 +12,7 @@ export async function updateClaimSectorStatusInDb(
 ) {
   return prismaClient.$transaction(
     claimsToUpdate.map((claim) =>
-      prismaClient.porep_market_deal_claim.update({
+      prismaClient.datacap_adapter_claim.update({
         where: {
           claimId_sector_provider: {
             claimId: claim.claimId,

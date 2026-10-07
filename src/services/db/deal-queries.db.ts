@@ -8,13 +8,12 @@ import {
 export async function getDealByOnChainIdFromDb(
   onChainDealId: bigint,
 ): Promise<PorepMarketDealDto | null> {
-  const deal: PorepMarketDealDto | null =
-    await prismaClient.porep_market_deal.findUnique({
-      where: {
-        onChainDealId,
-      },
-      select: porepMarkerDealSelect,
-    });
+  const deal = await prismaClient.porep_market_deal.findUnique({
+    where: {
+      onChainDealId,
+    },
+    select: porepMarkerDealSelect,
+  });
 
   return deal;
 }
@@ -41,7 +40,7 @@ export async function getPaginatedDealsByStateFromDb({
 }) {
   const offset = (page - 1) * limit;
 
-  const [filteredDeals, totalDeals] = await Promise.all([
+  const [deals, totalDeals] = await Promise.all([
     prismaClient.porep_market_deal.findMany({
       where: {
         state: state ? state : undefined,
@@ -60,23 +59,63 @@ export async function getPaginatedDealsByStateFromDb({
     }),
   ]);
 
-  return { filteredDeals, totalDeals };
+  return { filteredDeals: deals, totalDeals };
 }
 
 export async function getDealsByStateFromDb(
   states: DealState[],
 ): Promise<PorepMarketDealDto[]> {
-  const dealsByState: PorepMarketDealDto[] =
-    await prismaClient.porep_market_deal.findMany({
-      where: {
-        state: {
-          in: states,
-        },
+  const dealsByState = await prismaClient.porep_market_deal.findMany({
+    where: {
+      state: {
+        in: states,
       },
-      select: porepMarkerDealSelect,
-    });
+    },
+    select: porepMarkerDealSelect,
+  });
 
   return dealsByState;
+}
+
+export async function getDealAllocationIdsByOnChainIdFromDb(
+  onChainDealId: bigint,
+) {
+  const dataCapAdapter = await prismaClient.datacap_adapter.findUnique({
+    where: {
+      onChainDealId,
+    },
+    select: {
+      allocationIds: true,
+    },
+  });
+
+  return dataCapAdapter?.allocationIds ?? [];
+}
+
+export async function getDealClaimsByOnChainIdFromDb(onChainDealId: bigint) {
+  const dataCapAdapter = await prismaClient.datacap_adapter.findUnique({
+    where: {
+      onChainDealId,
+    },
+    select: {
+      claims: {
+        select: {
+          claimId: true,
+          sector: true,
+          status: true,
+          provider: true,
+          client: true,
+          data: true,
+          size: true,
+          term_min: true,
+          term_max: true,
+          term_start: true,
+        },
+      },
+    },
+  });
+
+  return dataCapAdapter?.claims ?? [];
 }
 
 export async function getDealsFromDb(dealIds: bigint[]) {
@@ -87,9 +126,18 @@ export async function getDealsFromDb(dealIds: bigint[]) {
       },
     },
     include: {
-      sectorReceipt: {
+      dataCapAdapter: {
         select: {
-          sectorCount: true,
+          isAllocationsMatched: true,
+        },
+      },
+      sectorAdapter: {
+        select: {
+          receipt: {
+            select: {
+              sectorCount: true,
+            },
+          },
         },
       },
     },

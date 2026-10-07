@@ -60,7 +60,9 @@ export async function dataCapPostingFinishedJob() {
         continue;
       }
 
-      const batchSizes = getEvidenceBatchSizes(deal.allocationsRequiredCount);
+      const batchSizes = getEvidenceBatchSizes(
+        deal.dataCapAdapter?.allocationsRequiredCount,
+      );
 
       if (!batchSizes.length) {
         datacapPostingFinishedLogger.info(

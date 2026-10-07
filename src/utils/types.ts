@@ -143,8 +143,8 @@ export interface DealPayment {
 export interface DealEvidenceStatus {
   activeCoveredBytes: bigint;
   lastEvidenceRefreshEpoch: bigint;
-  checkedClaims: bigint;
-  totalClaims: bigint;
+  checkedItems: bigint;
+  totalItems: bigint;
   reasonCode: bigint;
   result: EvidenceResult;
 }
@@ -275,8 +275,8 @@ export interface PorepMarketContractDealView {
     lastEvidenceRefreshEpoch: bigint;
     reasonCode: number;
     result: number;
-    checkedClaims: bigint;
-    totalClaims: bigint;
+    checkedItems: bigint;
+    totalItems: bigint;
   };
 }
 
@@ -291,6 +291,20 @@ export interface PorepMarketDealClaim {
   term_min: bigint;
   term_max: bigint;
   term_start: bigint;
+}
+
+export interface PorepMarketDealDataCapAdapter {
+  allocationsRequiredCount?: bigint;
+  allocationsMatchedCount?: bigint;
+  isAllocationsMatched?: boolean;
+  dataCapAllocationStatus: DataCapAllocationStatus;
+  allocationIds?: bigint[];
+  claims?: PorepMarketDealClaim[];
+}
+
+export interface PorepMarketDealSectorAdapter {
+  receipt?: SectorManifestReceipt;
+  sectors?: PorepMarketDealSector[];
 }
 
 export interface PorepMarketDeal {
@@ -318,15 +332,9 @@ export interface PorepMarketDeal {
   committedBytes?: bigint;
   state: DealState;
   dealType: DealType;
-  allocationsRequiredCount?: bigint;
-  allocationsMatchedCount?: bigint;
-  isAllocationsMatched?: boolean;
-  dataCapAllocationStatus?: DataCapAllocationStatus;
   activatePaymentAt?: Date | null;
-  allocationIds?: bigint[];
-  claims?: PorepMarketDealClaim[];
-  sectorReceipt?: SectorManifestReceipt;
-  sectors?: PorepMarketDealSector[];
+  dataCapAdapter?: PorepMarketDealDataCapAdapter;
+  sectorAdapter?: PorepMarketDealSectorAdapter;
   isRailTerminated?: boolean;
   terms: DealTerms;
   payment: DealPayment;
@@ -337,14 +345,7 @@ export interface PorepMarketDeal {
 
 export type DealEvidenceSyncData = Pick<
   PorepMarketDeal,
-  | "isEvidenceComplete"
-  | "allocationsRequiredCount"
-  | "allocationsMatchedCount"
-  | "dataCapAllocationStatus"
-  | "allocationIds"
-  | "claims"
-  | "sectorReceipt"
-  | "sectors"
+  "isEvidenceComplete" | "dataCapAdapter" | "sectorAdapter"
 >;
 
 export interface DealScore {

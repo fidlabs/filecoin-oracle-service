@@ -14,10 +14,18 @@ export async function getDataCapDealsToCheckClaimTerminationFromDb() {
       },
       state: DealState.Active,
       isRailTerminated: false,
-      isAllocationsMatched: true, // IMPORTANT: only consider deals with matching allocation count between expected and actual to avoid setting wrong deal end epoch
+      dataCapAdapter: {
+        is: {
+          isAllocationsMatched: true, // IMPORTANT: only consider deals with matching allocation count between expected and actual to avoid setting wrong deal end epoch
+        },
+      },
     },
     include: {
-      claims: true,
+      dataCapAdapter: {
+        include: {
+          claims: true,
+        },
+      },
     },
   });
 
@@ -30,7 +38,11 @@ export async function getDataCapDealsToRefreshEvidenceStatusFromDb(): Promise<
   return await getDealsByWhereFromDb({
     evidenceAdapterType: EvidenceAdapterType.DataCap,
     state: DealState.Active,
-    isAllocationsMatched: true,
+    dataCapAdapter: {
+      is: {
+        isAllocationsMatched: true,
+      },
+    },
     isRailTerminated: false,
     activatePaymentAt: {
       not: null,
@@ -43,7 +55,11 @@ export async function getDataCapDealsToActivateEvidenceFromDb(): Promise<
 > {
   return await getDealsByWhereFromDb({
     evidenceAdapterType: EvidenceAdapterType.DataCap,
-    dataCapAllocationStatus: DataCapAllocationStatus.Allocated,
+    dataCapAdapter: {
+      is: {
+        dataCapAllocationStatus: DataCapAllocationStatus.Allocated,
+      },
+    },
     state: DealState.Accepted,
     isRailTerminated: false,
   });

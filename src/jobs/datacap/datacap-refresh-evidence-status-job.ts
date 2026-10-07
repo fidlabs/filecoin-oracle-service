@@ -42,7 +42,9 @@ export async function refreshDataCapEvidenceStatusJob() {
           `Refreshing evidence status for deal ${deal.onChainDealId}`,
         );
 
-        const batchSizes = getEvidenceBatchSizes(deal.allocationsRequiredCount);
+        const batchSizes = getEvidenceBatchSizes(
+          deal.dataCapAdapter?.allocationsRequiredCount,
+        );
 
         if (!batchSizes.length) {
           refreshEvidenceStatusLogger.info(
