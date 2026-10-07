@@ -151,7 +151,7 @@ async function refreshSectorDealEvidenceStatus(deal: PorepMarketDealDto) {
       return;
     }
 
-    nextSectorIndex = status.checkedClaims;
+    nextSectorIndex = status.checkedItems;
   }
 }
 
