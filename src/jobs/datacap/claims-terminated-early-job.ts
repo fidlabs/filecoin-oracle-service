@@ -1,12 +1,12 @@
-import { batchValidateSectorStatus } from "../blockchain/sector-status-inspector-contract";
+import { batchValidateSectorStatus } from "../../blockchain/sector-status-inspector-contract";
 import {
-  getCompletedDealsToCheckClaimTerminationFromDb,
+  getDataCapDealsToCheckClaimTerminationFromDb,
   updateClaimSectorStatusInDb,
-} from "../services/db/db-service";
-import { fetchStateSectorPartition } from "../services/filecoin-api-service";
-import { baseLogger } from "../utils/logger";
-import { ChainSectorStatus, SectorStatus } from "../utils/types";
-import { sleep } from "../utils/utils";
+} from "../../services/db/db-service";
+import { fetchStateSectorPartition } from "../../services/filecoin-api-service";
+import { baseLogger } from "../../utils/logger";
+import { ChainSectorStatus, SectorStatus } from "../../utils/types";
+import { sleep } from "../../utils/utils";
 
 const claimTrackingLogger = baseLogger.child(
   { avengers: "assemble" },
@@ -80,8 +80,7 @@ export async function trackClaimsTerminatedEarlyJob() {
   try {
     claimTrackingLogger.info("Job started");
 
-    const completedDeals =
-      await getCompletedDealsToCheckClaimTerminationFromDb();
+    const completedDeals = await getDataCapDealsToCheckClaimTerminationFromDb();
 
     if (completedDeals.length === 0) {
       claimTrackingLogger.info(
@@ -107,7 +106,7 @@ export async function trackClaimsTerminatedEarlyJob() {
     claimTrackingLogger.info("Start processing completed deals...");
 
     const CHUNK_SIZE = 30;
-    let checkedClaimsCount = 0;
+    let checkedItemsCount = 0;
     let failedClaimChecksCount = 0;
 
     const claimsToProcess: {
@@ -116,7 +115,7 @@ export async function trackClaimsTerminatedEarlyJob() {
       provider: bigint;
       sector: bigint;
     }[] = completedDeals.flatMap((deal) =>
-      deal.claims.map((claim) => ({
+      (deal.dataCapAdapter?.claims ?? []).map((claim) => ({
         claimId: claim.claimId,
         onChainDealId: deal.onChainDealId,
         provider: deal.provider,
@@ -157,7 +156,7 @@ export async function trackClaimsTerminatedEarlyJob() {
         )
       ).filter((claim) => claim !== null);
 
-      checkedClaimsCount += sectorInfo.length;
+      checkedItemsCount += sectorInfo.length;
       failedClaimChecksCount += chunk.length - sectorInfo.length;
 
       if (sectorInfo.length === 0) {
@@ -216,7 +215,7 @@ export async function trackClaimsTerminatedEarlyJob() {
     }
 
     claimTrackingLogger.info(
-      `Claims termination check summary: checked ${checkedClaimsCount} claims, failed to check ${failedClaimChecksCount} claims after ${FETCH_PARTITION_MAX_ATTEMPTS} fetch attempts.`,
+      `Claims termination check summary: checked ${checkedItemsCount} claims, failed to check ${failedClaimChecksCount} claims after ${FETCH_PARTITION_MAX_ATTEMPTS} fetch attempts.`,
     );
 
     claimTrackingLogger.info(

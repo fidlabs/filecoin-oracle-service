@@ -96,3 +96,56 @@ export async function fetchClaims(
   const data = await response.json();
   return data.result as FilecoinAPIStateGetClaim;
 }
+
+export async function fetchSectorLocation(
+  spId: string,
+  sector: bigint,
+): Promise<FilecoinAPIStateSectorPartition | null> {
+  const response = await fetch(SERVICE_CONFIG.RPC_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "Filecoin.StateSectorPartition",
+      params: [spId, Number(sector), null],
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch sector location: ${response.status} ${response.statusText}`,
+    );
+  }
+
+  const data = await response.json();
+
+  if (data?.error) {
+    const sectorInfo = await fetchSectorInfo(spId, Number(sector));
+
+    if (sectorInfo) {
+      throw new Error(
+        `Failed to fetch sector location for SP ${spId} and sector ${sector}: ${JSON.stringify(data.error)}`,
+      );
+    }
+
+    filecoinApiChildLogger.warn(
+      `Sector ${sector} of SP ${spId} is not present in miner state`,
+    );
+    return null;
+  }
+
+  if (!data?.result) {
+    filecoinApiChildLogger.warn(
+      `Sector ${sector} of SP ${spId} has no deadline/partition location`,
+    );
+    return null;
+  }
+
+  return {
+    Partition: BigInt(data.result.Partition),
+    Deadline: BigInt(data.result.Deadline),
+  };
+}

@@ -1,0 +1,66 @@
+import { EvidenceAdapterType } from "../../../prisma/generated/client";
+import { DealState } from "../../utils/types";
+import { prismaClient } from "./db-client";
+import { getDealsByWhereFromDb } from "./deal-job-selectors.db";
+import { DataCapAllocationStatus } from "./deal-status.db";
+import { PorepMarketDealDto } from "./dto/porep-market-deal.dto";
+
+export async function getDataCapDealsToCheckClaimTerminationFromDb() {
+  const deals = await prismaClient.porep_market_deal.findMany({
+    where: {
+      evidenceAdapterType: EvidenceAdapterType.DataCap,
+      serviceEndEpoch: {
+        not: null,
+      },
+      state: DealState.Active,
+      isRailTerminated: false,
+      dataCapAdapter: {
+        is: {
+          isAllocationsMatched: true, // IMPORTANT: only consider deals with matching allocation count between expected and actual to avoid setting wrong deal end epoch
+        },
+      },
+    },
+    include: {
+      dataCapAdapter: {
+        include: {
+          claims: true,
+        },
+      },
+    },
+  });
+
+  return deals ? deals : [];
+}
+
+export async function getDataCapDealsToRefreshEvidenceStatusFromDb(): Promise<
+  PorepMarketDealDto[]
+> {
+  return await getDealsByWhereFromDb({
+    evidenceAdapterType: EvidenceAdapterType.DataCap,
+    state: DealState.Active,
+    dataCapAdapter: {
+      is: {
+        isAllocationsMatched: true,
+      },
+    },
+    isRailTerminated: false,
+    activatePaymentAt: {
+      not: null,
+    },
+  });
+}
+
+export async function getDataCapDealsToActivateEvidenceFromDb(): Promise<
+  PorepMarketDealDto[]
+> {
+  return await getDealsByWhereFromDb({
+    evidenceAdapterType: EvidenceAdapterType.DataCap,
+    dataCapAdapter: {
+      is: {
+        dataCapAllocationStatus: DataCapAllocationStatus.Allocated,
+      },
+    },
+    state: DealState.Accepted,
+    isRailTerminated: false,
+  });
+}

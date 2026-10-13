@@ -1,5 +1,9 @@
 import { Address, TransactionReceipt } from "viem";
-import { ContractName, DealType } from "../../prisma/generated/client";
+import {
+  ContractName,
+  DealType,
+  EvidenceAdapterType,
+} from "../../prisma/generated/client";
 import {
   DataCapAllocationStatus,
   EvidenceResult,
@@ -139,8 +143,8 @@ export interface DealPayment {
 export interface DealEvidenceStatus {
   activeCoveredBytes: bigint;
   lastEvidenceRefreshEpoch: bigint;
-  checkedClaims: bigint;
-  totalClaims: bigint;
+  checkedItems: bigint;
+  totalItems: bigint;
   reasonCode: bigint;
   result: EvidenceResult;
 }
@@ -175,6 +179,42 @@ export enum ContractDataCapAllocationStatus {
   Allocated = 10,
   Claimed = 20,
   Inactive = 30,
+}
+
+export enum ContractEvidenceAdapterType {
+  DataCap = 10,
+  Sector = 20,
+}
+
+export interface SectorManifestReceipt {
+  providerActorId: bigint;
+  pieceCount: bigint;
+  acceptedPieceCount: bigint;
+  acceptedBytes: bigint;
+  minimumCommitmentEpoch: bigint;
+  activated: boolean;
+  sectorCount: bigint;
+}
+
+export interface SectorRefreshState {
+  nextSectorIndex: bigint;
+  pendingCoveredBytes: bigint;
+  sweepStartEpoch: bigint;
+  pendingMinimumExpiration: bigint;
+  lastCompletedEpoch: bigint;
+  completedExpiration: bigint;
+  completedResult: number;
+}
+
+export interface SectorLocation {
+  deadline: bigint;
+  partition: bigint;
+}
+
+export interface PorepMarketDealSector {
+  sectorIndex: bigint;
+  sectorNumber: bigint;
+  coveredBytes: bigint;
 }
 
 export enum ContractDealType {
@@ -235,8 +275,8 @@ export interface PorepMarketContractDealView {
     lastEvidenceRefreshEpoch: bigint;
     reasonCode: number;
     result: number;
-    checkedClaims: bigint;
-    totalClaims: bigint;
+    checkedItems: bigint;
+    totalItems: bigint;
   };
 }
 
@@ -253,6 +293,20 @@ export interface PorepMarketDealClaim {
   term_start: bigint;
 }
 
+export interface PorepMarketDealDataCapAdapter {
+  allocationsRequiredCount?: bigint;
+  allocationsMatchedCount?: bigint;
+  isAllocationsMatched?: boolean;
+  dataCapAllocationStatus: DataCapAllocationStatus;
+  allocationIds?: bigint[];
+  claims?: PorepMarketDealClaim[];
+}
+
+export interface PorepMarketDealSectorAdapter {
+  receipt?: SectorManifestReceipt;
+  sectors?: PorepMarketDealSector[];
+}
+
 export interface PorepMarketDeal {
   dealId: bigint;
   client: Address;
@@ -260,6 +314,8 @@ export interface PorepMarketDeal {
   offerId?: bigint;
   validatorContractAddress: Address;
   evidenceAdapterContractAddress: Address;
+  evidenceAdapterType: EvidenceAdapterType;
+  isEvidenceComplete?: boolean;
   railId: bigint;
   providerOrganization?: Address;
   dealStartEpoch?: bigint;
@@ -276,13 +332,9 @@ export interface PorepMarketDeal {
   committedBytes?: bigint;
   state: DealState;
   dealType: DealType;
-  allocationsRequiredCount?: bigint;
-  allocationsMatchedCount?: bigint;
-  isAllocationsMatched?: boolean;
-  dataCapAllocationStatus?: DataCapAllocationStatus;
   activatePaymentAt?: Date | null;
-  allocationIds?: bigint[];
-  claims?: PorepMarketDealClaim[];
+  dataCapAdapter?: PorepMarketDealDataCapAdapter;
+  sectorAdapter?: PorepMarketDealSectorAdapter;
   isRailTerminated?: boolean;
   terms: DealTerms;
   payment: DealPayment;
@@ -290,6 +342,11 @@ export interface PorepMarketDeal {
   evidenceStatus: DealEvidenceStatus;
   proposedAtEpoch: bigint;
 }
+
+export type DealEvidenceSyncData = Pick<
+  PorepMarketDeal,
+  "isEvidenceComplete" | "dataCapAdapter" | "sectorAdapter"
+>;
 
 export interface DealScore {
   calculatedScore: bigint;

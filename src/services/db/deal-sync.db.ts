@@ -4,7 +4,11 @@ import {
   DealPayment,
   DealTerms,
   PorepMarketDeal,
+  PorepMarketDealDataCapAdapter,
+  PorepMarketDealSectorAdapter,
   PorepMarketDealClaim,
+  PorepMarketDealSector,
+  SectorManifestReceipt,
   SLIThresholds,
 } from "../../utils/types";
 import { prismaClient } from "./db-client";
@@ -24,10 +28,7 @@ function chunkArray<T>(items: T[], size: number): T[][] {
 const hasMatchedAllocations = ({
   allocationsRequiredCount,
   allocationsMatchedCount,
-}: {
-  allocationsRequiredCount?: bigint;
-  allocationsMatchedCount?: bigint;
-}) =>
+}: PorepMarketDealDataCapAdapter) =>
   allocationsRequiredCount !== undefined &&
   allocationsRequiredCount !== null &&
   allocationsMatchedCount !== undefined &&
@@ -54,6 +55,8 @@ const buildDealPersistenceData = (deal: PorepMarketDeal) => ({
   offerId: deal.offerId,
   railId: deal.railId,
   evidenceAdapterContractAddress: deal.evidenceAdapterContractAddress,
+  evidenceAdapterType: deal.evidenceAdapterType,
+  isEvidenceComplete: deal.isEvidenceComplete,
   validatorContractAddress: deal.validatorContractAddress,
   providerOrganization: deal.providerOrganization,
   state: deal.state,
@@ -67,31 +70,20 @@ const buildDealPersistenceData = (deal: PorepMarketDeal) => ({
   lastSettledEpoch: deal.lastSettledEpoch,
   reservedBytes: deal.reservedBytes,
   committedBytes: deal.committedBytes,
-  allocationsRequiredCount: deal.allocationsRequiredCount,
-  allocationsMatchedCount: deal.allocationsMatchedCount,
-  isAllocationsMatched:
-    deal.allocationsRequiredCount !== undefined &&
-    deal.allocationsMatchedCount !== undefined
-      ? hasMatchedAllocations(deal)
-      : undefined,
-  dataCapAllocationStatus: deal.dataCapAllocationStatus,
   dealType: deal.dealType,
   dealStartEpoch: deal.dealStartEpoch,
   dealEndEpoch: deal.dealEndEpoch,
-  allocationIds: deal.allocationIds,
   proposedAtEpoch: deal.proposedAtEpoch,
 });
 
 const buildDealCreateData = (deal: PorepMarketDeal) => ({
   ...buildDealPersistenceData(deal),
-  isAllocationsMatched: hasMatchedAllocations(deal),
   history: {
     create: {
       state: deal.state,
     },
   },
   isRailTerminated: false,
-  allocationIds: deal.allocationIds ?? [],
 });
 
 const buildDealUpdateData = (deal: PorepMarketDeal) => ({
@@ -196,23 +188,137 @@ async function upsertDealRequirements({
   });
 }
 
+async function upsertDataCapAdapter({
+  tx,
+  onChainDealId,
+  porepMarketDealId,
+  dataCapAdapter,
+}: {
+  tx: Prisma.TransactionClient;
+  onChainDealId: bigint;
+  porepMarketDealId: string;
+  dataCapAdapter?: PorepMarketDealDataCapAdapter;
+}) {
+  if (!dataCapAdapter) return null;
+
+  return tx.datacap_adapter.upsert({
+    where: {
+      porepMarketDealId,
+    },
+    create: {
+      porepMarketDealId,
+      onChainDealId,
+      allocationsRequiredCount: dataCapAdapter.allocationsRequiredCount,
+      allocationsMatchedCount: dataCapAdapter.allocationsMatchedCount,
+      isAllocationsMatched: hasMatchedAllocations(dataCapAdapter),
+      dataCapAllocationStatus: dataCapAdapter.dataCapAllocationStatus,
+      allocationIds: dataCapAdapter.allocationIds ?? [],
+    },
+    update: {
+      allocationsRequiredCount: dataCapAdapter.allocationsRequiredCount,
+      allocationsMatchedCount: dataCapAdapter.allocationsMatchedCount,
+      isAllocationsMatched:
+        dataCapAdapter.allocationsRequiredCount !== undefined &&
+        dataCapAdapter.allocationsMatchedCount !== undefined
+          ? hasMatchedAllocations(dataCapAdapter)
+          : undefined,
+      dataCapAllocationStatus: dataCapAdapter.dataCapAllocationStatus,
+      allocationIds: dataCapAdapter.allocationIds,
+    },
+  });
+}
+
 async function syncDealClaims({
   tx,
-  porepMarketDealId,
+  dataCapAdapterId,
   claims,
 }: {
   tx: Prisma.TransactionClient;
-  porepMarketDealId: string;
+  dataCapAdapterId?: string;
   claims?: PorepMarketDealClaim[];
 }) {
-  if (!claims?.length) return;
+  if (!dataCapAdapterId || !claims?.length) return;
 
-  await tx.porep_market_deal_claim.createMany({
+  await tx.datacap_adapter_claim.createMany({
     data: claims.map((claim) => ({
-      porepMarketDealId,
+      dataCapAdapterId,
       ...buildClaimPersistenceData(claim),
     })),
     skipDuplicates: true,
+  });
+}
+
+async function upsertDealSectorReceipt({
+  tx,
+  onChainDealId,
+  sectorAdapterId,
+  sectorReceipt,
+}: {
+  tx: Prisma.TransactionClient;
+  onChainDealId: bigint;
+  sectorAdapterId?: string;
+  sectorReceipt?: SectorManifestReceipt;
+}) {
+  if (!sectorAdapterId || !sectorReceipt) return;
+
+  await tx.sector_adapter_receipt.upsert({
+    where: {
+      sectorAdapterId,
+    },
+    create: {
+      sectorAdapterId,
+      onChainDealId,
+      ...sectorReceipt,
+    },
+    update: sectorReceipt,
+  });
+}
+
+async function syncDealSectors({
+  tx,
+  onChainDealId,
+  sectorAdapterId,
+  sectors,
+}: {
+  tx: Prisma.TransactionClient;
+  onChainDealId: bigint;
+  sectorAdapterId?: string;
+  sectors?: PorepMarketDealSector[];
+}) {
+  if (!sectorAdapterId || !sectors?.length) return;
+
+  await tx.sector_adapter_sector.createMany({
+    data: sectors.map((sector) => ({
+      sectorAdapterId,
+      onChainDealId,
+      ...sector,
+    })),
+    skipDuplicates: true,
+  });
+}
+
+async function upsertSectorAdapter({
+  tx,
+  onChainDealId,
+  porepMarketDealId,
+  sectorAdapter,
+}: {
+  tx: Prisma.TransactionClient;
+  onChainDealId: bigint;
+  porepMarketDealId: string;
+  sectorAdapter?: PorepMarketDealSectorAdapter;
+}) {
+  if (!sectorAdapter) return null;
+
+  return tx.sector_adapter.upsert({
+    where: {
+      porepMarketDealId,
+    },
+    create: {
+      porepMarketDealId,
+      onChainDealId,
+    },
+    update: {},
   });
 }
 
@@ -225,10 +331,22 @@ async function syncDealRelations({
   deals: PorepMarketDeal[];
   dealsMap: Map<string, { id: string }>;
 }) {
-  const relationOperations = deals.flatMap((deal) => {
+  for (const deal of deals) {
     const porepMarketDealId = dealsMap.get(deal.dealId.toString())!.id;
+    const dataCapAdapter = await upsertDataCapAdapter({
+      tx,
+      onChainDealId: deal.dealId,
+      porepMarketDealId,
+      dataCapAdapter: deal.dataCapAdapter,
+    });
+    const sectorAdapter = await upsertSectorAdapter({
+      tx,
+      onChainDealId: deal.dealId,
+      porepMarketDealId,
+      sectorAdapter: deal.sectorAdapter,
+    });
 
-    return [
+    await Promise.all([
       upsertDealTerms({
         tx,
         onChainDealId: deal.dealId,
@@ -255,13 +373,23 @@ async function syncDealRelations({
       }),
       syncDealClaims({
         tx,
-        porepMarketDealId,
-        claims: deal.claims,
+        dataCapAdapterId: dataCapAdapter?.id,
+        claims: deal.dataCapAdapter?.claims,
       }),
-    ];
-  });
-
-  await Promise.all(relationOperations);
+      upsertDealSectorReceipt({
+        tx,
+        onChainDealId: deal.dealId,
+        sectorAdapterId: sectorAdapter?.id,
+        sectorReceipt: deal.sectorAdapter?.receipt,
+      }),
+      syncDealSectors({
+        tx,
+        onChainDealId: deal.dealId,
+        sectorAdapterId: sectorAdapter?.id,
+        sectors: deal.sectorAdapter?.sectors,
+      }),
+    ]);
+  }
 }
 
 export async function syncPoRepMarketContractDealsWithDb(

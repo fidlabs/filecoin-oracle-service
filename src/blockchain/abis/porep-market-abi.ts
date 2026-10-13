@@ -162,12 +162,12 @@ export const POREP_MARKET_CONTRACT_ABI = [
             internalType: "uint8",
           },
           {
-            name: "checkedClaims",
+            name: "checkedItems",
             type: "uint256",
             internalType: "uint256",
           },
           {
-            name: "totalClaims",
+            name: "totalItems",
             type: "uint256",
             internalType: "uint256",
           },
@@ -1223,12 +1223,12 @@ export const POREP_MARKET_CONTRACT_ABI = [
             internalType: "uint8",
           },
           {
-            name: "checkedClaims",
+            name: "checkedItems",
             type: "uint256",
             internalType: "uint256",
           },
           {
-            name: "totalClaims",
+            name: "totalItems",
             type: "uint256",
             internalType: "uint256",
           },
@@ -1976,6 +1976,22 @@ export const POREP_MARKET_CONTRACT_ABI = [
         name: "dealId",
         type: "uint256",
         internalType: "uint256",
+      },
+    ],
+  },
+  {
+    type: "error",
+    name: "EvidenceRefreshNotAllowed",
+    inputs: [
+      {
+        name: "dealId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "state",
+        type: "uint8",
+        internalType: "uint8",
       },
     ],
   },

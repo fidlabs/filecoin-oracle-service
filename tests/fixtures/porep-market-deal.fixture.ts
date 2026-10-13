@@ -2,6 +2,7 @@ import {
   DataCapAllocationStatus,
   DealState,
   DealType,
+  EvidenceAdapterType,
   EvidenceResult,
 } from "../../prisma/generated/client";
 import { PorepMarketDealDto } from "../../src/services/db/dto/porep-market-deal.dto";
@@ -20,6 +21,8 @@ export function buildStagingPorepMarketDeal(
     dealType: DealType.Public,
     evidenceAdapterContractAddress:
       "0xfEBd13e0DecCD8B96c2781da32b30BbEB12884Db",
+    evidenceAdapterType: EvidenceAdapterType.DataCap,
+    isEvidenceComplete: false,
     validatorContractAddress: "0x0000000000000000000000000000000000000000",
     providerOrganization: null,
 
@@ -41,11 +44,14 @@ export function buildStagingPorepMarketDeal(
     reservedBytes: 1073741824n,
     committedBytes: 0n,
 
-    allocationsRequiredCount: null,
-    allocationsMatchedCount: null,
-    isAllocationsMatched: false,
-    dataCapAllocationStatus: DataCapAllocationStatus.None,
-    allocationIds: [],
+    dataCapAdapter: {
+      allocationsRequiredCount: null,
+      allocationsMatchedCount: null,
+      isAllocationsMatched: false,
+      dataCapAllocationStatus: DataCapAllocationStatus.None,
+      allocationIds: [],
+      claims: [],
+    },
     isRailTerminated: false,
 
     urlFinderSliTargetTriggeredAt: null,
@@ -74,8 +80,8 @@ export function buildStagingPorepMarketDeal(
       activeCoveredBytes: 0n,
       lastEvidenceRefreshEpoch: 0n,
       reasonCode: 0n,
-      checkedClaims: 0n,
-      totalClaims: 0n,
+      checkedItems: 0n,
+      totalItems: 0n,
       result: EvidenceResult.Inactive,
     },
 
@@ -87,7 +93,7 @@ export function buildStagingPorepMarketDeal(
       },
     ],
     settlement_history: [],
-    claims: [],
+    sectorAdapter: null,
 
     ...overrides,
   };

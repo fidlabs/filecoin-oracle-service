@@ -1,7 +1,9 @@
 import { FastifyPluginOptions } from "fastify";
 import {
   getCountOfCompletedDealsFromDb,
+  getDealAllocationIdsByOnChainIdFromDb,
   getDealByOnChainIdFromDb,
+  getDealClaimsByOnChainIdFromDb,
   getDealScoreByOnChainDealIdFromDb,
   getPaginatedDealsByStateFromDb,
 } from "../../../services/db/db-service";
@@ -12,11 +14,6 @@ import {
   GetDealByIdRequestSchema,
   GetFilteredDealsQuerySchema,
 } from "./schema";
-
-const mapDealResponse = <T extends { claims: unknown[] }>(deal: T) => ({
-  ...deal,
-  claimsCount: deal.claims?.length,
-});
 
 export function dealRoutes(
   fastify: FastifyTypedInstance,
@@ -59,11 +56,67 @@ export function dealRoutes(
         });
 
       return reply.success({
-        items: filteredDeals.map(mapDealResponse),
+        items: filteredDeals,
         total: totalDeals,
         page: pagination.page,
         limit: pagination.limit,
       });
+    },
+  );
+
+  fastify.get(
+    "/:onChainDealId/allocations",
+    {
+      preParsing: async (request) => {
+        const { onChainDealId } = request.params as {
+          onChainDealId: string;
+        };
+
+        if (!/^\d+$/.test(onChainDealId)) {
+          throw new Error("Invalid onChainDealId format");
+        }
+      },
+      schema: {
+        description: "Get DataCap allocation IDs by on-chain deal ID",
+        params: GetDealByIdRequestSchema,
+      },
+    },
+    async (request, reply) => {
+      const { onChainDealId } = request.params;
+
+      const allocationIds = await getDealAllocationIdsByOnChainIdFromDb(
+        BigInt(onChainDealId),
+      );
+
+      return reply.success({ count: allocationIds.length, allocationIds });
+    },
+  );
+
+  fastify.get(
+    "/:onChainDealId/claims",
+    {
+      preParsing: async (request) => {
+        const { onChainDealId } = request.params as {
+          onChainDealId: string;
+        };
+
+        if (!/^\d+$/.test(onChainDealId)) {
+          throw new Error("Invalid onChainDealId format");
+        }
+      },
+      schema: {
+        description: "Get DataCap claims by on-chain deal ID",
+        params: GetDealByIdRequestSchema,
+      },
+    },
+    async (request, reply) => {
+      const { onChainDealId } = request.params;
+
+      const claims = await getDealClaimsByOnChainIdFromDb(
+        BigInt(onChainDealId),
+      );
+
+      return reply.success({ count: claims.length, claims });
     },
   );
 
@@ -89,7 +142,7 @@ export function dealRoutes(
 
       const deal = await getDealByOnChainIdFromDb(BigInt(onChainDealId));
 
-      return reply.success(deal ? mapDealResponse(deal) : null);
+      return reply.success(deal);
     },
   );
 
