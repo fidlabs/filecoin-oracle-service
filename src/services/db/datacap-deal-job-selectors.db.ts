@@ -9,7 +9,7 @@ export async function getDataCapDealsToCheckClaimTerminationFromDb() {
   const deals = await prismaClient.porep_market_deal.findMany({
     where: {
       evidenceAdapterType: EvidenceAdapterType.DataCap,
-      dealEndEpoch: {
+      serviceEndEpoch: {
         not: null,
       },
       state: DealState.Active,
