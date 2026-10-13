@@ -78,7 +78,7 @@ export async function getCompletedDealsToSettleFromDb() {
 export async function getCompletedDealsToCheckClaimTerminationFromDb() {
   const deals = await prismaClient.porep_market_deal.findMany({
     where: {
-      dealEndEpoch: {
+      serviceStartEpoch: {
         not: null,
       },
       state: DealState.Active,
