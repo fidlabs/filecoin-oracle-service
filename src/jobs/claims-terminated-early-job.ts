@@ -102,6 +102,8 @@ export async function trackClaimsTerminatedEarlyJob() {
       sector: bigint;
     }[] = [];
 
+    let terminatedClaimsCount = 0;
+
     claimTrackingLogger.info("Start processing completed deals...");
 
     const CHUNK_SIZE = 30;
@@ -187,9 +189,30 @@ export async function trackClaimsTerminatedEarlyJob() {
           sector: validateClaim.call.sector,
           status: SectorStatus.Dead,
         });
+
+        terminatedClaimsCount++;
       });
 
+      const iteration = i / CHUNK_SIZE + 1;
+      if (iteration % 10 === 0 && terminatedClaims.length > 0) {
+        await updateClaimSectorStatusInDb(terminatedClaims);
+
+        claimTrackingLogger.info(
+          `Updated ${terminatedClaims.length} claims in database with DEAD sectors status after ${iteration} iterations.`,
+        );
+
+        terminatedClaims.length = 0;
+      }
+
       await sleep(2000);
+    }
+
+    if (terminatedClaims.length > 0) {
+      await updateClaimSectorStatusInDb(terminatedClaims);
+
+      claimTrackingLogger.info(
+        `Updated ${terminatedClaims.length} claims in database with DEAD sectors status after final iteration.`,
+      );
     }
 
     claimTrackingLogger.info(
@@ -197,16 +220,8 @@ export async function trackClaimsTerminatedEarlyJob() {
     );
 
     claimTrackingLogger.info(
-      `Finished processing all completed deals. Total claims marked for early termination: ${terminatedClaims.length}`,
+      `Finished processing all completed deals. Total claims marked for early termination: ${terminatedClaimsCount}`,
     );
-
-    if (terminatedClaims.length > 0) {
-      await updateClaimSectorStatusInDb(terminatedClaims);
-
-      claimTrackingLogger.info(
-        `Updated ${terminatedClaims.length} claims in database with DEAD sectors status.`,
-      );
-    }
   } catch (err) {
     claimTrackingLogger.error({ err }, "Job failed");
     throw err;
