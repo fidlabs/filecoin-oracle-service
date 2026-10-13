@@ -74,24 +74,6 @@ export async function getCompletedDealsToSettleFromDb() {
   return deals;
 }
 
-export async function getCompletedDealsToCheckClaimTerminationFromDb() {
-  const deals = await prismaClient.porep_market_deal.findMany({
-    where: {
-      serviceStartEpoch: {
-        not: null,
-      },
-      state: DealState.Active,
-      isRailTerminated: false,
-      isEvidenceComplete: true, // IMPORTANT: only consider deals with matching allocation count between expected and actual to avoid setting wrong deal end epoch
-    },
-    include: {
-      claims: true,
-    },
-  });
-
-  return deals ? deals : [];
-}
-
 export async function getCompletedDealsToTerminateFromDb(blockNumber: bigint) {
   const deals = await prismaClient.porep_market_deal.findMany({
     where: {
