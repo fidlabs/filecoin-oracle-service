@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Image tag: main or 1.x.y for v1; v2 or 2.x.y for v2"
+        description: "Image tag: main or 1.x.y for v1; v2 or major >= 2 (e.g. 2.0.0, 3.0.0) for v2"
         required: true
         default: ""
       environment:
@@ -31,12 +31,12 @@ jobs:
           VERSION: ${{ inputs.version }}
           ENVIRONMENT: ${{ inputs.environment }}
         run: |
-          if [[ "$VERSION" == "v2" || "$VERSION" =~ ^2\.[0-9]+\.[0-9]+$ ]]; then
+          if [[ "$VERSION" == "v2" || "$VERSION" =~ ^([2-9]|[1-9][0-9]+)\.[0-9]+\.[0-9]+$ ]]; then
             repository="filecoin-oracle-service-v2"
           elif [[ "$VERSION" == "main" || "$VERSION" =~ ^1\.[0-9]+\.[0-9]+$ ]]; then
             repository="filecoin-oracle-service"
           else
-            echo "Unsupported image tag: $VERSION. Use main, v2, 1.x.y or 2.x.y."
+            echo "Unsupported image tag: $VERSION. Use main, v2, 1.x.y or a version with major >= 2 (e.g. 3.0.0)."
             exit 1
           fi
           if [[ "$ENVIRONMENT" != "production" && "$ENVIRONMENT" != "staging" ]]; then
