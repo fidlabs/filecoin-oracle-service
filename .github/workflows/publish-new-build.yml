@@ -48,8 +48,8 @@ jobs:
           release_branch="${{ github.ref_name }}"
 
           case "$release_branch" in
-            main) expected_major="1" ;;
-            v2) expected_major="2" ;;
+            main) allowed_versions="1.x" ;;
+            v2) allowed_versions=">=2.0.0" ;;
             *)
               echo "Error: Releases are supported only from main and v2 branches"
               exit 1
@@ -61,8 +61,8 @@ jobs:
             exit 1
           fi
 
-          if ! npx semver "$new_version" -r "${expected_major}.x" > /dev/null; then
-            echo "Error: Branch $release_branch accepts only ${expected_major}.x versions"
+          if ! npx semver "$new_version" -r "$allowed_versions" > /dev/null; then
+            echo "Error: Branch $release_branch accepts only versions matching $allowed_versions"
             exit 1
           fi
 
