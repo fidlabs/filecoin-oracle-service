@@ -33,6 +33,7 @@ export const porepMarkerDealSelect =
     offerId: true,
     providerOrganization: true,
     dealType: true,
+    activatePaymentAt: true,
     terms: {
       select: {
         requestedSizeBytes: true,
