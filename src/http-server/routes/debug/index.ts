@@ -76,14 +76,14 @@ export function debugRoutes(
           case "sync-settlement-history":
             await syncSettlementHistoryJob();
             break;
-          case "refresh-evidence-status":
+          case "refresh-datacap-evidence-status":
             await refreshDataCapEvidenceStatusJob();
             break;
-          case "sector-activate-evidence":
-            await sectorActivateEvidenceJob();
-            break;
-          case "sector-refresh-evidence-status":
+          case "refresh-sector-evidence-status":
             await sectorRefreshEvidenceStatusJob();
+            break;
+          case "activate-sector-evidence":
+            await sectorActivateEvidenceJob();
             break;
           case "track-terminated-deals":
             await trackTerminateDealJob();

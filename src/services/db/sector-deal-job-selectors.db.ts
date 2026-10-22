@@ -1,7 +1,10 @@
 import { EvidenceAdapterType } from "../../../prisma/generated/client";
 import { DealState } from "../../utils/types";
 import { prismaClient } from "./db-client";
-import { getDealsByWhereFromDb } from "./deal-job-selectors.db";
+import {
+  getDealsByWhereFromDb,
+  getDealsThreeDaysBeforeSettlementWhere,
+} from "./deal-job-selectors.db";
 import { PorepMarketDealDto } from "./dto/porep-market-deal.dto";
 
 export async function getSectorDealsToActivateEvidenceFromDb(): Promise<
@@ -39,6 +42,7 @@ export async function getSectorDealsToRefreshEvidenceStatusFromDb(): Promise<
   PorepMarketDealDto[]
 > {
   return await getDealsByWhereFromDb({
+    AND: [getDealsThreeDaysBeforeSettlementWhere()],
     evidenceAdapterType: EvidenceAdapterType.Sector,
     state: DealState.Active,
     isEvidenceComplete: true,

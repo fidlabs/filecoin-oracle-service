@@ -17,6 +17,42 @@ export async function getDealsByWhereFromDb(
   return deals;
 }
 
+export function getDealsThreeDaysBeforeSettlementWhere(
+  now = Date.now(),
+): Prisma.porep_market_dealWhereInput {
+  const twentySevenDaysAgo = new Date(now - 27 * 24 * 60 * 60 * 1000);
+  const twentyEightDaysAgo = new Date(now - 28 * 24 * 60 * 60 * 1000);
+
+  return {
+    OR: [
+      {
+        settlement_history: {
+          some: {
+            settlementAt: {
+              gt: twentyEightDaysAgo,
+            },
+          },
+          none: {
+            settlementAt: {
+              gt: twentySevenDaysAgo,
+            },
+          },
+        },
+      },
+      {
+        settlement_history: {
+          none: {},
+        },
+        activatePaymentAt: {
+          not: null,
+          gt: twentyEightDaysAgo,
+          lte: twentySevenDaysAgo,
+        },
+      },
+    ],
+  };
+}
+
 export async function getCompletedDealsToSettleFromDb() {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
