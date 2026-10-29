@@ -123,10 +123,3 @@ export async function getDealsToSyncUrlFinderSliTargetsFromDb(): Promise<
     urlFinderSliTargetTriggeredAt: null,
   });
 }
-
-export async function getDealsToCheckForFinalRailSettlementFromDb() {
-  return prismaClient.porep_market_deal.findMany({
-    where: { railId: { gt: 0n } },
-    select: { id: true, onChainDealId: true, railId: true },
-  });
-}
