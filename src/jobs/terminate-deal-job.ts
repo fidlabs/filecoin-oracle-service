@@ -1,9 +1,11 @@
 import { Address } from "viem";
 import { getRpcClient } from "../blockchain/blockchain-client";
+import { settleRailOnFilecoinPayContract } from "../blockchain/filecoinpay-contract";
 import { terminateRailOnValidatorContract } from "../blockchain/validator-contract";
 import {
   getCompletedDealsToTerminateFromDb,
   storeOnChainTransactionToDb,
+  storeLastSettlementToDb,
 } from "../services/db/db-service";
 import { getPrismaClient } from "../services/prisma-service";
 import { baseLogger } from "../utils/logger";
@@ -37,28 +39,70 @@ export async function trackTerminateDealJob() {
     );
 
     for (const deal of dealsToTerminate) {
-      claimTrackingLogger.info(
-        `Terminating railId ${deal.railId} for deal ${deal.onChainDealId}...`,
-      );
+      try {
+        claimTrackingLogger.info(
+          `Settling railId ${deal.railId} before terminating deal ${deal.onChainDealId}...`,
+        );
 
-      const transactionResult = await terminateRailOnValidatorContract(
-        deal.validatorContractAddress as Address,
-      );
+        let settlementResult;
 
-      await storeOnChainTransactionToDb(deal.id, transactionResult);
+        try {
+          const result = await settleRailOnFilecoinPayContract(deal.railId);
 
-      await prismaClient.porep_market_deal.update({
-        where: {
-          onChainDealId: deal.onChainDealId,
-        },
-        data: {
-          isRailTerminated: true,
-        },
-      });
+          if (result.receipt.status !== "success") {
+            throw new Error(
+              `Pre-termination settlement reverted for rail ${deal.railId}`,
+            );
+          }
 
-      claimTrackingLogger.info(
-        `Successfully terminated railId ${deal.railId} for deal ${deal.onChainDealId} and updated database record`,
-      );
+          settlementResult = result;
+        } catch (err) {
+          claimTrackingLogger.warn(
+            { err, railId: deal.railId, dealId: deal.onChainDealId },
+            "Pre-termination settlement failed; continuing with termination. Outstanding settlement requires follow-up",
+          );
+        }
+
+        if (settlementResult) {
+          await storeOnChainTransactionToDb(deal.id, settlementResult);
+          await storeLastSettlementToDb(
+            deal.id,
+            settlementResult.receipt.blockNumber,
+          );
+        }
+
+        claimTrackingLogger.info(
+          `Terminating railId ${deal.railId} for deal ${deal.onChainDealId}...`,
+        );
+
+        const transactionResult = await terminateRailOnValidatorContract(
+          deal.validatorContractAddress as Address,
+        );
+
+        if (transactionResult.receipt.status !== "success") {
+          throw new Error(`Rail termination reverted for rail ${deal.railId}`);
+        }
+
+        await storeOnChainTransactionToDb(deal.id, transactionResult);
+
+        await prismaClient.porep_market_deal.update({
+          where: {
+            onChainDealId: deal.onChainDealId,
+          },
+          data: {
+            isRailTerminated: true,
+          },
+        });
+
+        claimTrackingLogger.info(
+          `Successfully terminated railId ${deal.railId} for deal ${deal.onChainDealId} and updated database record`,
+        );
+      } catch (err) {
+        claimTrackingLogger.error(
+          { err, railId: deal.railId, dealId: deal.onChainDealId },
+          "Settlement or termination failed; will retry deal on the next run",
+        );
+      }
     }
   } catch (err) {
     claimTrackingLogger.error({ err }, "Job failed");
