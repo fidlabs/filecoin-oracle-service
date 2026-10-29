@@ -1,4 +1,4 @@
-import { Address } from "viem";
+import { Address, BaseError, ContractFunctionRevertedError } from "viem";
 import { ContractName } from "../../prisma/generated/client";
 import { SERVICE_CONFIG } from "../config/env";
 import { baseLogger } from "../utils/logger";
@@ -18,6 +18,7 @@ const childLogger = baseLogger.child(
 
 export async function settleRailOnFilecoinPayContract(
   railId: bigint,
+  untilEpoch?: bigint,
 ): Promise<OnChainTransactionResult> {
   childLogger.info(`Settling rail id ${railId}...`);
 
@@ -27,7 +28,7 @@ export async function settleRailOnFilecoinPayContract(
   const functionName = "settleRail";
   childLogger.info(`${functionName}: Simulating request...`);
 
-  const currentBlock = await rpcClient.getBlockNumber();
+  const settlementEpoch = untilEpoch ?? (await rpcClient.getBlockNumber());
   const filecoinPayContractAddress =
     SERVICE_CONFIG.FILECOIN_PAY_CONTRACT_ADDRESS as Address;
 
@@ -35,7 +36,7 @@ export async function settleRailOnFilecoinPayContract(
     address: filecoinPayContractAddress,
     abi: FILECOIN_PAY_CONTRACT_ABI,
     functionName: functionName,
-    args: [railId, currentBlock],
+    args: [railId, settlementEpoch],
     account: walletClient.account,
   });
 
@@ -59,4 +60,29 @@ export async function settleRailOnFilecoinPayContract(
     functionName,
     receipt,
   };
+}
+
+/** A finalized rail is removed by Filecoin Pay and getRail reverts for it. */
+export async function getRailOnFilecoinPayContract(railId: bigint) {
+  try {
+    return await getRpcClient().readContract({
+      address: SERVICE_CONFIG.FILECOIN_PAY_CONTRACT_ADDRESS as Address,
+      abi: FILECOIN_PAY_CONTRACT_ABI,
+      functionName: "getRail",
+      args: [railId],
+    });
+  } catch (error) {
+    if (error instanceof BaseError) {
+      const revert = error.walk(
+        (cause) => cause instanceof ContractFunctionRevertedError,
+      );
+      if (
+        revert instanceof ContractFunctionRevertedError &&
+        revert.data?.errorName === "RailInactiveOrSettled"
+      ) {
+        return null;
+      }
+    }
+    throw error;
+  }
 }
