@@ -1,7 +1,9 @@
 import { finalizeDealOnPoRepMarketContract } from "../blockchain/porep-market.contract";
+import { settleRailOnFilecoinPayContract } from "../blockchain/filecoinpay-contract";
 import { getRpcClient } from "../blockchain/blockchain-client";
 import {
   getDealsToFinalizeFromDb,
+  storeLastSettlementToDb,
   storeOnChainTransactionToDb,
 } from "../services/db/db-service";
 import { baseLogger } from "../utils/logger";
@@ -34,6 +36,38 @@ export async function finalizeDealJob() {
     for (const deal of dealsToFinalize) {
       try {
         finalizeDealLogger.info(
+          { dealId: deal.onChainDealId, railId: deal.railId },
+          "Attempting settlement before finalizing deal",
+        );
+
+        let settlementResult;
+        try {
+          const result = await settleRailOnFilecoinPayContract(deal.railId);
+          if (result.receipt.status !== "success") {
+            throw new Error(
+              `Pre-finalization settlement reverted for rail ${deal.railId}`,
+            );
+          }
+          settlementResult = result;
+        } catch (err) {
+          finalizeDealLogger.warn(
+            { err, dealId: deal.onChainDealId, railId: deal.railId },
+            "Pre-finalization settlement failed; continuing with deal finalization",
+          );
+        }
+
+        if (settlementResult) {
+          await storeOnChainTransactionToDb(
+            deal.onChainDealId,
+            settlementResult,
+          );
+          await storeLastSettlementToDb(
+            deal.id,
+            settlementResult.receipt.blockNumber,
+          );
+        }
+
+        finalizeDealLogger.info(
           {
             dealId: deal.onChainDealId,
             serviceEndEpoch: deal.serviceEndEpoch,
@@ -44,6 +78,12 @@ export async function finalizeDealJob() {
         const transactionResult = await finalizeDealOnPoRepMarketContract(
           deal.onChainDealId,
         );
+
+        if (transactionResult.receipt.status !== "success") {
+          throw new Error(
+            `Deal finalization reverted for deal ${deal.onChainDealId}`,
+          );
+        }
 
         await storeOnChainTransactionToDb(
           deal.onChainDealId,
