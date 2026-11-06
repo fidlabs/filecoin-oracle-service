@@ -49,7 +49,7 @@ export function debugRoutes(
       },
     },
     async (req: PostDebugJobRequest, replay: FastifyReply) => {
-      req.log.info({ job: req.query.job }, "Received request to trigger job");
+      req.log.info(`Received request to trigger job ${req.query.job}`);
 
       try {
         switch (req.query.job) {

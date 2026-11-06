@@ -2,6 +2,7 @@ import {
   GasUsageByFunction,
   OnChainTransactionResult,
 } from "../../utils/types";
+import { baseLogger } from "../../utils/logger";
 import { prismaClient } from "./db-client";
 
 export async function storeOnChainTransactionToDb(
@@ -9,6 +10,10 @@ export async function storeOnChainTransactionToDb(
   transactionResult: OnChainTransactionResult,
 ) {
   const { receipt, contractName, functionName } = transactionResult;
+
+  baseLogger.info(
+    `On-chain transaction prepared for database insert: dealId=${onChainDealId}, contract=${contractName}, function=${functionName}, transactionHash=${receipt.transactionHash}, blockNumber=${receipt.blockNumber}, fromAddress=${receipt.from}, toAddress=${receipt.to}, gasUsed=${receipt.gasUsed}`,
+  );
 
   return prismaClient.porep_market_deal_on_chain_transaction.create({
     data: {

@@ -40,7 +40,7 @@ export async function getSliForDeals(
 
   const response = await fetchDataFromCdp<CdpDealSliResponse>(endpoint);
 
-  const dealsCount = Object.keys(response || {}).length;
+  const dealsCount = Object.keys(response.data || {}).length;
 
   cdpServiceLogger.info(
     `Fetched SLI data for ${dealsCount} deals from CDP service`,

@@ -8,7 +8,8 @@ export interface SliPeriod {
 
 const metric = z.number().finite().nonnegative().nullable();
 const measurementSchema = z.object({
-  tested_at: z.iso.datetime({ offset: true }),
+  deal_id: z.string(),
+  tested_at: z.iso.datetime({ offset: true }).nullable(),
   porep_slis: z.object({
     retrievability_bps: metric.refine(
       (value) => value === null || value <= 10000,
@@ -20,7 +21,8 @@ const measurementSchema = z.object({
 
 const responseSchema = z.object({
   deal_id: z.string(),
-  measurements: z.array(measurementSchema),
+  data: z.record(z.string(), z.array(measurementSchema)),
+  next_cursor: z.string().min(1).nullable(),
 });
 
 export type UrlFinderSliMeasurement = z.infer<typeof measurementSchema>;
@@ -50,11 +52,13 @@ export async function getSliMeasurementsForDeal(
 ): Promise<UrlFinderSliMeasurement[]> {
   validatePeriod(period);
 
-  const baseUrl = SERVICE_CONFIG.URL_FINDER_SERVICE_URL.replace(/\/$/, "");
-  const url = new URL(`${baseUrl}/deals/${dealId.toString()}/measurements`);
+  const baseUrl = SERVICE_CONFIG.URL_FINDER_SERVICE_URL.replace(/\/+$/, "");
 
-  url.searchParams.set("start", period.start.toISOString());
-  url.searchParams.set("end", period.end.toISOString());
+  const url = new URL(`${baseUrl}/deals/${dealId.toString()}/history/sli`);
+
+  url.searchParams.set("from", period.start.toISOString().slice(0, 10));
+  url.searchParams.set("to", period.end.toISOString().slice(0, 10));
+  url.searchParams.set("limit", "500");
 
   const response = await fetch(url.toString(), {
     headers: {
@@ -71,38 +75,70 @@ export async function getSliMeasurementsForDeal(
   }
 
   const data = responseSchema.parse(await response.json());
+  const measurements = Object.values(data.data).flat();
 
-  if (data.deal_id !== dealId.toString()) {
+  if (
+    data.deal_id !== dealId.toString() ||
+    measurements.some(
+      (measurement) => measurement.deal_id !== dealId.toString(),
+    )
+  ) {
     throw new Error(
-      `URL Finder returned SLI measurements for a different deal: ${data.deal_id}`,
+      "URL Finder returned SLI measurements for a different deal",
     );
   }
-  return data.measurements;
+
+  if (data.next_cursor !== null) {
+    throw new Error(
+      `URL Finder SLI history exceeds the 500-measurement limit for deal ${dealId}`,
+    );
+  }
+
+  return measurements;
+}
+
+function isInPeriod({ tested_at }: UrlFinderSliMeasurement, period: SliPeriod) {
+  if (tested_at === null) return false;
+  const time = new Date(tested_at).getTime();
+  return time >= period.start.getTime() && time < period.end.getTime();
+}
+
+export interface SliAverages {
+  retrievabilityBps: number | null;
+  bandwidthMbps: number | null;
+  latencyMs: number | null;
 }
 
 export function averageSliMeasurements(
   measurements: UrlFinderSliMeasurement[],
   period: SliPeriod,
-) {
+): SliAverages {
   validatePeriod(period);
-  const inPeriod = measurements.filter(({ tested_at }) => {
-    const time = new Date(tested_at).getTime();
-    return time >= period.start.getTime() && time < period.end.getTime();
-  });
 
-  const average = (key: keyof UrlFinderSliMeasurement["porep_slis"]) => {
-    const values = inPeriod
-      .map((measurement) => measurement.porep_slis[key])
-      .filter((value): value is number => value !== null);
+  const inPeriod = measurements.filter((measurement) =>
+    isInPeriod(measurement, period),
+  );
 
-    return values.length === 0
+  const average = (values: (number | null)[]): number | null => {
+    const availableValues = values.filter(
+      (value): value is number => value !== null,
+    );
+
+    return availableValues.length === 0
       ? null
-      : values.reduce((sum, value) => sum + value / values.length, 0);
+      : availableValues.reduce((sum, value) => sum + value, 0) /
+          availableValues.length;
   };
 
   return {
-    retrievabilityBps: average("retrievability_bps"),
-    bandwidthMbps: average("bandwidth_mbps"),
-    latencyMs: average("latency_ms"),
+    retrievabilityBps: average(
+      inPeriod.map((measurement) => measurement.porep_slis.retrievability_bps),
+    ),
+    bandwidthMbps: average(
+      inPeriod.map((measurement) => measurement.porep_slis.bandwidth_mbps),
+    ),
+    latencyMs: average(
+      inPeriod.map((measurement) => measurement.porep_slis.latency_ms),
+    ),
   };
 }

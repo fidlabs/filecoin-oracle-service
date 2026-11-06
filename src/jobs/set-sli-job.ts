@@ -5,9 +5,10 @@ import {
   storeOnChainTransactionToDb,
 } from "../services/db/db-service";
 import { baseLogger } from "../utils/logger";
-import { SliAttestation } from "../utils/types";
+import { CdpDealSliResponse, SliAttestation } from "../utils/types";
 import { parseLatencyMs } from "../utils/sli";
 import {
+  SliAverages,
   averageSliMeasurements,
   getSliMeasurementsForDeal,
   getSliPeriod,
@@ -49,59 +50,82 @@ export async function setSliOracleJob() {
       `Extracted ${uniqueDealIds.length} unique of ${dealsToSetSli.length} all deals`,
     );
 
-    // Capture one shared window so every deal uses the same measurement period.
     const period = getSliPeriod();
-    const sliDataForDeals = await getSliForDeals(uniqueDealIds);
+
+    let sliDataForDeals: CdpDealSliResponse | null = null;
+    let indexingFetchFailed = false;
+
+    try {
+      sliDataForDeals = await getSliForDeals(uniqueDealIds);
+    } catch (err) {
+      indexingFetchFailed = true;
+      sliChildLogger.error(
+        `Failed to fetch CDP indexing; continuing with URL Finder measurements: ${String(err).replace(/[\r\n]+/g, " ")}`,
+      );
+    }
+
     const buildedSliData: SliAttestation[] = [];
 
     for (const onChainDealId of uniqueDealIds) {
-      const indexingValue =
-        sliDataForDeals?.data[onChainDealId.toString()]?.INDEXING_PCT;
+      let averages: SliAverages;
 
-      const indexingMetric = Number(indexingValue);
-      if (
+      try {
+        const measurements = await getSliMeasurementsForDeal(
+          onChainDealId,
+          period,
+        );
+
+        averages = averageSliMeasurements(measurements, period);
+      } catch (err) {
+        sliChildLogger.error(
+          `Failed to fetch URL Finder history; skipping SLI attestation: dealId=${onChainDealId}, from=${period.start.toISOString()}, to=${period.end.toISOString()}, error=${String(err).replace(/[\r\n]+/g, " ")}`,
+        );
+        continue;
+      }
+
+      const indexingValue =
+        sliDataForDeals?.data?.[onChainDealId.toString()]?.INDEXING_PCT;
+
+      if (indexingFetchFailed) {
+        sliChildLogger.warn(
+          `CDP request failed: dealId=${onChainDealId}, using indexingPct=0`,
+        );
+      }
+
+      const indexingMetric =
         indexingValue === null ||
         indexingValue === undefined ||
-        (typeof indexingValue === "string" && indexingValue.trim() === "") ||
+        (typeof indexingValue === "string" && indexingValue.trim() === "")
+          ? 0
+          : Number(indexingValue);
+
+      if (
         !Number.isFinite(indexingMetric) ||
         indexingMetric < 0 ||
-        indexingMetric > 1
+        indexingMetric > 100
       ) {
         sliChildLogger.warn(
-          { onChainDealId },
-          "Missing or invalid CDP indexing metric; skipping SLI attestation",
+          `Invalid CDP indexing metric: dealId=${onChainDealId}, indexingPct=${indexingMetric}`,
         );
-        continue;
       }
 
-      const measurements = await getSliMeasurementsForDeal(
-        onChainDealId,
-        period,
-      );
-      const averages = averageSliMeasurements(measurements, period);
-      if (
-        averages.retrievabilityBps === null ||
-        averages.bandwidthMbps === null ||
-        averages.latencyMs === null
-      ) {
-        sliChildLogger.warn(
-          { onChainDealId },
-          "Incomplete URL Finder measurements for SLI period; skipping attestation",
-        );
-        continue;
-      }
-
-      buildedSliData.push({
+      const sliAttestation: SliAttestation = {
         onChainDealId,
         slis: {
-          retrievabilityBps: Math.floor(averages.retrievabilityBps),
+          retrievabilityBps: Math.floor(averages.retrievabilityBps ?? 0),
           bandwidthBytesPerSecond: convertMbpsToBytesPerSecond(
-            averages.bandwidthMbps.toString(),
+            (averages.bandwidthMbps ?? 0).toString(),
           ),
-          indexingPct: Math.floor(indexingMetric * 100),
+          indexingPct: Math.floor(indexingMetric),
           latencyMs: parseLatencyMs(averages.latencyMs),
         },
-      });
+      };
+
+      buildedSliData.push(sliAttestation);
+
+      sliChildLogger.info(
+        `SLI attestation prepared for setSLI (not yet submitted): dealId=${onChainDealId}, retrievabilityBps=${sliAttestation.slis.retrievabilityBps}, bandwidthBytesPerSecond=${sliAttestation.slis.bandwidthBytesPerSecond}, indexingPct=${sliAttestation.slis.indexingPct}, latencyMs=${sliAttestation.slis.latencyMs}`,
+      );
     }
 
     if (buildedSliData.length === 0) {
@@ -128,7 +152,7 @@ export async function setSliOracleJob() {
 
     sliChildLogger.info(`Finished calculating score for providers`);
   } catch (err) {
-    sliChildLogger.error({ err }, "Failed");
+    sliChildLogger.error(`Failed: ${String(err).replace(/[\r\n]+/g, " ")}`);
     throw err;
   } finally {
     sliChildLogger.info("Job finished");
