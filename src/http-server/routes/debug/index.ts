@@ -4,6 +4,7 @@ import {
   FastifyReply,
   FastifyRequest,
 } from "fastify";
+import { sectorHealthJob } from "../../../jobs/sector/sector-health-job";
 import { SERVICE_CONFIG } from "../../../config/env";
 import { trackClaimsTerminatedEarlyJob } from "../../../jobs/datacap/claims-terminated-early-job";
 import { dataCapPostingFinishedJob } from "../../../jobs/datacap/datacap-posting-finished-job";
@@ -81,6 +82,9 @@ export function debugRoutes(
             break;
           case "refresh-sector-evidence-status":
             await sectorRefreshEvidenceStatusJob();
+            break;
+          case "check-sector-health":
+            await sectorHealthJob();
             break;
           case "activate-sector-evidence":
             await sectorActivateEvidenceJob();

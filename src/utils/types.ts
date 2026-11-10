@@ -391,3 +391,10 @@ export type GasUsageByFunction = {
   transactionCount: bigint;
   gasUsed: bigint;
 };
+
+export type FilecoinTipSetKey = { "/": string }[];
+
+export interface FilecoinAPIChainHead {
+  Height: number;
+  Cids: FilecoinTipSetKey;
+}

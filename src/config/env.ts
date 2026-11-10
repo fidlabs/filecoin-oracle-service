@@ -8,6 +8,9 @@ export const EnvKeys = {
   URL_FINDER_AUTH_TOKEN: "URL_FINDER_AUTH_TOKEN",
   EVIDENCE_BATCH_SIZE: "EVIDENCE_BATCH_SIZE",
   SECTOR_REFRESH_BATCH_SIZE: "SECTOR_REFRESH_BATCH_SIZE",
+  SECTOR_HEALTH_MAX_ATTEMPTS: "SECTOR_HEALTH_MAX_ATTEMPTS",
+  TRIGGER_SECTOR_HEALTH_JOB_INTERVAL_CRON:
+    "TRIGGER_SECTOR_HEALTH_JOB_INTERVAL_CRON",
 
   POREP_SERVICE_ROLE_WALLET_PK: "POREP_SERVICE_ROLE_WALLET_PK",
   ORACLE_ROLE_WALLET_PK: "ORACLE_ROLE_WALLET_PK",
@@ -51,8 +54,31 @@ export const EnvKeys = {
 
 type EnvKey = (typeof EnvKeys)[keyof typeof EnvKeys];
 
-export const SERVICE_CONFIG: Record<EnvKey, string> = {
+const sectorHealthMaxAttempts = Number(
+  process.env.SECTOR_HEALTH_MAX_ATTEMPTS || "3",
+);
+if (
+  !Number.isInteger(sectorHealthMaxAttempts) ||
+  sectorHealthMaxAttempts < 1 ||
+  sectorHealthMaxAttempts > 5
+) {
+  throw new Error(
+    "SECTOR_HEALTH_MAX_ATTEMPTS must be an integer between 1 and 5",
+  );
+}
+
+type ServiceConfig = Record<
+  Exclude<EnvKey, "SECTOR_HEALTH_MAX_ATTEMPTS">,
+  string
+> & {
+  SECTOR_HEALTH_MAX_ATTEMPTS: number;
+};
+
+export const SERVICE_CONFIG: ServiceConfig = {
   LOG_LEVEL: process.env.LOG_LEVEL || "info",
+  SECTOR_HEALTH_MAX_ATTEMPTS: sectorHealthMaxAttempts,
+  TRIGGER_SECTOR_HEALTH_JOB_INTERVAL_CRON:
+    process.env.TRIGGER_SECTOR_HEALTH_JOB_INTERVAL_CRON || "0 5 * * *",
   SLI_ORACLE_CONTRACT_ADDRESS: process.env.SLI_ORACLE_CONTRACT_ADDRESS || "",
   RPC_URL: process.env.RPC_URL || "",
   CHAIN_ID: process.env.CHAIN_ID || "",
