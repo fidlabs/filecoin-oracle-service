@@ -10,6 +10,7 @@ export type DebugJob =
   | "track-terminated-claims"
   | "run-settlement"
   | "sync-settlement-history"
+  | "check-sector-health"
   | "activate-sector-evidence"
   | "refresh-sector-evidence-status"
   | "refresh-datacap-evidence-status"

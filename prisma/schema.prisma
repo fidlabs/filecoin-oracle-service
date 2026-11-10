@@ -18,6 +18,29 @@ enum SectorStatus {
   Faulty
 }
 
+enum SectorHealthCheckType {
+  Initialization
+  Daily
+}
+
+enum SectorHealthCheckState {
+  Running
+  Completed
+  Failed
+}
+
+enum SectorHealthCheckResult {
+  Healthy
+  Unhealthy
+  Unknown
+}
+
+enum SectorHealthCheckStopReason {
+  Completed
+  NonActiveFound
+  Error
+}
+
 enum DealState {
   None
   Proposed
@@ -195,9 +218,10 @@ model sector_adapter {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  deal    porep_market_deal       @relation(fields: [porepMarketDealId], references: [id])
-  receipt sector_adapter_receipt?
-  sectors sector_adapter_sector[]
+  deal         porep_market_deal             @relation(fields: [porepMarketDealId], references: [id])
+  receipt      sector_adapter_receipt?
+  sectors      sector_adapter_sector[]
+  healthChecks sector_adapter_health_check[]
 }
 
 model sector_adapter_sector {
@@ -210,8 +234,64 @@ model sector_adapter_sector {
   createdAt       DateTime       @default(now())
   sectorAdapter   sector_adapter @relation(fields: [sectorAdapterId], references: [id])
 
+  health sector_adapter_sector_health?
+
   @@unique([sectorAdapterId, sectorIndex])
   @@index([sectorAdapterId])
+}
+
+model sector_adapter_sector_health {
+  sectorAdapterSectorId String        @id @db.Uuid
+  lastKnownStatus       SectorStatus?
+  lastObservedEpoch     BigInt?
+  lastAttemptAt         DateTime?
+  lastError             String?
+
+  sector          sector_adapter_sector                  @relation(fields: [sectorAdapterSectorId], references: [id])
+  history         sector_adapter_sector_health_history[]
+  triggeredChecks sector_adapter_health_check[]          @relation("HealthCheckTrigger")
+}
+
+model sector_adapter_health_check {
+  id                    String                       @id @default(uuid()) @db.Uuid
+  sectorAdapterId       String                       @db.Uuid
+  type                  SectorHealthCheckType
+  state                 SectorHealthCheckState       @default(Running)
+  result                SectorHealthCheckResult?
+  startedAt             DateTime                     @default(now())
+  finishedAt            DateTime?
+  observationEpoch      BigInt?
+  blockHash             String?
+  totalSectors          Int
+  checkedSectors        Int                          @default(0)
+  failedSectors         Int                          @default(0)
+  triggerSectorHealthId String?                      @db.Uuid
+  stopReason            SectorHealthCheckStopReason?
+  error                 String?
+
+  sectorAdapter       sector_adapter                         @relation(fields: [sectorAdapterId], references: [id])
+  triggerSectorHealth sector_adapter_sector_health?          @relation("HealthCheckTrigger", fields: [triggerSectorHealthId], references: [sectorAdapterSectorId])
+  observations        sector_adapter_sector_health_history[]
+
+  @@index([sectorAdapterId, startedAt])
+  @@index([triggerSectorHealthId])
+}
+
+
+model sector_adapter_sector_health_history {
+  id             String        @id @default(uuid()) @db.Uuid
+  sectorHealthId String        @db.Uuid
+  checkId        String        @db.Uuid
+  observedStatus SectorStatus?
+  observedEpoch  BigInt?
+  checkedAt      DateTime      @default(now())
+  error          String?
+
+  sectorHealth sector_adapter_sector_health @relation(fields: [sectorHealthId], references: [sectorAdapterSectorId])
+  check        sector_adapter_health_check  @relation(fields: [checkId], references: [id])
+
+  @@unique([checkId, sectorHealthId])
+  @@index([sectorHealthId, observedEpoch])
 }
 
 model porep_market_deal {
