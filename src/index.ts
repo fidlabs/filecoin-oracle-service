@@ -6,6 +6,7 @@ import { trackClaimsTerminatedEarlyJob } from "./jobs/datacap/claims-terminated-
 import { dataCapPostingFinishedJob } from "./jobs/datacap/datacap-posting-finished-job";
 import { refreshDataCapEvidenceStatusJob } from "./jobs/datacap/datacap-refresh-evidence-status-job";
 import { finalizeDealJob } from "./jobs/finalize-deal-job";
+import { sectorHealthJob } from "./jobs/sector/sector-health-job";
 import { sectorActivateEvidenceJob } from "./jobs/sector/sector-activate-evidence-job";
 import { sectorRefreshEvidenceStatusJob } from "./jobs/sector/sector-refresh-evidence-status-job";
 import { setSliOracleJob } from "./jobs/set-sli-job";
@@ -102,6 +103,13 @@ try {
   childLogger.info(
     `Scheduling Sector Refresh Evidence Status cron job "${sectorRefreshEvidenceStatusInterval}"`,
   );
+
+  const sectorHealthInterval =
+    SERVICE_CONFIG.TRIGGER_SECTOR_HEALTH_JOB_INTERVAL_CRON;
+  childLogger.info(
+    `Scheduling Sector Health cron job "${sectorHealthInterval}"`,
+  );
+  cron.schedule(sectorHealthInterval, sectorHealthJob);
 
   cron.schedule(refreshEvidenceStatusInterval, refreshDataCapEvidenceStatusJob);
   cron.schedule(syncDealsInterval, syncDealsJob);

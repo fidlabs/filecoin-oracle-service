@@ -23,6 +23,7 @@ export const batchValidateSectorStatus = async (
     deadline: bigint;
     partition: bigint;
   }[],
+  blockNumber?: bigint,
 ) => {
   const rpcClient = getRpcClient();
 
@@ -47,6 +48,7 @@ export const batchValidateSectorStatus = async (
   const raw = await rpcClient.call({
     to: SERVICE_CONFIG.SECTOR_STATUS_INSPECTOR_CONTRACT_ADDRESS as Address,
     data: encoded,
+    blockNumber,
   });
 
   const decoded = decodeAbiParameters(
