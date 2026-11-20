@@ -167,7 +167,7 @@ curl -X POST \
 
 Requirements:
 
-- Node.js 24+;
+- Node.js 26+;
 - PostgreSQL 17 or a compatible version;
 - access to a Filecoin RPC endpoint and deployed contract addresses.
 
