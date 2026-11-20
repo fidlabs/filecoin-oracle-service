@@ -1,9 +1,9 @@
-import { SERVICE_CONFIG } from "../config/env";
-import { getFilecoinPayRailFromCdp } from "../services/cdp-fetch-service";
+import { getRpcClient } from "../blockchain/blockchain-client";
 import {
   getCompletedDealsToSettleFromDb,
   storeLastSettlementToDb,
 } from "../services/db/db-service";
+import { getFilecoinPayRailFromHyperion } from "../services/hyperion-fetch-service";
 import { baseLogger } from "../utils/logger";
 
 const settlementHistorySyncLogger = baseLogger.child(
@@ -12,78 +12,27 @@ const settlementHistorySyncLogger = baseLogger.child(
 );
 
 const FILECOIN_EPOCH_DURATION_SECONDS = 30n;
-
-let cachedGenesisTimestampSeconds: bigint | null = null;
-
-async function resolveGenesisTimestampSeconds(): Promise<bigint> {
-  if (cachedGenesisTimestampSeconds !== null) {
-    return cachedGenesisTimestampSeconds;
-  }
-
-  switch (Number(SERVICE_CONFIG.CHAIN_ID)) {
-    case 314:
-      cachedGenesisTimestampSeconds = 1598306400n;
-      break;
-    case 314159:
-      cachedGenesisTimestampSeconds = 1667326380n;
-      break;
-    case 31415926: {
-      // Local Curio / Filecoin DevChain — genesis is set when the net starts.
-      const response = await fetch(SERVICE_CONFIG.RPC_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          method: "Filecoin.ChainGetGenesis",
-          params: [],
-          id: 1,
-        }),
-      });
-      if (!response.ok) {
-        throw new Error(
-          `Filecoin.ChainGetGenesis failed: HTTP ${response.status}`,
-        );
-      }
-      const payload = (await response.json()) as {
-        result?: { Blocks?: Array<{ Timestamp?: number }> };
-        error?: unknown;
-      };
-      if (payload.error) {
-        throw new Error(
-          `Filecoin.ChainGetGenesis RPC error: ${JSON.stringify(payload.error)}`,
-        );
-      }
-      const timestamp = payload.result?.Blocks?.[0]?.Timestamp;
-      if (typeof timestamp !== "number") {
-        throw new Error(
-          "Filecoin.ChainGetGenesis returned no genesis block Timestamp",
-        );
-      }
-      cachedGenesisTimestampSeconds = BigInt(timestamp);
-      break;
-    }
-    default:
-      throw new Error(
-        `Unsupported CHAIN_ID for epoch->date conversion: ${SERVICE_CONFIG.CHAIN_ID}`,
-      );
-  }
-
-  return cachedGenesisTimestampSeconds;
-}
-
-function filecoinEpochToDate(epoch: bigint, genesisTimestampSeconds: bigint) {
-  const timestampSeconds =
-    epoch * FILECOIN_EPOCH_DURATION_SECONDS + genesisTimestampSeconds;
-
-  return new Date(Number(timestampSeconds) * 1000);
-}
+const THIRTY_DAYS_IN_SECONDS = 30n * 24n * 60n * 60n;
+const THIRTY_DAYS_IN_EPOCHS =
+  THIRTY_DAYS_IN_SECONDS / FILECOIN_EPOCH_DURATION_SECONDS;
 
 function isAtLeastThirtyDaysAgo(date: Date | null | undefined) {
   if (!date) return false;
-  return date.getTime() <= Date.now() - 30 * 24 * 60 * 60 * 1000;
+  return date.getTime() <= Date.now() - Number(THIRTY_DAYS_IN_SECONDS) * 1000;
 }
 
-export async function syncSettlementHistoryFromCdp() {
+/**
+ * Approximates the wall-clock time of a past epoch relative to the current
+ * epoch, so no chain-specific genesis timestamp is needed.
+ */
+function epochToApproximateDate(epoch: bigint, currentEpoch: bigint) {
+  const epochsAgo = currentEpoch - epoch;
+  const secondsAgo = epochsAgo * FILECOIN_EPOCH_DURATION_SECONDS;
+
+  return new Date(Date.now() - Number(secondsAgo) * 1000);
+}
+
+export async function syncSettlementHistoryFromHyperion() {
   const completedDeals = await getCompletedDealsToSettleFromDb();
 
   if (completedDeals.length === 0) {
@@ -97,7 +46,7 @@ export async function syncSettlementHistoryFromCdp() {
     `Found ${completedDeals.length} completed deals to sync settlement history`,
   );
 
-  const genesisTimestampSeconds = await resolveGenesisTimestampSeconds();
+  const currentEpoch = await getRpcClient().getBlockNumber();
 
   for (const deal of completedDeals) {
     try {
@@ -105,38 +54,45 @@ export async function syncSettlementHistoryFromCdp() {
         `Syncing settlement history for dealId ${deal.onChainDealId} rail ${deal.railId}...`,
       );
 
-      const rail = await getFilecoinPayRailFromCdp(deal.railId);
+      const rail = await getFilecoinPayRailFromHyperion(deal.railId);
 
-      const settledUpToFromCdp = BigInt(rail.settledUpTo);
-      const lastSettledUpFromCdpDate = filecoinEpochToDate(
-        settledUpToFromCdp,
-        genesisTimestampSeconds,
-      );
+      const settledUpToFromHyperion = BigInt(rail.settledUpTo);
+
+      if (settledUpToFromHyperion > currentEpoch) {
+        settlementHistorySyncLogger.warn(
+          `Rail ${deal.railId} settledUpTo ${settledUpToFromHyperion} is ahead of current epoch ${currentEpoch}; Skipping.`,
+        );
+        continue;
+      }
 
       const lastSettlementAt = deal.settlement_history[0]?.settlementAt
         ? deal.settlement_history[0].settlementAt
         : deal.activatePaymentAt;
 
       const was30DaysAgoFromDb = isAtLeastThirtyDaysAgo(lastSettlementAt);
-      const was30DaysAgoFromCdp = isAtLeastThirtyDaysAgo(
-        lastSettledUpFromCdpDate,
-      );
+      const was30DaysAgoFromHyperion =
+        currentEpoch - settledUpToFromHyperion >= THIRTY_DAYS_IN_EPOCHS;
 
-      if (was30DaysAgoFromDb && was30DaysAgoFromCdp) {
+      if (was30DaysAgoFromDb && was30DaysAgoFromHyperion) {
         settlementHistorySyncLogger.info(
-          `Settlement history for rail ${deal.railId} is already up to date at epoch ${settledUpToFromCdp}`,
+          `Settlement history for rail ${deal.railId} is already up to date at epoch ${settledUpToFromHyperion}`,
         );
         continue;
       }
 
+      const lastSettledUpFromHyperionDate = epochToApproximateDate(
+        settledUpToFromHyperion,
+        currentEpoch,
+      );
+
       await storeLastSettlementToDb(
         deal.id,
-        settledUpToFromCdp,
-        lastSettledUpFromCdpDate,
+        settledUpToFromHyperion,
+        lastSettledUpFromHyperionDate,
       );
 
       settlementHistorySyncLogger.info(
-        `Stored settlement history for rail ${deal.railId} at epoch ${settledUpToFromCdp}`,
+        `Stored settlement history for rail ${deal.railId} at epoch ${settledUpToFromHyperion} (~${lastSettledUpFromHyperionDate.toISOString()})`,
       );
     } catch (error) {
       settlementHistorySyncLogger.error(
@@ -151,7 +107,7 @@ export async function syncSettlementHistoryJob() {
   try {
     settlementHistorySyncLogger.info("Job started");
 
-    await syncSettlementHistoryFromCdp();
+    await syncSettlementHistoryFromHyperion();
   } catch (error) {
     settlementHistorySyncLogger.error({ error }, "Job failed");
     throw error;

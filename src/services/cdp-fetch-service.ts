@@ -1,6 +1,6 @@
 import { SERVICE_CONFIG } from "../config/env";
 import { baseLogger } from "../utils/logger";
-import { CdpDealSliResponse, CdpFilecoinPayRailResponse } from "../utils/types";
+import { CdpDealSliResponse } from "../utils/types";
 
 const cdpServiceLogger = baseLogger.child(
   { avengers: "assemble" },
@@ -47,14 +47,4 @@ export async function getSliForDeals(
   );
 
   return response;
-}
-
-export async function getFilecoinPayRailFromCdp(
-  railId: bigint,
-): Promise<CdpFilecoinPayRailResponse> {
-  cdpServiceLogger.info(`Fetching Filecoin Pay rail ${railId} from CDP...`);
-
-  return fetchDataFromCdp<CdpFilecoinPayRailResponse>(
-    `filecoin-pay/rails/${railId}`,
-  );
 }

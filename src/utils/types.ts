@@ -57,7 +57,7 @@ export interface FilecoinAPIStateSectorPartition {
   Deadline: bigint;
 }
 
-export interface CdpFilecoinPayRailResponse {
+export interface HyperionFilecoinPayRailResponse {
   railId: string;
   token: {
     address: Address;
