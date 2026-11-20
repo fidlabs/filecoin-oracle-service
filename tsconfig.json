@@ -8,9 +8,11 @@
     "strict": true,
     "isolatedModules": true,
     "skipLibCheck": true,
+    "rootDir": ".",
     "outDir": "./dist",
     "inlineSourceMap": true,
-    "strictPropertyInitialization": false
+    "strictPropertyInitialization": false,
+    "types": ["node", "jest"]
   },
   "include": ["src/**/*", "tests/**/*"],
   "exclude": ["node_modules"]
