@@ -27,7 +27,7 @@ export async function settleRailOnFilecoinPayContract(
   const functionName = "settleRail";
   childLogger.info(`${functionName}: Simulating request...`);
 
-  const currentBlock = await rpcClient.getBlockNumber();
+  const settlementEpoch = await rpcClient.getBlockNumber();
   const filecoinPayContractAddress =
     SERVICE_CONFIG.FILECOIN_PAY_CONTRACT_ADDRESS as Address;
 
@@ -35,7 +35,7 @@ export async function settleRailOnFilecoinPayContract(
     address: filecoinPayContractAddress,
     abi: FILECOIN_PAY_CONTRACT_ABI,
     functionName: functionName,
-    args: [railId, currentBlock],
+    args: [railId, settlementEpoch],
     account: walletClient.account,
   });
 
