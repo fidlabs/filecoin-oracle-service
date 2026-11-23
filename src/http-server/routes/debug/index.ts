@@ -1,3 +1,4 @@
+import { createHash, timingSafeEqual } from "node:crypto";
 import {
   FastifyInstance,
   FastifyPluginOptions,
@@ -17,18 +18,29 @@ import { httpLogger } from "../../server";
 import { AppError } from "../../utils/response-formatter-plugin/types";
 import { PostDebugJobRequest } from "./type";
 
-export function apiAuthMiddleware(req: FastifyRequest) {
-  const authHeader = req.headers["authorization"];
+const MIN_AUTH_TOKEN_LENGTH = 32;
 
+const sha256 = (value: string) => createHash("sha256").update(value).digest();
+
+export function apiAuthMiddleware(req: FastifyRequest) {
   const AUTH_TOKEN = SERVICE_CONFIG.JOB_TRIGGER_AUTH_TOKEN;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  if (AUTH_TOKEN.length < MIN_AUTH_TOKEN_LENGTH) {
+    throw new AppError(
+      "Job trigger endpoint is disabled",
+      "JOB_TRIGGER_DISABLED",
+      503,
+    );
+  }
+
+  const match = /^Bearer (\S+)$/.exec(req.headers["authorization"] ?? "");
+
+  if (!match) {
     throw new AppError("Unauthorized", "UNAUTHORIZED", 401);
   }
 
-  const token = authHeader.split(" ")[1];
-
-  if (token !== AUTH_TOKEN) {
+  // Compare hashes so both buffers have equal length for timingSafeEqual.
+  if (!timingSafeEqual(sha256(match[1]), sha256(AUTH_TOKEN))) {
     throw new AppError("Forbidden", "FORBIDDEN", 403);
   }
 }
