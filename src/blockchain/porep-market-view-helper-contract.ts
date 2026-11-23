@@ -21,7 +21,7 @@ export async function getDealsFromPoRepMarketViewContract(): Promise<
   const dealViews: PorepMarketContractDealView[] = [];
 
   let offset = 0n;
-  let totalDeals = 0n;
+  let totalDeals: bigint;
 
   do {
     const [pageDealViews, total] = await rpcClient.readContract({

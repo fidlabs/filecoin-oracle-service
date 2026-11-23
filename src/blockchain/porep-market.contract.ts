@@ -23,8 +23,7 @@ const childLogger = baseLogger.child(
 );
 
 type EvidenceTransactionFunctionName =
-  | "submitEvidenceBatch"
-  | "activateEvidence";
+  "submitEvidenceBatch" | "activateEvidence";
 
 export interface PorepMarketEvidenceTransactionResult {
   decision: EvidenceActivationDecision;
