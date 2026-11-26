@@ -50,7 +50,7 @@ jobs:
           echo "repository=$repository" >> "$GITHUB_OUTPUT"
 
       - name: Trigger deploy
-        uses: neti-filplus-infra/filplus-deploy-action@main
+        uses: neti-filplus-infra/filplus-deploy-action@8214e7d3a00d64e547024da40e044c04c6dcd13c # main
         with:
           version: ${{ inputs.version }}
           environment: ${{ inputs.environment }}
