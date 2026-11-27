@@ -59,13 +59,14 @@ export async function createOrUpdatePoRepDealSliTargetInUrlFinder(
     body: JSON.stringify(requestBody),
   });
 
+  const responseBody = await response.text();
+
   if (!response.ok) {
     urlFinderServiceLogger.error(
+      { requestBody, responseBody },
       `URL Finder PoRep Deal SLI target PUT failed for deal ${deal.onChainDealId.toString()}: ${response.status} ${response.statusText}`,
     );
   }
-
-  await response.text();
 
   return response.ok;
 }
